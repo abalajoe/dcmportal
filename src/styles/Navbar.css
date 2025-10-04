@@ -1,0 +1,31 @@
+.navbar {
+    height: 60px;
+    background: green;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* keeps logo left + actions right */
+    padding: 0 1rem;
+    position: relative;
+}
+
+.navbar-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.navbar-actions button.logout-btn {
+    background: white;
+    color: green;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.navbar-actions button.logout-btn:hover {
+    background: #f0f0f0;
+}
