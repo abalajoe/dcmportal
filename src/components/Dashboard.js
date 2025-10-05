@@ -85,11 +85,12 @@ const Dashboard = () => {
                         onClick={handleSearch}
                         disabled={loading}
                         sx={{
-                            height: 40,
+                            height: 38,
                             minWidth: 100,
                             backgroundColor: "#116530",
                             textTransform: "none",
                             fontWeight: 500,
+                            mt: -0.2,
                             "&:hover": { backgroundColor: "#0d4d24" },
                             width: { xs: "100%", sm: "auto" }, // full width on mobile
                         }}

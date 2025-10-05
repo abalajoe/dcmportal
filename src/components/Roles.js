@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import dayjs from "dayjs";
+import api from "../services/axios";
 import {
     Box,
     Button,
@@ -52,8 +53,12 @@ const Roles = () => {
             const sortField = sortModel[0]?.field || "id";
             const sortDir = sortModel[0]?.sort?.toUpperCase() || "DESC";
 
-            const response = await fetch(
+            /*const response = await fetch(
                 `http://localhost:7081/api/accountstatementengine/v1/user/findAll?start=${paginationModel.page}&length=${paginationModel.pageSize}&sort=${sortField},${sortDir}`
+            );*/
+
+            const response = await api.get(
+                `/user/findAll?start=${paginationModel.page}&length=${paginationModel.pageSize}&sort=${sortField},${sortDir}`
             );
 
             if (!response.ok) throw new Error("Failed to fetch users");

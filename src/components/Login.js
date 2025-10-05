@@ -18,19 +18,48 @@ function LoginPage() {
     const [password, setPassword] = useState("");
     const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [emailError, setEmailError] = useState({ error: false, helperText: "" });
+    const [passwordError, setPasswordError] = useState({ error: false, helperText: "" });
     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+    const [helperText, setHelperText] = useState("");
     let navigate = useNavigate();
+
+    const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
     const handleLogin = async (e) => {
         e.preventDefault();
+
+        if (!email) {
+            setSnackbar({ open: true, message: "Please enter email address", severity: "error" });
+            setEmailError({ error: true, helperText: "Email is required" });
+            return;
+        }
+
+        if (!validateEmail(email)) {
+            setSnackbar({ open: true, message: "Please enter a valid email address", severity: "error" });
+            setEmailError({ error: true, helperText: "Enter a valid email address" });
+            return;
+        } else {
+            setEmailError({ error: false, helperText: "" });
+        }
+
+        if (!password) {
+            setSnackbar({ open: true, message: "Please enter password", severity: "error" });
+            setPasswordError({ error: true, helperText: "Password is required" });
+            return;
+        } else {
+            setPasswordError({ error: false, helperText: "" });
+        }
         setLoading(true);
-        setError("");
+        setEmailError("");
+        setPasswordError("");
 
         console.log("Login", email, password);
         try {
             const data = await loginUser(email, password);
             console.log("Login successful:", data);
-
+            console.log("Login successful22:", data.access_token);
+            localStorage.setItem("authToken", data.access_token);
             if (rememberMe) {
                 localStorage.setItem("authToken", data.token);
             }
@@ -41,7 +70,8 @@ function LoginPage() {
         } catch (err) {
             setSnackbar({ open: true, message: "Login failed!", severity: "error" });
             console.error(err);
-            setError(err.message);
+            setEmailError(err.message);
+            setPasswordError(err.message);
         } finally {
             setLoading(false);
         }
@@ -81,7 +111,7 @@ function LoginPage() {
                     <Typography variant="h6" sx={{fontWeight: "bold", mt: 1}}>
                         <img src="/cooplogo.jpeg" alt="logo" style={{height: 36}}/>
                     </Typography>
-                    <Typography variant="h6">STATEMENT ENGINE</Typography>
+                    <Typography variant="h6">ACCOUNT STATEMENT ENGINE</Typography>
                 </Box>
             </Box>
 
@@ -92,9 +122,10 @@ function LoginPage() {
                     display: "flex",
                     justifyContent: "center",
                     alignItems: "center",
+                    mt: -20
                 }}
             >
-                <Card sx={{ width: 500, boxShadow: 3 }}>
+                <Card sx={{ width: 600, boxShadow: 3 }}>
                     <CardContent>
                         <Box
                             component="form"
@@ -102,14 +133,29 @@ function LoginPage() {
                             onSubmit={handleLogin}
                         >
                             <TextField
-                                label="Email address"
+                                label="Email Address"
                                 variant="outlined"
+                                size="small"
                                 fullWidth
-                                required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
+                                error={emailError.error}
+                                helperText={emailError.helperText}
+                                sx={{ "& .MuiInputBase-root": { height: 40 } }}
                             />
                             <TextField
+                                label="Password"
+                                variant="outlined"
+                                type="password"
+                                size="small"
+                                fullWidth
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                error={passwordError.error}
+                                helperText={passwordError.helperText}
+                                sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                            />
+                            {/*<TextField
                                 label="Password"
                                 type="password"
                                 variant="outlined"
@@ -117,7 +163,7 @@ function LoginPage() {
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                            />
+                            />*/}
                             <FormControlLabel
                                 control={
                                     <Checkbox
@@ -127,12 +173,6 @@ function LoginPage() {
                                 }
                                 label="Remember me"
                             />
-
-                            {error && (
-                                <Typography color="error" variant="body2">
-                                    {error}
-                                </Typography>
-                            )}
 
                             <Button
                                 variant="contained"

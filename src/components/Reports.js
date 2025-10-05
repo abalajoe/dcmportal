@@ -67,7 +67,7 @@ const Reports = () => {
                         variant="contained"
                         onClick={handleSearch}
                         disabled={loading}
-                        sx={{ height: 40, minWidth: 100, width: { xs: "100%", sm: "auto" } }}
+                        sx={{ height: 38, minWidth: 100, width: { xs: "100%", sm: "auto" }}}
                     >
                         {loading ? <CircularProgress size={20} color="inherit" /> : "Submit"}
                     </Button>
