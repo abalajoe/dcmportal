@@ -21,7 +21,6 @@ function LoginPage() {
     const [emailError, setEmailError] = useState({ error: false, helperText: "" });
     const [passwordError, setPasswordError] = useState({ error: false, helperText: "" });
     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
-    const [helperText, setHelperText] = useState("");
     let navigate = useNavigate();
 
     const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -156,15 +155,6 @@ function LoginPage() {
                                 helperText={passwordError.helperText}
                                 sx={{ "& .MuiInputBase-root": { height: 40 } }}
                             />
-                            {/*<TextField
-                                label="Password"
-                                type="password"
-                                variant="outlined"
-                                fullWidth
-                                required
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />*/}
                             <FormControlLabel
                                 control={
                                     <Checkbox

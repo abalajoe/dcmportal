@@ -526,6 +526,11 @@ const AccountManagement = () => {
                     disableColumnMenu
                     rowHeight={40}          // 👈 smaller rows
                     headerHeight={38}       // 👈 smaller header
+                    sx={{
+                        "& .MuiDataGrid-columnHeaderTitle": {
+                            fontWeight: "700",
+                        },
+                    }}
                     slots={{
                         loadingOverlay: () => (
                             <Box

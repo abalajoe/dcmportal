@@ -36,7 +36,7 @@ export default function Navbar() {
                         whiteSpace: "nowrap",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        fontWeight: 500,
+                        fontWeight: 600,
                     }}
                 >
                     Account Statement
@@ -51,7 +51,7 @@ export default function Navbar() {
                         mt: { xs: 1, sm: 0 },   // wrap margin on small screens
                     }}
                 >
-                    <Typography variant="body2" sx={{ color: "#fff" }}>
+                    <Typography variant="body2" sx={{ color: "#fff",fontWeight: "bold", }}>
                         joeabala@co-0pbank.co.ke
                     </Typography>
                 </Box>

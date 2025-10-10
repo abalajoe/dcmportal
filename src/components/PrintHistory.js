@@ -167,6 +167,8 @@ const PrintHistory = () => {
                     variant="contained"
                     sx={{
                         backgroundColor: "#0b4b2b",
+                        textTransform: "none",
+                        fontWeight: "bold",
                         "&:hover": { backgroundColor: "#0d5c35" },
                     }}
                     onClick={exportToExcel}
