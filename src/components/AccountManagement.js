@@ -151,35 +151,6 @@ const AccountManagement = () => {
         setManagerError(false);
         setManagerHelper("");
 
-
-        //
-        // setLoading(true);
-        // const newUser = { email: email.toLowerCase(), role: "Admin" };
-        //
-        // try {
-        //     const response = await fetch(
-        //         "http://localhost:7081/api/accountstatementengine/v1/user/findAllAccountManagement",
-        //         {
-        //             method: "POST",
-        //             headers: { "Content-Type": "application/json" },
-        //             body: JSON.stringify(newUser),
-        //         }
-        //     );
-        //     if (!response.ok) {
-        //         const errData = await response.json();
-        //         setSnackbar({ open: true, message: "Something went wrong", severity: "error" });
-        //         throw new Error(errData.message || "Failed to add user");
-        //     }
-        //     await fetchUsers(); // refresh list from server
-        //     setSnackbar({ open: true, message: "Successfully added user", severity: "success" });
-        //     setRoles("");
-        //     setEmail("");
-        // } catch (err) {
-        //     console.error("Add user error:", err);
-        //     alert(err.message);
-        // } finally {
-        //     setLoading(false);
-        // }
     };
 
 
@@ -346,11 +317,11 @@ const AccountManagement = () => {
 
     return (
         <Box sx={{
-                pt: 2,  // padding-top
-                pb: 3,  // padding-bottom
-                pl: 2,  // padding-left
-                pr: 1,  // padding-right
-            }}>
+            pt: 2,  // padding-top
+            pb: 3,  // padding-bottom
+            pl: 2,  // padding-left
+            pr: 1,  // padding-right
+        }}>
             <Box
                 sx={{
                     display: "flex",
@@ -390,7 +361,7 @@ const AccountManagement = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     error={emailError}
                     // helperText={emailHelper}
-                    sx={{ "& .MuiInputBase-root": { height: 40 }, flex: 1 }}
+                    sx={{ "& .MuiInputBase-root": { height: 40 }, flex: 1}}
                 />
 
                 {/* Role Autocomplete */}
@@ -439,39 +410,39 @@ const AccountManagement = () => {
 
                 {/* ✅ Manager Autocomplete (Dynamic) */}
 
-                    <Autocomplete
-                        value={manager}
-                        onChange={(e, newValue) => setManager(newValue)}
-                        options={managers}
-                        getOptionLabel={(option) => option}
-                        loading={loadingManagers}
-                        disabled={!branch}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="Manager"
-                                variant="outlined"
-                                size="small"
-                                error={managerError && !manager} // ✅ Pass error here
-                                sx={{ "& .MuiInputBase-root": { height: 40 } }}
-                                InputProps={{
-                                    ...params.InputProps,
-                                    endAdornment: (
-                                        <>
-                                            {loadingManagers ? <CircularProgress size={20} /> : null}
-                                            {params.InputProps.endAdornment}
-                                        </>
-                                    ),
-                                }}
-                            />
-                        )}
-                        sx={{
-                            flex: 1,
-                            "& .MuiInputBase-root": { height: 40 },
-                            minWidth: { xs: "100%", sm: "auto" },
-                        }}
-                        fullWidth
-                    />
+                <Autocomplete
+                    value={manager}
+                    onChange={(e, newValue) => setManager(newValue)}
+                    options={managers}
+                    getOptionLabel={(option) => option}
+                    loading={loadingManagers}
+                    disabled={!branch}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Manager"
+                            variant="outlined"
+                            size="small"
+                            error={managerError && !manager} // ✅ Pass error here
+                            sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                            InputProps={{
+                                ...params.InputProps,
+                                endAdornment: (
+                                    <>
+                                        {loadingManagers ? <CircularProgress size={20} /> : null}
+                                        {params.InputProps.endAdornment}
+                                    </>
+                                ),
+                            }}
+                        />
+                    )}
+                    sx={{
+                        flex: 1,
+                        "& .MuiInputBase-root": { height: 40 },
+                        minWidth: { xs: "100%", sm: "auto" },
+                    }}
+                    fullWidth
+                />
 
 
                 {/* Add Button */}

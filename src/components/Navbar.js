@@ -39,7 +39,7 @@ export default function Navbar() {
                         fontWeight: 600,
                     }}
                 >
-                    Account Statement
+                     Account Statement
                 </Typography>
 
                 {/* Right: User Email */}

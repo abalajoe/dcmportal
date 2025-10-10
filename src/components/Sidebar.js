@@ -19,7 +19,10 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
     const navItems = [
         { label: "Account Statement", path: "/accountStatement", icon: <ArrangeHorizontalSquare size="24" color="currentColor" /> },
-        { label: "Account Management", path: "/accountManagement", icon: <ProfileTick size="24" color="currentColor" /> },
+        // { label: "Account Statement2", path: "/accountStatement2", icon: <ArrangeHorizontalSquare size="24" color="currentColor" /> },
+        { label: "Account Management", path: "/accountManagement3", icon: <ProfileTick size="24" color="currentColor" /> },
+        // { label: "Account Management2", path: "/accountManagement2", icon: <ProfileTick size="24" color="currentColor" /> },
+        // { label: "Account Management3", path: "/accountManagement3", icon: <ProfileTick size="24" color="currentColor" /> },
         { label: "Track Record", path: "/trackRecord", icon: <TextalignJustifyleft size="24" color="currentColor" /> },
         { label: "Print History", path: "/printHistory", icon: <ArchiveMinus size="24" color="currentColor" /> },
         { label: "General Configs", path: "/generalConfigs", icon: <Candle size="24" color="currentColor" /> },
