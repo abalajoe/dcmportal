@@ -5,7 +5,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 
-const Dashboard = () => {
+const AccountStatement = () => {
     const [statement, setStatement] = useState("");
     const [startDate, setStartDate] = useState(dayjs());
     const [endDate, setEndDate] = useState(dayjs());
@@ -33,7 +33,7 @@ const Dashboard = () => {
                         gap: 2,
                         alignItems: "center",
                         justifyContent: "center",
-                        maxWidth: "900px",
+                        maxWidth: "1000px",
                         mx: "auto", // center horizontally
                         width: "100%",
                     }}
@@ -107,4 +107,4 @@ const Dashboard = () => {
     );
 };
 
-export default Dashboard;
+export default AccountStatement;

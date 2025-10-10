@@ -65,6 +65,7 @@ function LoginPage() {
             }
 
             //setSnackbar({ open: true, message: "Login successful!", severity: "success" });
+            // navigate("/trackRecord");
             navigate("/accountstatement");
            // window.location.href = "/dashboard"; // redirect after login
         } catch (err) {

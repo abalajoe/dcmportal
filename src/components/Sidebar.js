@@ -1,62 +1,145 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import { IconButton, Tooltip, Button, useMediaQuery, useTheme } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import { ArrangeHorizontalSquare, ProfileTick, Back, ArchiveMinus, Candle, Layer, TextalignJustifyleft } from "iconsax-react";
 
-const linkStyle = (isActive) => ({
-    display: "block",
-    padding: "12px 20px",
-    textDecoration: "none",
-    color: isActive ? "#fff" : "rgba(0,0,0,0.87)",
-    backgroundColor: isActive ? "#116530" : "transparent",
-    borderRadius: 2,
-    margin: "6px 8px",
-});
+export default function Sidebar({ collapsed, setCollapsed }) {
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
-export default function Sidebar() {
+    // Collapse sidebar on small screens by default
+    useEffect(() => {
+        if (isSmallScreen) {
+            setCollapsed(true);
+        }
+    }, [isSmallScreen, setCollapsed]);
+
+    const navItems = [
+        { label: "Account Statement", path: "/accountStatement", icon: <ArrangeHorizontalSquare size="24" color="currentColor" /> },
+        { label: "Account Management", path: "/accountManagement", icon: <ProfileTick size="24" color="currentColor" /> },
+        { label: "Track Record", path: "/trackRecord", icon: <TextalignJustifyleft size="24" color="currentColor" /> },
+        { label: "Print History", path: "/printHistory", icon: <ArchiveMinus size="24" color="currentColor" /> },
+        { label: "General Configs", path: "/generalConfigs", icon: <Candle size="24" color="currentColor" /> },
+        { label: "System Logs", path: "/systemLogs", icon: <Layer size="24" color="currentColor" /> },
+    ];
+
+    const toggleCollapse = () => setCollapsed(!collapsed);
+
+    const linkStyle = (isActive) => ({
+        display: "flex",
+        alignItems: "center",
+        gap: collapsed ? 0 : 12,
+        padding: "10px 8px",
+        textDecoration: "none",
+        color: isActive ? "#116530" : "#606060",
+        backgroundColor: isActive ? "#e6f2e6" : "transparent",
+        borderRadius: 2,
+        margin: "6px 8px",
+        justifyContent: collapsed ? "center" : "flex-start",
+        transition: "all 0.2s",
+    });
+
     return (
         <Box
             sx={{
-                display: "flex",
-                flexDirection: "column",
                 position: "fixed",
                 left: 0,
-                top: 64, // start below AppBar
-                height: "calc(100vh - 64px)", // full height minus AppBar
-                width: 240,
+                top: 64,
+                height: "calc(100vh - 64px)",
+                width: collapsed ? 60 : 240,
                 bgcolor: "#f9f9f9",
                 borderRight: "1px solid #ddd",
                 p: 1,
+                display: "flex",
+                flexDirection: "column",
+                transition: "width 0.3s",
             }}
         >
-            {/* Navigation Links */}
+            {/* Toggle button */}
+            <IconButton
+                onClick={toggleCollapse}
+                sx={{
+                    mb: 2,
+                    alignSelf: collapsed ? "center" : "flex-end",
+                    transition: "all 0.2s",
+                }}
+                size="small"
+            >
+                <MenuIcon />
+            </IconButton>
+
+            {/* Navigation items */}
             <Box component="nav" sx={{ flexGrow: 1 }}>
-                <NavLink to="/accountstatement" end style={({ isActive }) => linkStyle(isActive)}>
-                    Account Statement
-                </NavLink>
-
-                <NavLink to="/reports" style={({ isActive }) => linkStyle(isActive)}>
-                    Reports
-                </NavLink>
-
-                <NavLink to="/roles" style={({ isActive }) => linkStyle(isActive)}>
-                    Roles
-                </NavLink>
+                {navItems.map((item) => (
+                    <NavLink
+                        key={item.path}
+                        to={item.path}
+                        style={({ isActive }) => linkStyle(isActive)}
+                    >
+                        {collapsed ? (
+                            <Tooltip title={item.label} placement="right">
+                                <Box>{item.icon}</Box>
+                            </Tooltip>
+                        ) : (
+                            <>
+                                {item.icon}
+                                <Box
+                                    sx={{
+                                        overflow: "hidden",
+                                        whiteSpace: "nowrap",
+                                        transition: "width 0.2s, opacity 0.2s",
+                                        width: "auto",
+                                        opacity: 1,
+                                    }}
+                                >
+                                    <Typography sx={{ ml: 1 }}>{item.label}</Typography>
+                                </Box>
+                            </>
+                        )}
+                    </NavLink>
+                ))}
             </Box>
 
-            {/* Footer / Version */}
-            <Box
-                sx={{
-                    mt: "auto",
-                    textAlign: "center",
-                    pt: 1,
-                    pb: 2,
-                    borderTop: "1px solid #ddd",
-                }}
-            >
-                <Typography variant="caption" color="text.secondary">
-                    Account Statement Engine v1.0.0
-                </Typography>
+            {/* Logout + Footer */}
+            <Box sx={{ display: "flex", flexDirection: "column" }}>
+                <Tooltip title="Logout" placement="right">
+                    <Button
+                        startIcon={<Back size="24" color="currentColor" />}
+                        sx={{
+                            width: "100%",
+                            justifyContent: collapsed ? "center" : "flex-start",
+                            px: collapsed ? 0 : 2,
+                            color: "brown",
+                            textTransform: "none",
+                            mb: 1,
+                            transition: "all 0.2s",
+                        }}
+                    >
+                        {!collapsed && "Logout"}
+                    </Button>
+                </Tooltip>
+
+                <Box
+                    sx={{
+                        textAlign: "center",
+                        pt: 1,
+                        pb: 2,
+                        borderTop: "1px solid #ddd",
+                    }}
+                >
+                    {!collapsed ? (
+                        <Typography variant="caption" color="text.secondary">
+                            Account Statement Engine v1.0.0
+                        </Typography>
+                    ) : (
+                        <Typography variant="caption" color="text.secondary">
+                            v1.0.0
+                        </Typography>
+                    )}
+                </Box>
             </Box>
         </Box>
     );

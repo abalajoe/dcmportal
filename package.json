@@ -16,11 +16,14 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.12.2",
     "dayjs": "^1.11.18",
+    "framer-motion": "^12.23.22",
+    "iconsax-react": "^0.0.8",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.3",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",

@@ -6,7 +6,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 
-const Reports = () => {
+const TrackRecord = () => {
     const [startDate, setStartDate] = useState(dayjs());
     const [endDate, setEndDate] = useState(dayjs());
     const [loading, setLoading] = useState(false);
@@ -30,10 +30,12 @@ const Reports = () => {
     };
 
     const columns = [
-        { field: "id", headerName: "ID", width: 70 },
-        { field: "statement", headerName: "Statement", flex: 1 },
-        { field: "startDate", headerName: "Start Date", width: 150 },
-        { field: "endDate", headerName: "End Date", width: 150 },
+        { field: "statement", headerName: "Staff Email", flex: 1, width: 160 },
+        { field: "startDate", headerName: "Customer Email", flex: 1, width: 160 },
+        { field: "endDate", headerName: "Sent On", flex: 1, width: 160 },
+        { field: "endDate2", headerName: "Customer Account", flex: 1, width: 160 },
+        { field: "endDate3", headerName: "From", flex: 1, width: 160 },
+        { field: "endDate4", headerName: "To", flex: 1, width: 160 },
     ];
 
     return (
@@ -87,4 +89,4 @@ const Reports = () => {
     );
 };
 
-export default Reports;
+export default TrackRecord;
