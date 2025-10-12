@@ -18,8 +18,25 @@ import {
     DialogTitle,
     DialogContent,
     DialogActions,
+    InputAdornment, Autocomplete, Snackbar, Alert
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import {
+    Sms,
+    People,
+    Export,
+    SearchNormal,
+    Card,
+    Calendar,
+    Book1,
+    ImportCurve,
+    Wallet2,
+    HambergerMenu
+} from "iconsax-react";
+import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import {DatePicker} from "@mui/x-date-pickers/DatePicker";
+import dayjs from "dayjs";
 
 const StyledTableHeadCell = styled(TableCell)({
     backgroundColor: "#0b4b2b",
@@ -40,6 +57,8 @@ const StyledTableRow = styled(TableRow)(({ index }) => ({
 }));
 
 const SystemLogs = () => {
+    const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+    const branchOptions = ["Finance", "IT", "HR", "Sales", "Operations"];
     const [data, setData] = useState([]);
     const [page, setPage] = useState(0);
     const [rowsPerPage] = useState(10);
@@ -47,7 +66,11 @@ const SystemLogs = () => {
     const [loading, setLoading] = useState(false);
     const [totalPages, setTotalPages] = useState(0);
     const tableBodyRef = useRef(null);
-
+    const [manager, setManager] = useState(null);
+    const [managers, setManagers] = useState([]);
+    const [loadingManagers, setLoadingManagers] = useState(false);
+    const [startDate, setStartDate] = useState(dayjs());
+    const [endDate, setEndDate] = useState(dayjs());
     // Modal state
     const [openModal, setOpenModal] = useState(false);
     const [selectedSignature, setSelectedSignature] = useState(null);
@@ -142,38 +165,291 @@ const SystemLogs = () => {
     };
 
     return (
-        <Box sx={{ p: 3 }}>
-            {/* Toolbar */}
-            <Box
+        <Box
+            sx={{
+                backgroundColor: "#f6f8fa",
+                pt: { xs: 0, sm: 0, md: 0 },
+                px: { xs: 1, sm: 2, md: 3 },
+                pb: { xs: 2, sm: 3, md: 5 },
+                fontFamily: "'SUSE', sans-serif",
+            }}
+        >
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: "100%" }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
+            {/* Header */}
+            <Box sx={{ textAlign: "left", mb: 2 }}>
+                <Typography
+                    variant="h5"
+                    sx={{ fontWeight: 700, color: "#116530", mb: 0.5 }}
+                >
+                    System Logs
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    Monitor system audit trails and logs.
+                </Typography>
+            </Box>
+
+            {/* Form Container */}
+            <Paper
+                elevation={5}
                 sx={{
-                    display: "flex",
-                    flexDirection: { xs: "column", sm: "row" },
+                    p: 2,
+                    mb: 2,
+                    borderRadius: 1,
                     gap: 2,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    maxWidth: "420px",
-                    mx: "auto",
-                    width: "100%",
+                    backgroundColor: "#fff",
                 }}
             >
-                <TextField
-                    size="small"
-                    placeholder="Search by email"
-                    value={searchVal}
-                    onChange={handleSearchChange}
-                    sx={{ flexGrow: 1, maxWidth: 300 }}
-                />
-                <Button
-                    variant="contained"
-                    sx={{
-                        backgroundColor: "#0b4b2b",
-                        "&:hover": { backgroundColor: "#0d5c35" },
-                    }}
-                    onClick={exportToExcel}
-                >
-                    Export to Excel
-                </Button>
-            </Box>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: { xs: "column", sm: "row" },
+                            gap: 2,
+                            alignItems: "center",
+                            justifyContent: "center",
+                        }}
+                    >
+                        {/* Account Number */}
+                        <TextField
+                            label="Search by account number"
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            InputProps={{
+                                style: { fontSize: '0.8rem' },
+                                startAdornment: (
+                                    <InputAdornment position="start" sx={{ color: "grey.600" }}>
+                                        <Card size="18" color="currentColor" />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            InputLabelProps={{
+                                style: {
+                                    fontSize: '1.0rem', // Increased label size
+                                    backgroundColor: 'white',
+                                    paddingLeft: '4px',
+                                    paddingRight: '4px',
+                                }
+                            }}
+                            sx={{
+                                "& .MuiInputBase-input": { fontSize: "0.8rem" },
+                                "& .MuiInputLabel-root": {
+                                    fontSize: "0.95rem", // Increased label size
+                                    color: "black"
+                                },
+                                "& .MuiInputLabel-root.Mui-focused": { color: "#116530" },
+                            }}
+                        />
+                        {/* Account Number */}
+                        <TextField
+                            label="Search by log description"
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                            InputProps={{
+                                style: { fontSize: '0.8rem' },
+                                startAdornment: (
+                                    <InputAdornment position="start" sx={{ color: "grey.600" }}>
+                                        <HambergerMenu size="18" color="currentColor" />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            InputLabelProps={{
+                                style: {
+                                    fontSize: '1.0rem', // Increased label size
+                                    backgroundColor: 'white',
+                                    paddingLeft: '4px',
+                                    paddingRight: '4px',
+                                }
+                            }}
+                            sx={{
+                                "& .MuiInputBase-input": { fontSize: "0.8rem" },
+                                "& .MuiInputLabel-root": {
+                                    fontSize: "0.95rem", // Increased label size
+                                    color: "black"
+                                },
+                                "& .MuiInputLabel-root.Mui-focused": { color: "#116530" },
+                            }}
+                        />
+
+                        {/* Start Date */}
+                        <DatePicker
+                            label="Start Date"
+                            value={startDate}
+                            onChange={(newValue) => setEndDate(newValue)}
+                            minDate={startDate}
+                            slotProps={{
+                                textField: {
+                                    size: "small",
+                                    fullWidth: true,
+                                    InputProps: {
+                                        style: { fontSize: '0.8rem' }, // Add this for input text
+                                        startAdornment: (
+                                            <InputAdornment
+                                                position="start"
+                                                sx={{ color: "grey.600" }}
+                                            >
+                                                <Calendar size="18" color="currentColor" />
+                                            </InputAdornment>
+                                        ),
+                                    },
+                                    InputLabelProps: {
+                                        style: {
+                                            fontSize: '1.0rem',
+                                            backgroundColor: 'white',
+                                            paddingLeft: '4px',
+                                            paddingRight: '4px',
+                                        }
+                                    },
+                                    sx: {
+                                        "& .MuiInputBase-input": { fontSize: "0.8rem" }, // Changed from 0.9rem
+                                        "& .MuiInputLabel-root": {
+                                            fontSize: "0.9rem", // Changed from 0.9rem
+                                            color: "black",
+                                        },
+                                        "& .MuiInputLabel-root.Mui-focused": { color: "#116530", fontSize: "0.9rem",},
+                                    },
+                                },
+                            }}
+                        />
+
+                        {/* End Date */}
+                        <DatePicker
+                            label="End Date"
+                            value={endDate}
+                            onChange={(newValue) => setEndDate(newValue)}
+                            minDate={startDate}
+                            slotProps={{
+                                textField: {
+                                    size: "small",
+                                    fullWidth: true,
+                                    InputProps: {
+                                        style: { fontSize: '0.8rem' }, // Add this for input text
+                                        startAdornment: (
+                                            <InputAdornment
+                                                position="start"
+                                                sx={{ color: "grey.600" }}
+                                            >
+                                                <Calendar size="18" color="currentColor" />
+                                            </InputAdornment>
+                                        ),
+                                    },
+                                    InputLabelProps: {
+                                        style: {
+                                            fontSize: '1.0rem',
+                                            backgroundColor: 'white',
+                                            paddingLeft: '4px',
+                                            paddingRight: '4px',
+                                        }
+                                    },
+                                    sx: {
+                                        "& .MuiInputBase-input": { fontSize: "0.8rem" }, // Changed from 0.9rem
+                                        "& .MuiInputLabel-root": {
+                                            fontSize: "0.8rem", // Changed from 0.9rem
+                                            color: "black",
+                                        },
+                                        "& .MuiInputLabel-root.Mui-focused": { color: "#116530" },
+                                    },
+                                },
+                            }}
+                        />
+
+                        {/* Branch */}
+                        <Autocomplete
+                            options={branchOptions}
+                            size="small"
+                            getOptionLabel={(option) => option}
+                            sx={{
+                                width: "100%", // ✅ matches TextField & DatePicker width
+                                "& .MuiInputBase-root": {
+                                    height: 34, // ✅ consistent height
+                                },
+                                "& .MuiOutlinedInput-root": {
+                                    fontSize: "0.8rem",
+                                },
+                                "& .MuiAutocomplete-input": {
+                                    padding: "4px 8px !important",
+                                    fontSize: "0.8rem",
+                                },
+                                "& .MuiInputLabel-root": {
+                                    fontSize: "0.9rem",
+                                    color: "black",
+                                },
+                                "& .MuiInputLabel-root.Mui-focused": {
+                                    color: "#116530",
+                                },
+                            }}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="All"
+                                    variant="outlined"
+                                    size="small"
+                                    InputProps={{
+                                        ...params.InputProps,
+                                        startAdornment: (
+                                            <InputAdornment position="start" sx={{ color: "grey.600" }}>
+                                                <People size="18" color="currentColor" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                    InputLabelProps={{
+                                        style: {
+                                            fontSize: "0.95rem",
+                                            backgroundColor: "white",
+                                            paddingLeft: "4px",
+                                            paddingRight: "4px",
+                                        },
+                                    }}
+                                />
+                            )}
+                        />
+
+
+
+
+                        {/* Generate Button */}
+                        <Button
+                            variant="contained"
+                            disabled={loading}
+                            startIcon={<SearchNormal size="18" color="#fff" />}
+                            sx={{
+                                height: 34,
+                                minWidth: 120,
+                                background: "linear-gradient(90deg, #116530, #1b7a3e)",
+                                textTransform: "none",
+                                fontWeight: 600,
+                                fontSize: "0.9rem",
+                                color: "#fff",
+                                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                                transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+                                "&:hover": {
+                                    background: "linear-gradient(90deg, #0d4d24, #156e35)", // same gradient tone, slightly darker
+                                    boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
+                                    transform: "translateY(0px)", // subtle lift
+                                },
+                            }}
+                        >
+                            {loading ? <CircularProgress size={20} color="inherit" /> : "Search"}
+                        </Button>
+
+                    </Box>
+
+                </LocalizationProvider>
+            </Paper>
 
             {/* Table */}
             <TableContainer
@@ -182,7 +458,7 @@ const SystemLogs = () => {
                     borderRadius: 2,
                     minHeight: 400,
                     maxHeight: 600,
-                    mt: 4,
+                    mt: 2,
                     overflow: "auto",
                     overflowX: "auto", // Allow horizontal scroll on small screens
                 }}
@@ -196,7 +472,7 @@ const SystemLogs = () => {
                             whiteSpace: "nowrap", // Prevent text wrapping in headers
                         },
                         "& td": {
-                            padding: "4px 10px",
+                            padding: "10px 10px",
                             fontSize: "0.8rem",
                             whiteSpace: "nowrap", // Prevent text wrapping in cells
                         },
@@ -211,17 +487,10 @@ const SystemLogs = () => {
                 >
                     <TableHead>
                         <TableRow>
-                            <StyledTableHeadCell sx={{ width: "12%" }}>User</StyledTableHeadCell>
+                            <StyledTableHeadCell sx={{ width: "12%" }}>Log ID</StyledTableHeadCell>
                             <StyledTableHeadCell sx={{ width: "12%" }}>Log Date</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "8%" }}>Acc No</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "10%" }}>Acc Name</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "9%" }}>Nat ID</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "7%" }}>Pages No</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "7%" }}>Currency</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "7%" }}>Charges</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "9%" }}>Start Date</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "9%" }}>End Date</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "10%" }}>Signature</StyledTableHeadCell>
+                            <StyledTableHeadCell sx={{ width: "8%" }}>User</StyledTableHeadCell>
+                            <StyledTableHeadCell sx={{ width: "10%" }}>Description</StyledTableHeadCell>
                         </TableRow>
                     </TableHead>
 
@@ -246,21 +515,6 @@ const SystemLogs = () => {
                                     </TableCell>
                                     <TableCell>{row.accountnumber}</TableCell>
                                     <TableCell>{row.accountname}</TableCell>
-                                    <TableCell>{row.natid}</TableCell>
-                                    <TableCell>{row.pageno}</TableCell>
-                                    <TableCell>{row.currency}</TableCell>
-                                    <TableCell>{row.charges}</TableCell>
-                                    <TableCell>
-                                        {new Date(row.startdate).toLocaleDateString()}
-                                    </TableCell>
-                                    <TableCell>
-                                        {new Date(row.enddate).toLocaleDateString()}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Button size="small" color="success" onClick={() => handleOpenModal(row.email)}>
-                                            {row.signature}
-                                        </Button>
-                                    </TableCell>
                                 </StyledTableRow>
                             ))
                         ) : (

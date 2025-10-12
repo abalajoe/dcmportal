@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import {
     Box,
     TextField,
@@ -6,20 +6,30 @@ import {
     CircularProgress,
     Typography,
     Paper,
-    InputAdornment,
+    InputAdornment, Alert, Snackbar,
 } from "@mui/material";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import {Sms, Calendar, Card} from "iconsax-react";
+import {Sms, Calendar, Card, Book1} from "iconsax-react";
+import { Document, pdfjs, Page } from "react-pdf";
+import {ImportCurve} from "iconsax-react";
+
+
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+    "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
+    import.meta.url
+).toString();
 
 const AccountStatement = () => {
+    const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
     const [statement, setStatement] = useState("");
     const [startDate, setStartDate] = useState(dayjs());
     const [endDate, setEndDate] = useState(dayjs());
     const [loading, setLoading] = useState(false);
-
+    const [base64, setBase64] = useState(null);
+    const [numPages, setNumPages] = useState(null);
     const handleSearch = () => {
         setLoading(true);
 
@@ -32,6 +42,68 @@ const AccountStatement = () => {
         }, 2000);
     };
 
+    function onDocumentLoadSuccess({ numPages }) {
+        console.log("numPages - ", numPages)
+        setNumPages(numPages);
+    }
+    //pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
+
+    const generate = async () => {
+        setLoading(true);
+        const newUser = {
+            AccountNo: "3121212",
+            endDt: "10/10/2025",
+            startDt: "10/10/2025",
+        };
+
+        try {
+            const response = await fetch(
+                "http://localhost:7081/api/accountstatementengine/v1/user/accountStatement",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(newUser),
+                }
+            );
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.message || "Failed to fetch PDF");
+            }
+
+            setSnackbar({ open: true, message: "Statement generated", severity: "success" });
+
+            // ✅ Parse JSON properly
+            const data = await response.json();
+            console.log("Backend response:", data);
+
+            if (data.status === "00" && data.base64) {
+                setBase64(data.base64); // ✅ now base64 actually contains your PDF
+            } else {
+                console.error("Invalid response or missing base64");
+            }
+
+        } catch (err) {
+            console.error("Error fetching PDF:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ✅ Use useEffect to toggle page scrolling
+    useEffect(() => {
+        if (base64) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "auto";
+        }
+
+        return () => {
+            document.body.style.overflow = "auto"; // cleanup when unmounted
+        };
+    }, [base64]);
+
+
     return (
         <Box
             sx={{
@@ -42,6 +114,20 @@ const AccountStatement = () => {
                 fontFamily: "'SUSE', sans-serif",
             }}
         >
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: "100%" }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
             {/* Header */}
             <Box sx={{ textAlign: "left", mb: 3 }}>
                 <Typography
@@ -61,7 +147,7 @@ const AccountStatement = () => {
                 sx={{
                     p: 2,
                     mb: 2,
-                    borderRadius: 2,
+                    borderRadius: 1,
                     gap: 2,
                     backgroundColor: "#fff",
                 }}
@@ -195,8 +281,9 @@ const AccountStatement = () => {
                         {/* Generate Button */}
                         <Button
                             variant="contained"
-                            onClick={handleSearch}
+                            onClick={generate}
                             disabled={loading}
+                            startIcon={<Book1 size="18" color="#fff" />}
                             sx={{
                                 height: 34,
                                 minWidth: 120,
@@ -206,22 +293,104 @@ const AccountStatement = () => {
                                 fontSize: "0.9rem",
                                 color: "#fff",
                                 boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                                transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
                                 "&:hover": {
-                                    background: "#0d4d24",
-                                    boxShadow: "0 3px 10px rgba(0,0,0,0.2)",
+                                    background: "linear-gradient(90deg, #0d4d24, #156e35)", // same gradient tone, slightly darker
+                                    boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
+                                    transform: "translateY(0px)", // subtle lift
                                 },
-                                transition: "all 0.2s ease-in-out",
+                            }}
+                        >
+                            {loading ? <CircularProgress size={20} color="inherit" /> : "View"}
+                        </Button>
+                        {/* Generate Button */}
+                        {base64 && (
+                        <Button
+                            variant="contained"
+                            onClick={generate}
+                            disabled={loading}
+                            startIcon={<ImportCurve size="18" color="#fff" />}
+                            sx={{
+                                height: 34,
+                                minWidth: 120,
+                                background: "linear-gradient(90deg, #116530, #1b7a3e)",
+                                textTransform: "none",
+                                fontWeight: 600,
+                                fontSize: "0.9rem",
+                                color: "#fff",
+                                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                                transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+                                "&:hover": {
+                                    background: "linear-gradient(90deg, #0d4d24, #156e35)", // same gradient tone, slightly darker
+                                    boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
+                                    transform: "translateY(0px)", // subtle lift
+                                },
                             }}
                         >
                             {loading ? (
                                 <CircularProgress size={20} color="inherit" />
                             ) : (
-                                "Generate"
+                                "Print"
                             )}
                         </Button>
+                        )}
                     </Box>
+
                 </LocalizationProvider>
             </Paper>
+            {base64 && (
+            <Paper
+                elevation={5}
+                sx={{
+                    p: 2,
+                    mb: 2,
+                    borderRadius: 1,
+                    gap: 2,
+                    backgroundColor: "#666",
+                }}
+            >
+
+                    <Box
+                        sx={{
+                            mt: 2,
+                            mx: "auto",
+                            width: "100%",
+                            height: "470px", // or 80vh if you want responsive
+                            display: "flex",
+                            justifyContent: "center", // ✅ centers horizontally
+                            alignItems: "flex-start", // top-align vertically
+                            overflow: "auto",
+                            backgroundColor: "#666",
+                            p: 0,
+                        }}
+                    >
+                        <Document
+                            file={`data:application/pdf;base64,${base64}`}
+                            onLoadSuccess={onDocumentLoadSuccess}
+                            loading={<Typography>Loading PDF...</Typography>}
+                        >
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    gap: 0.5, // ✅ reduce vertical gap between pages (e.g., 0.5 = ~4px)
+                                }}
+                            >
+                                {Array.from(new Array(numPages), (_, index) => (
+                                    <Page
+                                        key={`page_${index + 1}`}
+                                        pageNumber={index + 1}
+                                        renderTextLayer={false}
+                                        renderAnnotationLayer={false}
+                                        width={800}
+                                    />
+                                ))}
+                            </Box>
+                        </Document>
+                    </Box>
+            </Paper>
+            )}
         </Box>
     );
 };

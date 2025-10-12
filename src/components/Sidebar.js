@@ -18,15 +18,17 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     }, [isSmallScreen, setCollapsed]);
 
     const navItems = [
-        { label: "Account Statement", path: "/accountStatement", icon: <ArrangeHorizontalSquare size="24" color="currentColor" /> },
+        { label: "Account Statement", path: "/accountStatement", icon: <ArrangeHorizontalSquare size="20" color="currentColor" /> },
         // { label: "Account Statement2", path: "/accountStatement2", icon: <ArrangeHorizontalSquare size="24" color="currentColor" /> },
-        { label: "Account Management", path: "/accountManagement3", icon: <ProfileTick size="24" color="currentColor" /> },
+        { label: "Account Management", path: "/accountManagement", icon: <ProfileTick size="20" color="currentColor" /> },
         // { label: "Account Management2", path: "/accountManagement2", icon: <ProfileTick size="24" color="currentColor" /> },
         // { label: "Account Management3", path: "/accountManagement3", icon: <ProfileTick size="24" color="currentColor" /> },
-        { label: "Track Record", path: "/trackRecord", icon: <TextalignJustifyleft size="24" color="currentColor" /> },
-        { label: "Print History", path: "/printHistory", icon: <ArchiveMinus size="24" color="currentColor" /> },
-        { label: "General Configs", path: "/generalConfigs", icon: <Candle size="24" color="currentColor" /> },
-        { label: "System Logs", path: "/systemLogs", icon: <Layer size="24" color="currentColor" /> },
+        { label: "Track Record", path: "/trackRecord", icon: <TextalignJustifyleft size="20" color="currentColor" /> },
+        { label: "Print History", path: "/printHistory", icon: <ArchiveMinus size="20" color="currentColor" /> },
+        // { label: "Print History2", path: "/printHistory2", icon: <ArchiveMinus size="24" color="currentColor" /> },
+        { label: "General Configs", path: "/generalConfigs", icon: <Candle size="20" color="currentColor" /> },
+        // { label: "General Configs2", path: "/generalConfigs2", icon: <Candle size="24" color="currentColor" /> },
+        { label: "System Logs", path: "/systemLogs", icon: <Layer size="20" color="currentColor" /> },
     ];
 
     const toggleCollapse = () => setCollapsed(!collapsed);
@@ -65,7 +67,8 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             <IconButton
                 onClick={toggleCollapse}
                 sx={{
-                    mb: 2,
+                    mb: 1,
+                    mt: 1,
                     alignSelf: collapsed ? "center" : "flex-end",
                     transition: "all 0.2s",
                 }}
@@ -98,7 +101,11 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                                         opacity: 1,
                                     }}
                                 >
-                                    <Typography sx={{ ml: 1 }}>{item.label}</Typography>
+                                    <Typography
+                                        sx={{ ml: 1,
+                                            fontWeight: "bold",
+                                            fontSize: "15px",
+                                        }}>{item.label}</Typography>
                                 </Box>
                             </>
                         )}

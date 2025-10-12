@@ -13,6 +13,8 @@ import AccountManagement2 from "./components/AccountManagement2";
 import SystemLogs from "./components/SystemLogs";
 import AccountManagement3 from "./components/AccountManagement3";
 import AccountStatement2 from "./components/AccountStatement2";
+import GeneralConfigs2 from "./components/GeneralConfigs2";
+import PrintHistory2 from "./components/PrintHistory2";
 
 
 export default function MainRouter() {
@@ -25,13 +27,15 @@ export default function MainRouter() {
             <Route element={<MainLayout />}>
                 <Route path="/accountStatement" element={<AccountStatement />} />
                 <Route path="/accountStatement2" element={<AccountStatement2 />} />
-                <Route path="/accountManagement" element={<AccountManagement />} />
+                <Route path="/accountManagement3" element={<AccountManagement />} />
                 <Route path="/accountManagement2" element={<AccountManagement2 />} />
-                <Route path="/accountManagement3" element={<AccountManagement3 />} />
+                <Route path="/accountManagement" element={<AccountManagement3 />} />
                 <Route path="/trackRecord" element={<TrackRecord />} />
                 <Route path="/roles" element={<Roles />} />
-                <Route path="/GeneralConfigs" element={<GeneralConfigs />} />
-                <Route path="/PrintHistory" element={<PrintHistory />} />
+                <Route path="/GeneralConfigs2" element={<GeneralConfigs />} />
+                <Route path="/GeneralConfigs" element={<GeneralConfigs2 />} />
+                <Route path="/PrintHistory" element={<PrintHistory2 />} />
+                <Route path="/PrintHistory2" element={<PrintHistory />} />
                 <Route path="/SystemLogs" element={<SystemLogs />} />
             </Route>
 

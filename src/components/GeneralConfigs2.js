@@ -15,17 +15,28 @@ import {
     DialogActions,
     Snackbar,
     Alert,
-    Autocomplete, Checkbox, FormControlLabel, Typography, Paper, Tooltip, InputAdornment
+    Autocomplete, Checkbox, FormControlLabel, Typography, Paper, Tooltip, InputAdornment, FormControl, RadioGroup, Radio
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import {ProfileTick, Profile2User, Mirror, Sms, ShieldSecurity, Wallet2, Unlock, User} from "iconsax-react";
+import {
+    ProfileTick,
+    Profile2User,
+    Mirror,
+    Sms,
+    ShieldSecurity,
+    Wallet2,
+    Unlock,
+    User,
+    Category2,
+    Cpu, Eye, Hashtag, Judge, Link2, Link1
+} from "iconsax-react";
 import PersonIcon from "@mui/icons-material/Person";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import AddIcon from "@mui/icons-material/Add";
 
-const AccountManagement3 = () => {
+const GeneralConfigs2 = () => {
     const [email, setEmail] = useState("");
     const [roles, setRoles] = useState("");
     const [loading, setLoading] = useState(false);
@@ -56,6 +67,7 @@ const AccountManagement3 = () => {
     const [managerHelperEdit, setManagerHelperEdit] = useState("");
     const [helperText, setHelperText] = useState("");
     const [role, setRole] = useState(null);
+    const [category, setCategory] = useState(null);
     const [editFormData, setEditFormData] = useState({
         id: "",
         name: "",
@@ -243,6 +255,7 @@ const AccountManagement3 = () => {
 
     const branchOptions = ["Finance", "IT", "HR", "Sales", "Operations"];
     const roleOptions = ["Admin", "Manager", "User", "Viewer"];
+    const parameterCategory = ["Text", "Date"];
 
     // ✅ Mapping of branch → manager options
     const managerOptionsByBranch = {
@@ -294,32 +307,10 @@ const AccountManagement3 = () => {
     }, [editFormData.branch]);
 
     const columns = [
-        { field: "email", headerName: "Email Address", flex: 1, minWidth: 150 },
-        { field: "role", headerName: "Role", flex: 1, minWidth: 150 },
-        { field: "branch", headerName: "Branch", flex: 1, minWidth: 150 },
-        { field: "manager", headerName: "Manager", flex: 1, minWidth: 150 },
-        { field: "createdby", headerName: "Created By", flex: 1, minWidth: 150 },
-        { field: "datecreated", headerName: "Date Created", flex: 1, minWidth: 150 },
-        { field: "status", headerName: "Status", flex: 1, minWidth: 150 },
-        {
-            field: "actions",
-            headerName: "Action",
-            width: 70,
-            sortable: false,
-            renderCell: (params) => (
-                <IconButton
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleMenuOpen(e, params.row);
-                    }}
-                    size="small"
-                >
-                    <MoreVertIcon />
-                </IconButton>
-            ),
-        },
+        { field: "email", headerName: "Parameter", flex: 1, minWidth: 150 },
+        { field: "role", headerName: "Value", flex: 1, minWidth: 150 },
+        { field: "branch", headerName: "Type", flex: 1, minWidth: 150 },
     ];
-
 
     return (
         <Box
@@ -337,10 +328,10 @@ const AccountManagement3 = () => {
                     variant="h5"
                     sx={{ fontWeight: 700, color: "#116530", mb: 0.5 }}
                 >
-                    Account Management
+                    Global Configs
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    Manage system users, roles, and permissions.
+                    Manage global configurations & settings
                 </Typography>
             </Box>
 
@@ -368,21 +359,27 @@ const AccountManagement3 = () => {
                         justifyContent: "space-between",
                     }}
                 >
-                    {/* Email Address */}
-                    <TextField
+                    {/* Role */}
+                    <Autocomplete
+                        options={roleOptions}
                         size="small"
-                        label="Email Address"
-                        variant="outlined"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        error={emailError}
-                        InputProps={{
-                            startAdornment:
-                                <InputAdornment position="start" sx={{ color: "grey.500" }}>
-                                {/* icon inherits currentColor from the adornment */}
-                                <Sms size="18" color="currentColor" />
-                            </InputAdornment>,
-                        }}
+                        value={role}
+                        onChange={(event, newValue) => setRole(newValue)}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Parameter Type"
+                                error={roleError && !role} // ✅ Pass error here
+                                InputProps={{
+                                    ...params.InputProps,
+                                    startAdornment:
+                                        <InputAdornment position="start" sx={{ color: "grey.500" }}>
+                                            {/* icon inherits currentColor from the adornment */}
+                                            <Link2 size="18" color="currentColor" />
+                                        </InputAdornment>,
+                                }}
+                            />
+                        )}
                         sx={{
                             flex: 1,
                             minWidth: "180px",
@@ -399,22 +396,22 @@ const AccountManagement3 = () => {
 
                     {/* Role */}
                     <Autocomplete
-                        options={roleOptions}
+                        options={parameterCategory}
                         size="small"
-                        value={role}
+                        value={category}
                         onChange={(event, newValue) => setRole(newValue)}
                         renderInput={(params) => (
                             <TextField
                                 {...params}
-                                label="Role"
+                                label="Parameter Category"
                                 error={roleError && !role} // ✅ Pass error here
                                 InputProps={{
                                     ...params.InputProps,
                                     startAdornment:
                                         <InputAdornment position="start" sx={{ color: "grey.500" }}>
-                                        {/* icon inherits currentColor from the adornment */}
-                                        <User size="18" color="currentColor" />
-                                    </InputAdornment>,
+                                            {/* icon inherits currentColor from the adornment */}
+                                            <Link1 size="18" color="currentColor" />
+                                        </InputAdornment>,
                                 }}
                             />
                         )}
@@ -432,72 +429,21 @@ const AccountManagement3 = () => {
                         }}
                     />
 
-                    {/* Branch */}
-                    <Autocomplete
-                        options={branchOptions}
+                    {/* Email Address */}
+                    <TextField
                         size="small"
-                        value={branch}
-                        onChange={(e, newValue) => setBranch(newValue)}
-                        getOptionLabel={(option) => option}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="Branch"
-                                error={branchError && !branch} // ✅ Pass error here
-                                InputProps={{
-                                    ...params.InputProps,
-                                    startAdornment:
-                                        <InputAdornment position="start" sx={{ color: "grey.500" }}>
-                                        {/* icon inherits currentColor from the adornment */}
-                                        <Wallet2 size="18" color="currentColor" />
-                                    </InputAdornment>,
-                                }}
-                            />
-                        )}
-                        sx={{
-                            flex: 1,
-                            minWidth: "180px",
-                            "& .MuiInputBase-input": { fontSize: "0.9rem" },
-                            "& .MuiInputLabel-root": {
-                                fontSize: "1.0rem",
-                                color: "black",
-                            },
-                            "& .MuiInputLabel-root.Mui-focused": {
-                                color: "black", // keep label black when focused
-                            },
+                        label="Parameter Value"
+                        variant="outlined"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        error={emailError}
+                        InputProps={{
+                            startAdornment:
+                                <InputAdornment position="start" sx={{ color: "grey.500" }}>
+                                    {/* icon inherits currentColor from the adornment */}
+                                    <Hashtag size="18" color="currentColor" />
+                                </InputAdornment>,
                         }}
-                    />
-
-                    {/* Manager */}
-                    <Autocomplete
-                        options={managers}
-                        value={manager}
-                        onChange={(e, newValue) => setManager(newValue)}
-                        getOptionLabel={(option) => option}
-                        loading={loadingManagers}
-                        disabled={!branch}
-                        size="small"
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="Manager"
-                                error={managerError && !manager} // ✅ Pass error here
-                                InputProps={{
-                                    ...params.InputProps,
-                                    startAdornment:
-                                        <InputAdornment position="start" sx={{ color: "grey.500" }}>
-                                        {/* icon inherits currentColor from the adornment */}
-                                    <Profile2User size="18" color="currentColor" />
-                                    </InputAdornment>,
-                                    endAdornment: (
-                                        <>
-                                            {loadingManagers ? <CircularProgress size={20} /> : null}
-                                            {params.InputProps.endAdornment}
-                                        </>
-                                    ),
-                                }}
-                            />
-                        )}
                         sx={{
                             flex: 1,
                             minWidth: "180px",
@@ -532,7 +478,7 @@ const AccountManagement3 = () => {
                             minWidth: "150px",
                         }}
                     >
-                        Add User
+                        Add Config
                     </Button>
                 </Tooltip>
             </Paper>
@@ -549,7 +495,7 @@ const AccountManagement3 = () => {
                 {/* 🔍 Search Field above DataGrid */}
                 <Box sx={{ mb: 2, display: "flex", justifyContent: "flex-end" }}>
                     <TextField
-                        label="Search users..."
+                        label="Search..."
                         variant="outlined"
                         size="small"
                         value={searchVal}
@@ -708,4 +654,4 @@ const AccountManagement3 = () => {
     );
 };
 
-export default AccountManagement3;
+export default GeneralConfigs2;

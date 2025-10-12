@@ -3,6 +3,7 @@ import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import {User} from "iconsax-react";
 
 export default function Navbar() {
     return (
@@ -37,6 +38,7 @@ export default function Navbar() {
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         fontWeight: 600,
+                        fontSize: 18
                     }}
                 >
                      Account Statement
@@ -46,13 +48,24 @@ export default function Navbar() {
                 <Box
                     sx={{
                         flex: "0 0 auto",
-                        textAlign: "right",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "flex-end",
                         whiteSpace: "nowrap",
-                        mt: { xs: 1, sm: 0 },   // wrap margin on small screens
+                        mt: { xs: 1, sm: 0 },
+                        gap: 1, // spacing between icon and text
                     }}
                 >
-                    <Typography variant="body2" sx={{ color: "#fff",fontWeight: "bold", }}>
-                        joeabala@co-0pbank.co.ke
+                    <User size="15" color="#fff" />  {/* 👈 icon left of the text */}
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            color: "#fff",
+                            fontSize: '14px',
+                            fontWeight: "normal",
+                        }}
+                    >
+                        joeabala@co-opbank.co.ke
                     </Typography>
                 </Box>
             </Toolbar>
