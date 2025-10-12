@@ -266,7 +266,7 @@ const PrintHistory2 = () => {
             <TableContainer
                 component={Paper}
                 sx={{
-                    borderRadius: 2,
+                    borderRadius: 1,
                     minHeight: 400,
                     maxHeight: 600,
                     mt: 2,

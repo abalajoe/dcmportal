@@ -93,7 +93,7 @@ const TrackRecord = () => {
                 sx={{
                     p: 2,
                     mb: 2,
-                    borderRadius: 2,
+                    borderRadius: 1,
                     gap: 2,
                     backgroundColor: "#fff",
                 }}
@@ -227,7 +227,7 @@ const TrackRecord = () => {
                 sx={{
                     p: 1,
                     mt: 3,
-                    borderRadius: 2,
+                    borderRadius: 1,
                     backgroundColor: "#fff",
                 }}
             >

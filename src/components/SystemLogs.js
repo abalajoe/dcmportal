@@ -224,7 +224,7 @@ const SystemLogs = () => {
                     >
                         {/* Account Number */}
                         <TextField
-                            label="Search by account number"
+                            label="Search"
                             variant="outlined"
                             size="small"
                             fullWidth
@@ -232,38 +232,7 @@ const SystemLogs = () => {
                                 style: { fontSize: '0.8rem' },
                                 startAdornment: (
                                     <InputAdornment position="start" sx={{ color: "grey.600" }}>
-                                        <Card size="18" color="currentColor" />
-                                    </InputAdornment>
-                                ),
-                            }}
-                            InputLabelProps={{
-                                style: {
-                                    fontSize: '1.0rem', // Increased label size
-                                    backgroundColor: 'white',
-                                    paddingLeft: '4px',
-                                    paddingRight: '4px',
-                                }
-                            }}
-                            sx={{
-                                "& .MuiInputBase-input": { fontSize: "0.8rem" },
-                                "& .MuiInputLabel-root": {
-                                    fontSize: "0.95rem", // Increased label size
-                                    color: "black"
-                                },
-                                "& .MuiInputLabel-root.Mui-focused": { color: "#116530" },
-                            }}
-                        />
-                        {/* Account Number */}
-                        <TextField
-                            label="Search by log description"
-                            variant="outlined"
-                            size="small"
-                            fullWidth
-                            InputProps={{
-                                style: { fontSize: '0.8rem' },
-                                startAdornment: (
-                                    <InputAdornment position="start" sx={{ color: "grey.600" }}>
-                                        <HambergerMenu size="18" color="currentColor" />
+                                        <SearchNormal size="18" color="currentColor" />
                                     </InputAdornment>
                                 ),
                             }}
@@ -455,7 +424,7 @@ const SystemLogs = () => {
             <TableContainer
                 component={Paper}
                 sx={{
-                    borderRadius: 2,
+                    borderRadius: 1,
                     minHeight: 400,
                     maxHeight: 600,
                     mt: 2,

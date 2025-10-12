@@ -350,7 +350,7 @@ const AccountManagement3 = () => {
                 sx={{
                     p: 2,
                     mb: 3,
-                    borderRadius: 2,
+                    borderRadius: 1,
                     display: "flex",
                     flexWrap: "wrap",
                     gap: 2,
@@ -514,27 +514,25 @@ const AccountManagement3 = () => {
                 </Box>
 
                 {/* Add User Button */}
-                <Tooltip title="Add a new user">
-                    <Button
-                        variant="contained"
-                        startIcon={<AddIcon />}
-                        onClick={handleAddAccount}
-                        sx={{
-                            background: "linear-gradient(90deg, #116530, #1b7a3e)",
-                            textTransform: "none",
-                            fontWeight: 600,
-                            height: 35,
-                            px: 3,
-                            py: 1,
-                            boxShadow: 2,
-                            fontSize: "0.9rem",
-                            "&:hover": { background: "#0d4d24" },
-                            minWidth: "150px",
-                        }}
-                    >
-                        Add User
-                    </Button>
-                </Tooltip>
+                <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={handleAddAccount}
+                    sx={{
+                        background: "linear-gradient(90deg, #116530, #1b7a3e)",
+                        textTransform: "none",
+                        fontWeight: 600,
+                        height: 35,
+                        px: 3,
+                        py: 1,
+                        boxShadow: 2,
+                        fontSize: "0.9rem",
+                        "&:hover": { background: "#0d4d24" },
+                        minWidth: "150px",
+                    }}
+                >
+                    Add User
+                </Button>
             </Paper>
 
             {/* 🔍 Data Table + Search */}
@@ -542,7 +540,7 @@ const AccountManagement3 = () => {
                 elevation={3}
                 sx={{
                     p: 1,
-                    borderRadius: 2,
+                    borderRadius: 1,
                     backgroundColor: "#fff",
                 }}
             >

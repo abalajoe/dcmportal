@@ -125,6 +125,8 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                             color: "brown",
                             textTransform: "none",
                             mb: 1,
+                            fontWeight: "bold", // ✅ makes the Logout text bold
+                            fontSize: "15px",
                             transition: "all 0.2s",
                         }}
                     >

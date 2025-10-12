@@ -341,7 +341,7 @@ const GeneralConfigs2 = () => {
                 sx={{
                     p: 2,
                     mb: 3,
-                    borderRadius: 2,
+                    borderRadius: 1,
                     display: "flex",
                     flexWrap: "wrap",
                     gap: 2,
