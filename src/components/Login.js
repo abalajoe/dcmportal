@@ -34,13 +34,13 @@ function LoginPage() {
             return;
         }
 
-        if (!validateEmail(email)) {
-            setSnackbar({ open: true, message: "Please enter a valid email address", severity: "error" });
-            setEmailError({ error: true, helperText: "Enter a valid email address" });
-            return;
-        } else {
-            setEmailError({ error: false, helperText: "" });
-        }
+        // if (!validateEmail(email)) {
+        //     setSnackbar({ open: true, message: "Please enter a valid email address", severity: "error" });
+        //     setEmailError({ error: true, helperText: "Enter a valid email address" });
+        //     return;
+        // } else {
+        //     setEmailError({ error: false, helperText: "" });
+        // }
 
         if (!password) {
             setSnackbar({ open: true, message: "Please enter password", severity: "error" });
@@ -57,15 +57,59 @@ function LoginPage() {
         try {
             const data = await loginUser(email, password);
             console.log("Login successful:", data);
-            console.log("Login successful22:", data.access_token);
-            localStorage.setItem("authToken", data.access_token);
-            if (rememberMe) {
-                localStorage.setItem("authToken", data.token);
+
+            const roleName = JSON.parse(data.role);
+            console.log(roleName.roleName);
+            if (roleName === "ICT_Administrator") {
+                //setubmitting(false);
+                console.log("User is an ICT Administrator.");
+                localStorage.setItem("userRole", "ICT_Administrator");
+                //localStorage.setItem("rights", permissionsArray);
+                localStorage.setItem("expired", 0);
+            } else if (roleName === "ICT_Service_Desk") {
+                //setubmitting(false);
+                console.log("User is an ICT Service Desk.");
+                localStorage.setItem("userRole", "ICT_Service_Desk");
+                //localStorage.setItem("rights", permissionsArray);
+                localStorage.setItem("expired", 0);
+            } else if (roleName === "Contact_Centre_Officer") {
+                //setubmitting(false);
+                console.log("User is a Contact Centre Officer.");
+                localStorage.setItem("userRole", "Contact_Centre_Officer");
+                //localStorage.setItem("rights", permissionsArray);
+                localStorage.setItem("expired", 0);
+            } else if (roleName === "Branch_Maker") {
+                //setubmitting(false);
+                console.log("User is a Branch Maker.");
+                localStorage.setItem("userRole", "Branch_Maker");
+                //localStorage.setItem("rights", permissionsArray);
+                localStorage.setItem("expired", 0);
+            } else if (roleName === "Branch_Checker") {
+                //setubmitting(false);
+                console.log("User is a Branch Checker.");
+                localStorage.setItem("userRole", "Branch_Checker");
+                //localStorage.setItem("rights", permissionsArray);
+                localStorage.setItem("expired", 0);
+            } else if (roleName === "Security_Services_User") {
+                //setubmitting(false);
+                console.log("User is a Security Services User.");
+                localStorage.setItem("userRole", "Security_Services_User");
+                //localStorage.setItem("rights", permissionsArray);
+                localStorage.setItem("expired", 0);
+            } else {
+                console.log("Role not recognized.");
+                navigate("/");
             }
+            navigate("/accountstatement");
+            // console.log("Login successful22:", data.access_token);
+            // localStorage.setItem("authToken", data.access_token);
+            // if (rememberMe) {
+            //     localStorage.setItem("authToken", data.token);
+            // }
 
             //setSnackbar({ open: true, message: "Login successful!", severity: "success" });
             // navigate("/trackRecord");
-            navigate("/accountstatement");
+            // navigate("/accountstatement");
            // window.location.href = "/dashboard"; // redirect after login
         } catch (err) {
             setSnackbar({ open: true, message: "Login failed!", severity: "error" });

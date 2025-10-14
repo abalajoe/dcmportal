@@ -1,14 +1,16 @@
 // src/services/api.js
-export const loginUser = async (email, password) => {
+export const loginUser = async (email, pswrd) => {
     try {
         const response = await fetch(
-            "http://localhost:7081/api/accountstatementengine/v1/auth/authenticate",
+            "http://localhost:8082/api/userSignin",
+            // "http://172.16.20.112:8082/api/userSignin",
+            // "http://localhost:7081/api/accountstatementengine/v1/auth/authenticate",
             {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email, pswrd }),
             }
         );
 
