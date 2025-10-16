@@ -15,6 +15,7 @@ import dayjs from "dayjs";
 import {Sms, Calendar, Card, Book1} from "iconsax-react";
 import { Document, pdfjs, Page } from "react-pdf";
 import {ImportCurve} from "iconsax-react";
+import {AccountSmtAPI} from "../services/Api";
 
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -48,7 +49,64 @@ const AccountStatement = () => {
     }
     //pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
-    const generate = async () => {
+
+    const handleAccountStatement = async () => {
+        setLoading(true);
+        const userParams = {
+            loanAcc: statement,
+            startDt: startDate,
+            endDt: endDate,
+        };
+
+        try {
+            const pth = await AccountSmtAPI(userParams);
+
+            if (pth.status === "400") {
+                setSnackbar({ open: true, message: pth.error, severity: "error" });
+                return;
+            }
+
+            if (pth.status === "00") {
+                setBase64(pth.base64);
+                setSnackbar({ open: true, message: "Statement loaded", severity: "success" });
+            }
+        } catch (error) {
+            console.error(error);
+            setSnackbar({ open: true, message: "Failed to fetch statement", severity: "error" });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    /*AccountSmtAPI(userParams)
+        .then((pth) => {
+            if (pth.status === "400") {
+                // setsubmitting(false);
+                return window.alert(`${pth.error} `);
+            }
+            if (pth.waived === true) {
+                // setCharged(true);
+            }
+            // setPages(pth.pages)
+            // setCharges(pth.charges)
+            // setCurrency(pth.currency)
+            if (pth.status === "00") {
+                setBase64(pth.base64);
+                //updateAccountParams(userParams);
+                //console.log(isAdmin);
+                //setIsEmailReady(true);
+            }
+            // let userRoles = localStorage.getItem("userRoles");
+            // if (userRoles.includes("ICT_Administrator")) setIsAdmin(true);
+            // if (userRoles.includes("ICT_Administrator")) setIsSender(true);
+
+        })
+        .then(() => {
+            //setsubmitting(false);
+        });*/
+
+    /*const generate = async () => {
         setLoading(true);
         const newUser = {
             AccountNo: "3121212",
@@ -88,7 +146,7 @@ const AccountStatement = () => {
         } finally {
             setLoading(false);
         }
-    };
+    };*/
 
     // ✅ Use useEffect to toggle page scrolling
     useEffect(() => {
@@ -107,11 +165,14 @@ const AccountStatement = () => {
     return (
         <Box
             sx={{
-                backgroundColor: "#f6f8fa",
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
                 pt: { xs: 0, sm: 0, md: 0 },
                 px: { xs: 1, sm: 2, md: 3 },
-                pb: { xs: 2, sm: 3, md: 5 },
+                backgroundColor: "#f6f8fa",
                 fontFamily: "'SUSE', sans-serif",
+                overflow: "hidden", // prevent page scroll
             }}
         >
             <Snackbar
@@ -129,7 +190,7 @@ const AccountStatement = () => {
                 </Alert>
             </Snackbar>
             {/* Header */}
-            <Box sx={{ textAlign: "left", mb: 3 }}>
+            <Box sx={{ flexShrink: 0, p: 2 }}>
                 <Typography
                     variant="h5"
                     sx={{ fontWeight: 700, color: "#116530", mb: 0.5 }}
@@ -145,11 +206,7 @@ const AccountStatement = () => {
             <Paper
                 elevation={5}
                 sx={{
-                    p: 2,
-                    mb: 2,
-                    borderRadius: 1,
-                    gap: 2,
-                    backgroundColor: "#fff",
+                    flexShrink: 0, p: 2, mb: 2
                 }}
             >
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -200,8 +257,8 @@ const AccountStatement = () => {
                         <DatePicker
                             label="Start Date"
                             value={startDate}
-                            onChange={(newValue) => setEndDate(newValue)}
-                            minDate={startDate}
+                            onChange={(newValue) => setStartDate(newValue)}
+                            // minDate={startDate}
                             slotProps={{
                                 textField: {
                                     size: "small",
@@ -281,7 +338,7 @@ const AccountStatement = () => {
                         {/* Generate Button */}
                         <Button
                             variant="contained"
-                            onClick={generate}
+                            onClick={handleAccountStatement}
                             disabled={loading}
                             startIcon={<Book1 size="18" color="#fff" />}
                             sx={{
@@ -307,7 +364,7 @@ const AccountStatement = () => {
                         {base64 && (
                         <Button
                             variant="contained"
-                            onClick={generate}
+                            onClick={handleAccountStatement}
                             disabled={loading}
                             startIcon={<ImportCurve size="18" color="#fff" />}
                             sx={{
@@ -338,59 +395,62 @@ const AccountStatement = () => {
 
                 </LocalizationProvider>
             </Paper>
+            {/* PDF Viewer */}
             {base64 && (
-            <Paper
-                elevation={5}
-                sx={{
-                    p: 2,
-                    mb: 2,
-                    borderRadius: 1,
-                    gap: 2,
-                    backgroundColor: "#666",
-                }}
-            >
-
+                <Paper
+                    elevation={5}
+                    sx={{
+                        flexGrow: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        backgroundColor: "#666",
+                        borderRadius: 1,
+                        overflow: "hidden", // keep page from scrolling
+                    }}
+                >
+                    {/* Scrollable area - internal scroll only */}
                     <Box
                         sx={{
-                            mt: 2,
-                            mx: "auto",
-                            width: "100%",
-                            height: "470px", // or 80vh if you want responsive
+                            flex: 1,
+                            overflowY: "auto",        // inner scrolling
                             display: "flex",
-                            justifyContent: "center", // ✅ centers horizontally
-                            alignItems: "flex-start", // top-align vertically
-                            overflow: "auto",
-                            backgroundColor: "#666",
-                            p: 0,
+                            justifyContent: "center",
+                            alignItems: "flex-start",
+                            p: 2,
+                            boxSizing: "border-box", // ensure padding is included in height calculations
                         }}
                     >
-                        <Document
-                            file={`data:application/pdf;base64,${base64}`}
-                            onLoadSuccess={onDocumentLoadSuccess}
-                            loading={<Typography>Loading PDF...</Typography>}
-                        >
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    gap: 0.5, // ✅ reduce vertical gap between pages (e.g., 0.5 = ~4px)
-                                }}
+                        <Box sx={{ width: "100%", display: "flex", justifyContent: "center" }}>
+                            <Document
+                                file={`data:application/pdf;base64,${base64}`}
+                                onLoadSuccess={onDocumentLoadSuccess}
                             >
-                                {Array.from(new Array(numPages), (_, index) => (
-                                    <Page
-                                        key={`page_${index + 1}`}
-                                        pageNumber={index + 1}
-                                        renderTextLayer={false}
-                                        renderAnnotationLayer={false}
-                                        width={800}
-                                    />
-                                ))}
-                            </Box>
-                        </Document>
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        gap: 0.5,
+                                    }}
+                                >
+                                    {Array.from(new Array(numPages), (_, index) => (
+                                        <Page
+                                            key={`page_${index + 1}`}
+                                            pageNumber={index + 1}
+                                            renderTextLayer={false}
+                                            renderAnnotationLayer={false}
+                                            width={800}
+                                        />
+                                    ))}
+                                </Box>
+                            </Document>
+                            {/* <<< Spacer inside the scrollable area: creates gap without affecting outer height */}
+                            <Box sx={{ height: { xs: 2, sm: 2 }, flexShrink: 0 }} />
+                        </Box>
                     </Box>
-            </Paper>
+                </Paper>
             )}
+
         </Box>
     );
 };

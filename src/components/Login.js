@@ -54,10 +54,22 @@ function LoginPage() {
         setPasswordError("");
 
         console.log("Login", email, password);
+
+        let completeEmail = "";
+
+        var lowredEmail=email.toLowerCase();
+        console.log(lowredEmail)
+        if (lowredEmail.slice(-16, -1) !== "@co-opbank.co.k") {
+            completeEmail = `${lowredEmail}@co-opbank.co.ke`;
+        } else {
+            completeEmail = lowredEmail;
+        }
         try {
-            const data = await loginUser(email, password);
+            const data = await loginUser(completeEmail, password);
             console.log("Login successful:", data);
 
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("curUserEmail", data.email);
             const roleName = JSON.parse(data.role);
             console.log(roleName.roleName);
             if (roleName === "ICT_Administrator") {

@@ -1,8 +1,11 @@
 // src/services/api.js
+import axios from "axios";
+
 export const loginUser = async (email, pswrd) => {
     try {
         const response = await fetch(
-            "http://localhost:8082/api/userSignin",
+            `${process.env.REACT_APP_BASE_URL}/userSignin`,
+            // "http://localhost:8082/api/userSignin",
             // "http://172.16.20.112:8082/api/userSignin",
             // "http://localhost:7081/api/accountstatementengine/v1/auth/authenticate",
             {
@@ -26,4 +29,35 @@ export const loginUser = async (email, pswrd) => {
     } catch (err) {
         throw err;
     }
+};
+
+export const AccountSmtAPI = (userParams) => {
+    const httpUrl = `${process.env.REACT_APP_BASE_URL}/accountStatement`;
+
+    const resp = new Promise((resolve, reject) => {
+        const headers = {
+            method: "POST",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        };
+        const params = {
+            accountNo: userParams.loanAcc,
+            startDt: userParams.startDt,
+            endDt: userParams.endDt,
+            curUser: localStorage.getItem("curUserEmail")
+        };
+        console.log(`Request ${JSON.stringify(params)}`);
+
+        // Set timeout to 30 seconds (30000 milliseconds)
+        axios
+            .post(httpUrl, params, { headers, timeout: 1200000 })
+            .then((res) => {
+                resolve(res.data);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+
+    return resp;
 };
