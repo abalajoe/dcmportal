@@ -67,13 +67,14 @@ const AccountManagement3 = () => {
 
     // Fetch pageable users
     const fetchUsers = useCallback(async () => {
+
         setLoading(true);
         try {
             const sortField = sortModel[0]?.field || "id";
             const sortDir = sortModel[0]?.sort?.toUpperCase() || "DESC";
 
             const response = await fetch(
-                `http://localhost:7081/api/accountstatementengine/v1/user/findAllAccountManagement?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                `http://localhost:8082/api/accountstatementengine/v1/user/findAllAccountManagement?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
             );
 
             if (!response.ok) {

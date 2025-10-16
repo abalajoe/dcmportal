@@ -65,54 +65,71 @@ function LoginPage() {
             completeEmail = lowredEmail;
         }
         try {
-            const data = await loginUser(completeEmail, password);
+            const data = await loginUser(email, password);
+            // const data = await loginUser(completeEmail, password);
             console.log("Login successful:", data);
 
             localStorage.setItem("token", data.token);
             localStorage.setItem("curUserEmail", data.email);
-            const roleName = JSON.parse(data.role);
-            console.log(roleName.roleName);
+
+            const role = JSON.parse(data.role);
+            const roleName = role.roleName;
+            localStorage.setItem("role", roleName);
+            console.log(roleName);
+            console.log('--> ',localStorage.getItem('role'));
             if (roleName === "ICT_Administrator") {
                 //setubmitting(false);
                 console.log("User is an ICT Administrator.");
                 localStorage.setItem("userRole", "ICT_Administrator");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
+                navigate("/accountStatement");
             } else if (roleName === "ICT_Service_Desk") {
                 //setubmitting(false);
                 console.log("User is an ICT Service Desk.");
                 localStorage.setItem("userRole", "ICT_Service_Desk");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
+                navigate("/accountManagement");
             } else if (roleName === "Contact_Centre_Officer") {
                 //setubmitting(false);
                 console.log("User is a Contact Centre Officer.");
                 localStorage.setItem("userRole", "Contact_Centre_Officer");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
+                navigate("/accountStatement");
             } else if (roleName === "Branch_Maker") {
                 //setubmitting(false);
                 console.log("User is a Branch Maker.");
                 localStorage.setItem("userRole", "Branch_Maker");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
+                navigate("/accountStatement");
             } else if (roleName === "Branch_Checker") {
                 //setubmitting(false);
                 console.log("User is a Branch Checker.");
                 localStorage.setItem("userRole", "Branch_Checker");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
+                navigate("/accountStatement");
             } else if (roleName === "Security_Services_User") {
                 //setubmitting(false);
                 console.log("User is a Security Services User.");
                 localStorage.setItem("userRole", "Security_Services_User");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
+                navigate("/accountStatement");
+            } else if (roleName === "Head_Office") {
+                //setubmitting(false);
+                console.log("User is a Head Office User.");
+                localStorage.setItem("userRole", "Head_Office");
+                //localStorage.setItem("rights", permissionsArray);
+                localStorage.setItem("expired", 0);
+                navigate("/accountStatement");
             } else {
                 console.log("Role not recognized.");
                 navigate("/");
             }
-            navigate("/accountstatement");
             // console.log("Login successful22:", data.access_token);
             // localStorage.setItem("authToken", data.access_token);
             // if (rememberMe) {

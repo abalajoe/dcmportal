@@ -190,7 +190,19 @@ const AccountStatement = () => {
                 </Alert>
             </Snackbar>
             {/* Header */}
-            <Box sx={{ flexShrink: 0, p: 2 }}>
+            {/*<Box sx={{ flexShrink: 0, p: 2 }}>
+                <Typography
+                    variant="h5"
+                    sx={{ fontWeight: 700, color: "#116530", mb: 0.5 }}
+                >
+                    Account Statement
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    Generate detailed account statements by selecting the date range below.
+                </Typography>
+            </Box>*/}
+
+            <Box sx={{ mb: 2 }}>
                 <Typography
                     variant="h5"
                     sx={{ fontWeight: 700, color: "#116530", mb: 0.5 }}
@@ -201,7 +213,6 @@ const AccountStatement = () => {
                     Generate detailed account statements by selecting the date range below.
                 </Typography>
             </Box>
-
             {/* Form Container */}
             <Paper
                 elevation={5}

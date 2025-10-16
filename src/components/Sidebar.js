@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { NavLink } from "react-router-dom";
+import {NavLink, useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { IconButton, Tooltip, Button, useMediaQuery, useTheme } from "@mui/material";
@@ -9,6 +9,10 @@ import { ArrangeHorizontalSquare, ProfileTick, Back, ArchiveMinus, Candle, Layer
 export default function Sidebar({ collapsed, setCollapsed }) {
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
+    const navigate = useNavigate(); // ✅ initialize navigate
+
+    // Get user role from localStorage (same as your MainRouter)
+    const userRole = localStorage.getItem("role") || "USER";
 
     // Collapse sidebar on small screens by default
     useEffect(() => {
@@ -17,19 +21,61 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         }
     }, [isSmallScreen, setCollapsed]);
 
+    // ✅ logout handler
+    const handleLogout = () => {
+        // Clear all session data
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // Navigate to login first
+        navigate("/", { replace: true });
+    };
+
     const navItems = [
-        { label: "Account Statement", path: "/accountStatement", icon: <ArrangeHorizontalSquare size="20" color="currentColor" /> },
+        { label: "Account Statement",
+            path: "/accountStatement",
+            allowedRoles: [
+                "ICT_Administrator",
+                "Contact_Centre_Officer",
+                "Branch_Maker",
+                "Branch_Checker",
+                "Security_Services_User",
+                "Head_Office"
+            ],
+            icon: <ArrangeHorizontalSquare size="20" color="currentColor" /> },
         // { label: "Account Statement2", path: "/accountStatement2", icon: <ArrangeHorizontalSquare size="24" color="currentColor" /> },
-        { label: "Account Management", path: "/accountManagement", icon: <ProfileTick size="20" color="currentColor" /> },
+        { label: "Account Management",
+            path: "/accountManagement",
+            allowedRoles: ["ICT_Administrator", "ICT_Service_Desk"],
+            icon: <ProfileTick size="20" color="currentColor" /> },
         // { label: "Account Management2", path: "/accountManagement2", icon: <ProfileTick size="24" color="currentColor" /> },
         // { label: "Account Management3", path: "/accountManagement3", icon: <ProfileTick size="24" color="currentColor" /> },
-        { label: "Track Record", path: "/trackRecord", icon: <TextalignJustifyleft size="20" color="currentColor" /> },
-        { label: "Print History", path: "/printHistory", icon: <ArchiveMinus size="20" color="currentColor" /> },
+        { label: "Approve Charge Waiver",
+            path: "/approveChargeWaiver",
+            allowedRoles: ["Branch_Checker"],
+            icon: <ProfileTick size="20" color="currentColor" /> },
+        { label: "Track Record",
+            path: "/trackRecord",
+            allowedRoles: ["ICT_Administrator", "Branch_Maker", "Branch_Checker"],
+            icon: <TextalignJustifyleft size="20" color="currentColor" /> },
+        { label: "Print History",
+            path: "/printHistory",
+            allowedRoles: ["ICT_Administrator", "Branch_Maker", "Branch_Checker"],
+            icon: <ArchiveMinus size="20" color="currentColor" /> },
         // { label: "Print History2", path: "/printHistory2", icon: <ArchiveMinus size="24" color="currentColor" /> },
-        { label: "General Configs", path: "/generalConfigs", icon: <Candle size="20" color="currentColor" /> },
+        { label: "General Configs",
+            path: "/generalConfigs",
+            allowedRoles: ["ICT_Administrator"],
+            icon: <Candle size="20" color="currentColor" /> },
         // { label: "General Configs2", path: "/generalConfigs2", icon: <Candle size="24" color="currentColor" /> },
-        { label: "System Logs", path: "/systemLogs", icon: <Layer size="20" color="currentColor" /> },
+        { label: "System Logs",
+            path: "/systemLogs",
+            allowedRoles: ["ICT_Administrator", "Branch_Maker", "Branch_Checker"],
+            icon: <Layer size="20" color="currentColor" /> },
     ];
+
+    // ✅ Only show menus allowed for this user
+    const filteredNavItems = navItems.filter((item) => item.allowedRoles.includes(userRole));
 
     const toggleCollapse = () => setCollapsed(!collapsed);
 
@@ -77,14 +123,10 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                 <MenuIcon />
             </IconButton>
 
-            {/* Navigation items */}
+            {/* ✅ Filtered Navigation items */}
             <Box component="nav" sx={{ flexGrow: 1 }}>
-                {navItems.map((item) => (
-                    <NavLink
-                        key={item.path}
-                        to={item.path}
-                        style={({ isActive }) => linkStyle(isActive)}
-                    >
+                {filteredNavItems.map((item) => (
+                    <NavLink key={item.path} to={item.path} style={({ isActive }) => linkStyle(isActive)}>
                         {collapsed ? (
                             <Tooltip title={item.label} placement="right">
                                 <Box>{item.icon}</Box>
@@ -102,10 +144,14 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                                     }}
                                 >
                                     <Typography
-                                        sx={{ ml: 1,
+                                        sx={{
+                                            ml: 1,
                                             fontWeight: "bold",
                                             fontSize: "15px",
-                                        }}>{item.label}</Typography>
+                                        }}
+                                    >
+                                        {item.label}
+                                    </Typography>
                                 </Box>
                             </>
                         )}
@@ -117,6 +163,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             <Box sx={{ display: "flex", flexDirection: "column" }}>
                 <Tooltip title="Logout" placement="right">
                     <Button
+                        onClick={handleLogout} // ✅ added click handler
                         startIcon={<Back size="24" color="currentColor" />}
                         sx={{
                             width: "100%",
