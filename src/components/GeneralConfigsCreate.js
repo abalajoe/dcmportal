@@ -1,6 +1,4 @@
 import React, {useState, useEffect, useCallback} from "react";
-import dayjs from "dayjs";
-import api from "../services/axios";
 import {
     Box,
     Button,
@@ -18,25 +16,18 @@ import {
     Autocomplete, Checkbox, FormControlLabel, Typography, Paper, Tooltip, InputAdornment, Fade, Chip, Slide
 } from "@mui/material";
 import {DataGrid} from "@mui/x-data-grid";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
-    Profile2User,
-    Sms,
-    Wallet2,
     Edit2,
-    User,
-    SearchNormal1, Settings, Link2, Link1, Hashtag
+    SearchNormal1, Link2, Link1, Hashtag, ArrowRotateRight
 } from "iconsax-react";
-import PersonIcon from "@mui/icons-material/Person";
-import ApartmentIcon from "@mui/icons-material/Apartment";
-import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import AddIcon from "@mui/icons-material/Add";
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
 const GeneralConfigsCreate = () => {
-    const [email, setParameterValue] = useState("");
-    const [roles, setRoles] = useState("");
+    const [parameterType, setParameterType] = useState("");
+    const [parameterCategory, setParameterCategory] = useState("");
+    const [parameterValue, setParameterValue] = useState("");
     const [loading, setLoading] = useState(false);
     const [rows, setRows] = useState([]);
     const [rowCount, setRowCount] = useState(0); // total elements from backend
@@ -50,29 +41,21 @@ const GeneralConfigsCreate = () => {
     const [selectedRow, setSelectedRow] = useState(null);
     const [openEditModal, setOpenEditModal] = useState(false);
     const [snackbar, setSnackbar] = useState({open: false, message: "", severity: "success"});
-    const [error, setError] = useState(false);
     const [parameterValueError, setParameterValueError] = useState(false);
-    const [emailHelper, setEmailHelper] = useState("");
-    const [emailErrorEdit, setEmailErrorEdit] = useState(false);
-    const [emailHelperEdit, setEmailHelperEdit] = useState("");
-    const [roleError, setRoleError] = useState(false);
-    const [roleHelper, setRoleHelper] = useState("");
-    const [branchError, setBranchError] = useState(false);
-    const [branchHelper, setBranchHelper] = useState("");
-    const [managerError, setManagerError] = useState(false);
-    const [managerHelper, setManagerHelper] = useState("");
-    const [managerErrorEdit, setManagerErrorEdit] = useState(false);
-    const [managerHelperEdit, setManagerHelperEdit] = useState("");
-    const [helperText, setHelperText] = useState("");
-    const [role, setRole] = useState(null);
+    const [parameterTypeErrorEdit, setParameterTypeErrorEdit] = useState(false);
+    const [parameterCategoryErrorEdit, setParameterCategoryErrorEdit] = useState(false);
+    const [parameterValueErrorEdit, setParameterValueErrorEdit] = useState(false);
+    const [parameterTypeError, setParameterTypeError] = useState(false);
+    const [parameterCategoryError, setParameterCategoryError] = useState(false);
     const [editFormData, setEditFormData] = useState({
         id: "",
-        name: "",
-        email: "",
-        role: "",
+        param: "",
+        value: "",
+        valueType: "",
     });
 
-    const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    const parameterTypeOptions = ["Admin", "Manager", "User", "Viewer"];
+    const parameterCategoryOptions = ["Text", "Date"];
 
     // Fetch pageable users
     const fetchUsers = useCallback(async () => {
@@ -115,63 +98,37 @@ const GeneralConfigsCreate = () => {
     }, [fetchUsers]);
 
     // Add account
-    const handleAddAccount = async () => {
-        if (!email || !validateEmail(email)) {
-            setSnackbar({open: true, message: "Please enter a valid email address", severity: "error"});
+    const handleAddConfig = async () => {
+        console.log(' -- ',parameterType, parameterCategory, parameterValue)
+        if (!parameterType) { // role is your state from Autocomplete
+            setSnackbar({open: true, message: "Please select parameter type", severity: "error"});
+            setParameterTypeError(true);
+            return;
+        }
+
+        // reset role error if valid
+        setParameterTypeError(false);
+
+        if (!parameterCategory) { // role is your state from Autocomplete
+            setSnackbar({open: true, message: "Please select parameter category", severity: "error"});
+            setParameterCategoryError(true);
+            return;
+        }
+
+        // reset role error if valid
+        setParameterCategoryError(false);
+
+        if (!parameterValue) {
+            setSnackbar({open: true, message: "Please enter parameter value", severity: "error"});
             setParameterValueError(true);
-            setEmailHelper("Enter a valid email address");
             return;
         }
 
         // reset email error if valid
         setParameterValueError(false);
-        setEmailHelper("");
-
-        // ✅ Role validation
-        if (!role) { // role is your state from Autocomplete
-            setSnackbar({open: true, message: "Please select role", severity: "error"});
-            setRoleError(true);
-            setRoleHelper("Role is required");
-            return;
-        }
-
-        // reset role error if valid
-        setRoleError(false);
-        setRoleHelper("");
-
-        // ✅ Branch validation
-        if (!branch) { // role is your state from Autocomplete
-            setSnackbar({open: true, message: "Please select branch", severity: "error"});
-            setBranchError(true);
-            setBranchHelper("Branch is required");
-            return;
-        }
-
-        // reset role error if valid
-        setBranchError(false);
-        setBranchHelper("");
-
-        // ✅ Branch validation
-        if (!manager) { // role is your state from Autocomplete
-            setSnackbar({open: true, message: "Please select manager", severity: "error"});
-            setManagerError(true);
-            setManagerHelper("Manager is required");
-            return;
-        }
-
-        // reset role error if valid
-        setManagerError(false);
-        setManagerHelper("");
 
     };
 
-
-    // Menu actions
-    // const handleMenuOpen = (event, row) => {
-    //     setAnchorEl(event.currentTarget);
-    //     setSelectedRow(row);
-    // };
-    const [openDialog, setOpenDialog] = useState(false);
     const handleMenuOpen = (e, row) => {
         e.stopPropagation();
         setSelectedRow(row);
@@ -205,31 +162,32 @@ const GeneralConfigsCreate = () => {
         setEditFormData((prev) => ({...prev, [field]: value}));
     };
 
-    const handleSaveChanges = async () => {
+    const handleEditSave = async () => {
         console.log("New values:", editFormData);
-        console.log("New values2:", editFormData.email);
 
-        if (!editFormData.email || !validateEmail(editFormData.email)) {
-            setSnackbar({open: true, message: "Please enter a valid email address", severity: "error"});
-            setEmailErrorEdit(true);
-            setEmailHelperEdit("Enter a valid email address");
+        if (!editFormData.param) {
+            setSnackbar({open: true, message: "Please enter parameter type", severity: "error"});
+            setParameterTypeErrorEdit(true);
             return;
         }
 
-        setEmailErrorEdit(false);
-        setEmailHelperEdit("");
+        setParameterTypeErrorEdit(false);
 
-        // ✅ Branch validation
-        if (!editFormData.manager) { // role is your state from Autocomplete
-            setSnackbar({open: true, message: "Please select manager", severity: "error"});
-            setManagerErrorEdit(true);
-            setManagerHelperEdit("Manager is required");
+        if (!editFormData.valueType) { // role is your state from Autocomplete
+            setSnackbar({open: true, message: "Please select parameter category", severity: "error"});
+            setParameterCategoryErrorEdit(true);
             return;
         }
 
-        setManagerErrorEdit(false);
-        setManagerHelperEdit("");
+        setParameterCategoryErrorEdit(false);
 
+        if (!editFormData.value) { // role is your state from Autocomplete
+            setSnackbar({open: true, message: "Please select parameter value", severity: "error"});
+            setParameterValueErrorEdit(true);
+            return;
+        }
+
+        setParameterValueErrorEdit(false);
         return
         setLoading(true);
         try {
@@ -248,7 +206,6 @@ const GeneralConfigsCreate = () => {
             }
             await fetchUsers(); // refresh list from server
             setSnackbar({open: true, message: "Successfully edited user", severity: "success"});
-            setRoles("");
             setParameterValue("");
         } catch (err) {
             console.error("Add user error:", err);
@@ -258,44 +215,6 @@ const GeneralConfigsCreate = () => {
             handleEditModalClose()
         }
     };
-
-    const branchOptions = ["Finance", "IT", "HR", "Sales", "Operations"];
-    const roleOptions = ["Admin", "Manager", "User", "Viewer"];
-
-    // ✅ Mapping of branch → manager options
-    const managerOptionsByBranch = {
-        Finance: ["Manager1", "Manager2"],
-        IT: ["Manager3", "Manager4"],
-        HR: ["Manager5", "Manager6"],
-        Sales: ["Manager7", "Manager8"],
-        Operations: ["Manager9", "Manager10"],
-    };
-
-    const [branch, setBranch] = useState(null);
-    const [manager, setManager] = useState(null);
-    const [managers, setManagers] = useState([]);
-    const [loadingManagers, setLoadingManagers] = useState(false);
-
-    // 🔹 When branch changes → reset manager + load new options
-    useEffect(() => {
-        if (branch) {
-            setLoadingManagers(true);
-            setManager(null);
-            // simulate async fetch
-            setTimeout(() => {
-                setManagers(managerOptionsByBranch[branch] || []);
-                setLoadingManagers(false);
-            }, 300);
-        } else {
-            setManagers([]);
-            setManager(null);
-        }
-    }, [branch]);
-
-
-    // Add these states near the top of your component
-    const [editManagerOptions, setEditManagerOptions] = useState([]);
-    const [editLoadingManagers, setEditLoadingManagers] = useState(false);
 
     const getStatusChip = (status) => {
         const statusConfig = {
@@ -338,21 +257,7 @@ const GeneralConfigsCreate = () => {
             />
         );
     };
-// Watch for branch change inside edit form
-    useEffect(() => {
-        if (editFormData.branch) {
-            setEditLoadingManagers(true);
-            // Simulate API fetch for managers by branch
-            setTimeout(() => {
-                setEditManagerOptions(managerOptionsByBranch[editFormData.branch] || []);
-                setEditLoadingManagers(false);
-            }, 300);
-        } else {
-            setEditManagerOptions([]);
-        }
-    }, [editFormData.branch]);
-    const parameterCategory = ["Text", "Date"];
-    const [category, setCategory] = useState(null);
+
     const columns = [
         { field: "param", headerName: "Parameter", flex: 1, minWidth: 150 },
         { field: "value", headerName: "Value", flex: 1, minWidth: 150 },
@@ -395,6 +300,20 @@ const GeneralConfigsCreate = () => {
                 fontFamily: "'SUSE', sans-serif",
             }}
         >
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: "100%" }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
             {/* Page Header */}
             <Fade in={true} timeout={600}>
                 <Box sx={{mb: 2}}>
@@ -410,7 +329,7 @@ const GeneralConfigsCreate = () => {
                 </Box>
             </Fade>
             {/* Filter + Add Button Section */}
-            <Fade in={true} timeout={1200}>
+            <Fade in={true} timeout={1000}>
                 <Paper
                     elevation={5}
                     sx={{
@@ -436,15 +355,15 @@ const GeneralConfigsCreate = () => {
                     >
                         {/* Role */}
                         <Autocomplete
-                            options={roleOptions}
+                            options={parameterTypeOptions}
                             size="small"
-                            value={role}
-                            onChange={(event, newValue) => setRole(newValue)}
+                            value={parameterType}
+                            onChange={(event, newValue) => setParameterType(newValue)}
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
                                     label="Parameter Type"
-                                    error={roleError && !role} // ✅ Pass error here
+                                    error={parameterTypeError && !parameterType} // ✅ Pass error here
                                     InputProps={{
                                         ...params.InputProps,
                                         startAdornment:
@@ -471,15 +390,15 @@ const GeneralConfigsCreate = () => {
 
                         {/* Role */}
                         <Autocomplete
-                            options={parameterCategory}
+                            options={parameterCategoryOptions}
                             size="small"
-                            value={category}
-                            onChange={(event, newValue) => setRole(newValue)}
+                            value={parameterCategory}
+                            onChange={(event, newValue) => setParameterCategory(newValue)}
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
                                     label="Parameter Category"
-                                    error={roleError && !role} // ✅ Pass error here
+                                    error={parameterCategoryError && !parameterCategory} // ✅ Pass error here
                                     InputProps={{
                                         ...params.InputProps,
                                         startAdornment:
@@ -509,7 +428,7 @@ const GeneralConfigsCreate = () => {
                             size="small"
                             label="Parameter Value"
                             variant="outlined"
-                            value={email}
+                            value={parameterValue}
                             onChange={(e) => setParameterValue(e.target.value)}
                             error={parameterValueError}
                             InputProps={{
@@ -534,32 +453,32 @@ const GeneralConfigsCreate = () => {
                         />
                     </Box>
 
-                    {/* Add User Button */}
-                    <Tooltip title="Add a new user">
-                        <Button
-                            variant="contained"
-                            startIcon={<AddIcon />}
-                            onClick={handleAddAccount}
-                            sx={{
-                                background: "linear-gradient(90deg, #116530, #1b7a3e)",
-                                textTransform: "none",
-                                fontWeight: 600,
-                                height: 35,
-                                px: 3,
-                                py: 1,
-                                boxShadow: 2,
-                                fontSize: "0.9rem",
-                                "&:hover": { background: "#0d4d24" },
-                                minWidth: "150px",
-                            }}
-                        >
-                            Add Config
-                        </Button>
-                    </Tooltip>
+                    <Button
+                        variant="contained"
+                        onClick={handleAddConfig}
+                        disabled={loading}
+                        startIcon={<AddIcon size="18" color="#fff"/>}
+                        sx={{
+                            height: 34,
+                            minWidth: 120,
+                            background: "linear-gradient(90deg, #116530, #1b7a3e)",
+                            textTransform: "none",
+                            fontWeight: 600,
+                            fontSize: "0.9rem",
+                            color: "#fff",
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                            "&:hover": {
+                                background: "linear-gradient(90deg, #0d4d24, #156e35)",
+                                boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
+                            },
+                        }}
+                    >
+                        {loading ? <CircularProgress size={20} color="inherit"/> : "Add Config"}
+                    </Button>
                 </Paper>
             </Fade>
             {/* 🔍 Data Table + Search */}
-            <Fade in={true} timeout={1600}>
+            <Fade in={true} timeout={1000}>
                 <Paper
                     elevation={3}
                     sx={{
@@ -682,32 +601,28 @@ const GeneralConfigsCreate = () => {
                                 <Box sx={{display: "flex", flexDirection: "column", gap: 2, pt: 2}}>
 
                                     {/* Email */}
-                                    <TextField
-                                        label="Parameter"
-                                        fullWidth
-                                        type="email"
+                                    <Autocomplete
+                                        options={parameterTypeOptions}
+                                        value={editFormData.param || ""}
                                         size="small"
-                                        value={editFormData.param}
-                                        error={emailErrorEdit}
-                                        InputProps={{
-                                            sx: {
-                                                fontSize: 14, // 👈 reduce input text font size
-                                                height: 36,   // optional: reduce height too
-                                            },
-                                        }}
-                                        InputLabelProps={{
-                                            sx: { fontSize: 14 }, // 👈 reduce label font size
-                                        }}
-                                        onChange={(e) => handleFormChange("email", e.target.value)}
+                                        onChange={(e, newValue) => handleFormChange("parameterTypeEdit", newValue || "")}
+                                        renderInput={(params) => (
+                                            <TextField {...params} label="Parameter Type" variant="outlined"
+                                                       sx={{
+                                                           "& .MuiInputBase-input": { fontSize: 14 }, // input text
+                                                           "& .MuiInputLabel-root": { fontSize: 14 }, // label text
+                                                       }}
+                                                       fullWidth/>
+                                        )}
                                     />
                                     {/* Role */}
                                     <Autocomplete
-                                        options={parameterCategory}
+                                        options={parameterCategoryOptions}
                                         value={editFormData.valueType || ""}
                                         size="small"
-                                        onChange={(e, newValue) => handleFormChange("role", newValue || "")}
+                                        onChange={(e, newValue) => handleFormChange("parameterCategoryEdit", newValue || "")}
                                         renderInput={(params) => (
-                                            <TextField {...params} label="Parameter Type" variant="outlined"
+                                            <TextField {...params} label="Parameter Category" variant="outlined"
                                                        sx={{
                                                            "& .MuiInputBase-input": { fontSize: 14 }, // input text
                                                            "& .MuiInputLabel-root": { fontSize: 14 }, // label text
@@ -720,10 +635,10 @@ const GeneralConfigsCreate = () => {
                                     <TextField
                                         label="Parameter Value"
                                         fullWidth
-                                        type="email"
+                                        type="text"
                                         size="small"
                                         value={editFormData.value}
-                                        error={emailErrorEdit}
+                                        error={parameterValueErrorEdit}
                                         InputProps={{
                                             sx: {
                                                 fontSize: 14, // 👈 reduce input text font size
@@ -733,7 +648,7 @@ const GeneralConfigsCreate = () => {
                                         InputLabelProps={{
                                             sx: { fontSize: 14 }, // 👈 reduce label font size
                                         }}
-                                        onChange={(e) => handleFormChange("email", e.target.value)}
+                                        onChange={(e) => handleFormChange("value", e.target.value)}
                                     />
                                     {/* Status */}
                                     <FormControlLabel
@@ -757,7 +672,7 @@ const GeneralConfigsCreate = () => {
                                     Cancel
                                 </Button>
                                 <Button
-                                    onClick={handleSaveChanges}
+                                    onClick={handleEditSave}
                                     variant="contained"
                                     disabled={loading}
                                 >

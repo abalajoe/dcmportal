@@ -17,6 +17,7 @@ import AccountManagementApprove from "./components/AccountManagementApprove";
 import AccountManagementCreate from "./components/AccountManagementCreate";
 import GeneralConfigsCreate from "./components/GeneralConfigsCreate";
 import GeneralConfigsApprove from "./components/GeneralConfigsApprove";
+import Settings from "./components/Settings";
 
 export default function MainRouter() {
     // ✅ Don't use default value - force it to read fresh each time
@@ -121,7 +122,7 @@ export default function MainRouter() {
                 <Route path="/GeneralConfigs"
                        element={
                            <ProtectedRoute
-                               element={<GeneralConfigsCreate />}
+                               element={<GeneralConfigsApprove />}
                                allowedRoles={["ICT_Administrator"]}
                                userRole={userRole}
                            />
@@ -162,6 +163,16 @@ export default function MainRouter() {
                            <ProtectedRoute
                                element={<SystemLogs />}
                                allowedRoles={["ICT_Administrator", "Branch_Maker", "Branch_Checker"]}
+                               userRole={userRole}
+                           />
+                       }
+                />
+
+                <Route path="/Settings"
+                       element={
+                           <ProtectedRoute
+                               element={<Settings />}
+                               allowedRoles={["ICT_Administrator"]}
                                userRole={userRole}
                            />
                        }

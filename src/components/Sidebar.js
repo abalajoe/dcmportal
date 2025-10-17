@@ -4,8 +4,10 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { IconButton, Tooltip, Button, useMediaQuery, useTheme } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import { ArrangeHorizontalSquare, ProfileTick, Back, ArchiveMinus, Candle, Layer, TextalignJustifyleft,
-    EmptyWallet, UserAdd, UserEdit } from "iconsax-react";
+import {
+    ArrangeHorizontalSquare, ProfileTick, Back, ArchiveMinus, Candle, Layer, TextalignJustifyleft,
+    EmptyWallet, UserAdd, UserEdit, Setting, Setting3, Setting4, Setting2
+} from "iconsax-react";
 
 export default function Sidebar({ collapsed, setCollapsed }) {
     const theme = useTheme();
@@ -76,6 +78,10 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             path: "/systemLogs",
             allowedRoles: ["ICT_Administrator", "Branch_Maker", "Branch_Checker"],
             icon: <Layer size="20" color="currentColor" /> },
+        { label: "Settings",
+            path: "/settings",
+            allowedRoles: ["ICT_Administrator", "Branch_Maker", "Branch_Checker"],
+            icon: <Setting2 size="20" color="currentColor" /> },
     ];
 
     // ✅ Only show menus allowed for this user

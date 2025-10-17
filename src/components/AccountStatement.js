@@ -19,7 +19,7 @@ import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import {Sms, Calendar, Card, Book1, Export, ArrowRotateRight} from "iconsax-react";
+import {Sms, Calendar, Card, Book1, Export, ArrowRotateRight, Printer} from "iconsax-react";
 import {Document, pdfjs, Page} from "react-pdf";
 import {ImportCurve, CloseCircle} from "iconsax-react";
 import {AccountSmtAPI} from "../services/Api";
@@ -277,7 +277,7 @@ const AccountStatement = () => {
                                     variant="contained"
                                     onClick={() => setOpenDialog(true)}
                                     disabled={loading}
-                                    startIcon={<Export size="18" color="#fff"/>}
+                                    startIcon={<Printer size="18" color="#fff"/>}
                                     sx={{
                                         height: 34,
                                         minWidth: 120,
