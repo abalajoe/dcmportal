@@ -1,47 +1,20 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState,  } from "react";
 import dayjs from "dayjs";
-import api from "../services/axios";
 import {
     Box,
     Button,
     CircularProgress,
-    TextField,
-    IconButton,
-    Menu,
-    MenuItem,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Snackbar,
-    Alert,
-    Autocomplete, Checkbox, FormControlLabel, Typography, Paper, Tooltip, InputAdornment
+    TextField,Typography, Paper, Tooltip, InputAdornment
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
 import {
-    ProfileTick,
-    Profile2User,
-    Mirror,
-    Sms,
-    ShieldSecurity,
-    Wallet2,
-    Unlock,
-    User,
-    Card,
     Calendar
 } from "iconsax-react";
-import PersonIcon from "@mui/icons-material/Person";
-import ApartmentIcon from "@mui/icons-material/Apartment";
-import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
-import AddIcon from "@mui/icons-material/Add";
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 
 const TrackRecord = () => {
-    const [email, setEmail] = useState("");
-    const [roles, setRoles] = useState("");
     const [loading, setLoading] = useState(false);
     const [rows, setRows] = useState([]);
     const [rowCount, setRowCount] = useState(0); // total elements from backend
@@ -247,7 +220,7 @@ const TrackRecord = () => {
                     />
                 </Box>
 
-                <Box sx={{ height: 440, width: "100%" }}>
+                <Box sx={{ height: 450, width: "100%" }}>
                     <DataGrid
                         rows={rows}
                         columns={columns}

@@ -17,9 +17,21 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogActions,
+    DialogActions, InputAdornment, Autocomplete, Tooltip,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import {
+    Profile2User,
+    Sms,
+    User,
+    Wallet2,
+    SmsSearch,
+    Book1,
+    FilterSearch,
+    GlobalSearch,
+    SearchNormal, SearchNormal1, Export
+} from "iconsax-react";
+import AddIcon from "@mui/icons-material/Add";
 
 const StyledTableHeadCell = styled(TableCell)({
     backgroundColor: "#0b4b2b",
@@ -142,49 +154,122 @@ const PrintHistory = () => {
     };
 
     return (
-        <Box sx={{ p: 3 }}>
-            {/* Toolbar */}
+        <Box
+            sx={{
+                backgroundColor: "#f6f8fa",
+                pt: { xs: 0, sm: 0, md: 0 },
+                px: { xs: 1, sm: 2, md: 3 },
+                pb: { xs: 2, sm: 3, md: 5 },
+                fontFamily: "'SUSE', sans-serif",
+            }}
+        >
+            {/* Page Header */}
+            <Box sx={{ mb: 2 }}>
+                <Typography
+                    variant="h5"
+                    sx={{ fontWeight: 700, color: "#116530", mb: 0.5 }}
+                >
+                    Print History
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    Monitor audit trail of printed resources.
+                </Typography>
+            </Box>
+
+            {/* Filter + Add Button Section */}
             <Box
                 sx={{
                     display: "flex",
-                    flexDirection: { xs: "column", sm: "row" },
-                    gap: 2,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    maxWidth: "420px",
-                    mx: "auto",
-                    width: "100%",
+                    justifyContent: "center", // centers horizontally
+                    width: "100%", // takes full available width of parent
                 }}
             >
-                <TextField
-                    size="small"
-                    placeholder="Search by email"
-                    value={searchVal}
-                    onChange={handleSearchChange}
-                    sx={{ flexGrow: 1, maxWidth: 300 }}
-                />
-                <Button
-                    variant="contained"
+                <Paper
+                    elevation={5}
                     sx={{
-                        backgroundColor: "#0b4b2b",
-                        textTransform: "none",
-                        fontWeight: "bold",
-                        "&:hover": { backgroundColor: "#0d5c35" },
+                        p: 2,
+                        mb: 0,
+                        borderRadius: 1,
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 2,
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        backgroundColor: "#fff",
+                        maxWidth: 600, // ✅ controls paper width
+                        width: "100%", // allows responsiveness
                     }}
-                    onClick={exportToExcel}
                 >
-                    Export to Excel
-                </Button>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: 2,
+                            flexGrow: 1,
+                            justifyContent: "space-between",
+                        }}
+                    >
+                        <TextField
+                            size="small"
+                            label="Search"
+                            variant="outlined"
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start" sx={{ color: "grey.500" }}>
+                                        <SearchNormal1 size="18" color="currentColor" />
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{
+                                flex: 1,
+                                minWidth: "180px",
+                                "& .MuiInputBase-input": { fontSize: "0.9rem" },
+                                "& .MuiInputLabel-root": {
+                                    fontSize: "1.0rem",
+                                    color: "black",
+                                },
+                                "& .MuiInputLabel-root.Mui-focused": {
+                                    color: "black",
+                                },
+                            }}
+                        />
+                    </Box>
+
+                    <Button
+                        variant="contained"
+                        startIcon={<Export size="18" color="#fff" />}
+                        sx={{
+                            background: "linear-gradient(90deg, #116530, #1b7a3e)",
+                            textTransform: "none",
+                            fontWeight: 600,
+                            height: 35,
+                            px: 3,
+                            py: 1,
+                            boxShadow: 2,
+                            fontSize: "0.9rem",
+                            transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
+                            "&:hover": {
+                                background: "linear-gradient(90deg, #0d4d24, #156e35)", // same gradient tone, slightly darker
+                                boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
+                                transform: "translateY(0px)", // subtle lift
+                            },
+                            minWidth: "150px",
+                        }}
+                    >
+                        Export to Excel
+                    </Button>
+                </Paper>
             </Box>
+
 
             {/* Table */}
             <TableContainer
                 component={Paper}
                 sx={{
-                    borderRadius: 2,
+                    borderRadius: 1,
                     minHeight: 400,
                     maxHeight: 600,
-                    mt: 4,
+                    mt: 2,
                     overflow: "auto",
                     overflowX: "auto", // Allow horizontal scroll on small screens
                 }}

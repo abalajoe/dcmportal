@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import dayjs from "dayjs";
-import api from "../services/axios";
 import {
     Box,
     Button,
@@ -36,7 +34,7 @@ import ApartmentIcon from "@mui/icons-material/Apartment";
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import AddIcon from "@mui/icons-material/Add";
 
-const GeneralConfigs2 = () => {
+const GeneralConfigsApprove = () => {
     const [email, setEmail] = useState("");
     const [roles, setRoles] = useState("");
     const [loading, setLoading] = useState(false);
@@ -85,7 +83,7 @@ const GeneralConfigs2 = () => {
             const sortDir = sortModel[0]?.sort?.toUpperCase() || "DESC";
 
             const response = await fetch(
-                `http://localhost:7081/api/accountstatementengine/v1/user/findAllAccountManagement?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                `http://localhost:8082/api/accountstatementengine/v1/user/findAllConfigs?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
             );
 
             if (!response.ok) {
@@ -98,13 +96,9 @@ const GeneralConfigs2 = () => {
             setRows(
                 data.content.map((item, index) => ({
                     id: item.id,
-                    email: item.email || "-",
-                    role: item.role || "-",
-                    branch: item.branch || "-",
-                    manager: item.manager || "-",
-                    createdby: item.createdby || "-",
-                    datecreated: new Date(item.datecreated).toLocaleString() || "-",
-                    status: item.status || "-",
+                    param: item.param || "-",
+                    value: item.value || "-",
+                    valueType: item.valueType || "-",
                 }))
             );
             setRowCount(data.totalElements);
@@ -228,7 +222,7 @@ const GeneralConfigs2 = () => {
         setLoading(true);
         try {
             const response = await fetch(
-                "http://localhost:7081/api/accountstatementengine/v1/user/edit",
+                "http://localhost:8082/api/accountstatementengine/v1/user/findAllConfigs",
                 {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -307,9 +301,9 @@ const GeneralConfigs2 = () => {
     }, [editFormData.branch]);
 
     const columns = [
-        { field: "email", headerName: "Parameter", flex: 1, minWidth: 150 },
-        { field: "role", headerName: "Value", flex: 1, minWidth: 150 },
-        { field: "branch", headerName: "Type", flex: 1, minWidth: 150 },
+        { field: "param", headerName: "Parameter", flex: 1, minWidth: 150 },
+        { field: "value", headerName: "Value", flex: 1, minWidth: 150 },
+        { field: "valueType", headerName: "Type", flex: 1, minWidth: 150 },
     ];
 
     return (
@@ -654,4 +648,4 @@ const GeneralConfigs2 = () => {
     );
 };
 
-export default GeneralConfigs2;
+export default GeneralConfigsApprove;

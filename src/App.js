@@ -1,5 +1,5 @@
 import './App.css';
-import MainRouter from "./router";
+import MainRouter from "./MainRouter";
 import {BrowserRouter} from "react-router-dom";
 import theme from './theme/theme';
 import {ThemeProvider} from "@mui/material"; // Bold

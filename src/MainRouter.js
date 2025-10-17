@@ -1,40 +1,60 @@
 import React, {useEffect, useState} from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import MainLayout from "./components/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
 
 import AccountStatement from "./components/AccountStatement";
 import TrackRecord from "./components/TrackRecord";
 import LoginPage from "./components/Login";
-import Roles from "./components/Roles";
 import GeneralConfigs from "./components/GeneralConfigs";
 import PrintHistory from "./components/PrintHistory";
 import AccountManagement from "./components/AccountManagement";
-import AccountManagement2 from "./components/AccountManagement2";
 import SystemLogs from "./components/SystemLogs";
-import AccountManagement3 from "./components/AccountManagement3";
-import AccountStatement2 from "./components/AccountStatement2";
-import GeneralConfigs2 from "./components/GeneralConfigs2";
-import PrintHistory2 from "./components/PrintHistory2";
 import Unauthorized from "./components/Unauthorized";
 import NotFound from "./components/NotFound";
 import ApproveChargeWaiver from "./components/ApproveChargeWaiver";
-import AccountManagement4 from "./components/AccountManagement4";
+import AccountManagementApprove from "./components/AccountManagementApprove";
+import AccountManagementCreate from "./components/AccountManagementCreate";
+import GeneralConfigsCreate from "./components/GeneralConfigsCreate";
+import GeneralConfigsApprove from "./components/GeneralConfigsApprove";
 
 export default function MainRouter() {
-    const [userRole, setUserRole] = useState(localStorage.getItem("role") || "USER");
+    // ✅ Don't use default value - force it to read fresh each time
+    const [userRole, setUserRole] = useState(() => localStorage.getItem("role"));
+    const location = useLocation();
 
-    // 🔁 Keep userRole in sync with localStorage changes (including login/logout)
+    // ✅ Update role on EVERY render when location changes
+    useEffect(() => {
+        const currentRole = localStorage.getItem("role");
+        console.log("📍 Location changed to:", location.pathname, "| Role from localStorage:", currentRole);
+        setUserRole(currentRole);
+    }, [location.pathname]);
+
+    // ✅ Listen for custom role update events
+    useEffect(() => {
+        const handleRoleUpdate = () => {
+            const newRole = localStorage.getItem("role");
+            console.log("🔄 Role updated event fired | New role:", newRole);
+            setUserRole(newRole);
+        };
+
+        window.addEventListener('roleUpdated', handleRoleUpdate);
+        return () => window.removeEventListener('roleUpdated', handleRoleUpdate);
+    }, []);
+
+    // ✅ Listen for storage changes (works across tabs)
     useEffect(() => {
         const handleStorageChange = () => {
-            setUserRole(localStorage.getItem("role") || "USER");
+            const newRole = localStorage.getItem("role");
+            console.log("💾 Storage event fired | New role:", newRole);
+            setUserRole(newRole);
         };
 
         window.addEventListener("storage", handleStorageChange);
         return () => window.removeEventListener("storage", handleStorageChange);
     }, []);
 
-    console.log("userRole - ", userRole);
+    console.log("🎯 Current userRole in router:", userRole);
 
     return (
         <Routes>
@@ -52,38 +72,11 @@ export default function MainRouter() {
                            />
                        }
                 />
-                <Route path="/accountStatement2"
-                       element={
-                           <ProtectedRoute
-                               element={<AccountStatement2 />}
-                               allowedRoles={["ICT_Administrator", "Contact_Centre_Officer", "Branch_Maker", "Branch_Checker", "Security_Services_User", "Head_Office"]}
-                               userRole={userRole}
-                           />
-                       }
-                />
-                <Route path="/accountManagement3"
-                       element={
-                           <ProtectedRoute
-                               element={<AccountManagement />}
-                               allowedRoles={["ICT_Administrator", "ICT_Service_Desk", "USER"]}
-                               userRole={userRole}
-                           />
-                       }
-                />
-                <Route path="/accountManagement2"
-                       element={
-                           <ProtectedRoute
-                               element={<AccountManagement2 />}
-                               allowedRoles={["ICT_Administrator", "ICT_Service_Desk", "USER"]}
-                               userRole={userRole}
-                           />
-                       }
-                />
                 <Route path="/accountManagement"
                        element={
                            <ProtectedRoute
-                               element={<AccountManagement4 />}
-                               allowedRoles={["ICT_Administrator", "ICT_Service_Desk", "USER"]}
+                               element={<AccountManagementCreate />}
+                               allowedRoles={["ICT_Administrator", "ICT_Service_Desk_Maker", "ICT_Service_Desk_Checker"]}
                                userRole={userRole}
                            />
                        }
@@ -106,20 +99,21 @@ export default function MainRouter() {
                            />
                        }
                 />
-                <Route path="/roles"
+                <Route path="/createAccountManagement"
                        element={
                            <ProtectedRoute
-                               element={<Roles />}
-                               allowedRoles={["ICT_Administrator", "ICT_Service_Desk"]}
+                               element={<AccountManagementCreate />}
+                               allowedRoles={["ICT_Service_Desk_Maker"]}
                                userRole={userRole}
                            />
                        }
                 />
-                <Route path="/GeneralConfigs2"
+
+                <Route path="/approveAccountManagement"
                        element={
                            <ProtectedRoute
-                               element={<GeneralConfigs />}
-                               allowedRoles={["ICT_Administrator", "ADMIN", "USER"]}
+                               element={<AccountManagementApprove />}
+                               allowedRoles={["ICT_Service_Desk_Checker"]}
                                userRole={userRole}
                            />
                        }
@@ -127,22 +121,34 @@ export default function MainRouter() {
                 <Route path="/GeneralConfigs"
                        element={
                            <ProtectedRoute
-                               element={<GeneralConfigs2 />}
-                               allowedRoles={["ICT_Administrator", "ADMIN", "USER"]}
+                               element={<GeneralConfigsCreate />}
+                               allowedRoles={["ICT_Administrator"]}
                                userRole={userRole}
                            />
                        }
                 />
-                <Route path="/PrintHistory"
+
+                <Route path="/GeneralConfigsCreate"
                        element={
                            <ProtectedRoute
-                               element={<PrintHistory2 />}
-                               allowedRoles={["ICT_Administrator", "Branch_Maker", "Branch_Checker"]}
+                               element={<GeneralConfigsCreate />}
+                               allowedRoles={["ICT_Administrator"]}
                                userRole={userRole}
                            />
                        }
                 />
-                <Route path="/PrintHistory2"
+
+                <Route path="/GeneralConfigsApprove"
+                       element={
+                           <ProtectedRoute
+                               element={<GeneralConfigsApprove />}
+                               allowedRoles={["ICT_Administrator"]}
+                               userRole={userRole}
+                           />
+                       }
+                />
+
+                <Route path="/PrintHistory"
                        element={
                            <ProtectedRoute
                                element={<PrintHistory />}
@@ -166,15 +172,4 @@ export default function MainRouter() {
             <Route path="*" element={<NotFound />} />
         </Routes>
     );
-    // return (
-    //     <Routes>
-    //         {/*<Route path="/" element={<MainLayout />}>*/}
-    //         <Route path="/" element={<Login />}>
-    //             <Route index element={<AccountStatement />} />
-    //             <Route path="reports" element={<TrackRecord />} />
-    //             {/*<Route path="settings" element={<Settings />} />*/}
-    //             <Route path="*" element={<Navigate to="/" replace />} />
-    //         </Route>
-    //     </Routes>
-    // );
 }

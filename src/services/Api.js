@@ -32,7 +32,9 @@ export const loginUser = async (email, pswrd) => {
 };
 
 export const AccountSmtAPI = (userParams) => {
-    const httpUrl = `${process.env.REACT_APP_BASE_URL}/accountStatement`;
+    console.log('llllll')
+    // const httpUrl = `${process.env.REACT_APP_BASE_URL}/accountStatement`;
+    const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/accountStatement";
 
     const resp = new Promise((resolve, reject) => {
         const headers = {

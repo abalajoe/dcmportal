@@ -6,6 +6,10 @@ import Typography from "@mui/material/Typography";
 import { User } from "iconsax-react";
 
 export default function Navbar() {
+    const email = localStorage.getItem('curUserEmail');
+    const role = localStorage.getItem('role');
+    const roleName = role.replace(/_/g, " ");
+
     return (
         <AppBar position="fixed" elevation={3} sx={{ backgroundColor: "#116530" }}>
             <Toolbar
@@ -17,48 +21,37 @@ export default function Navbar() {
                 }}
             >
                 {/* Left: Logo */}
-                <Box sx={{ display: "flex", alignItems: "center", flex: "0 0 auto" }}>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
                     <img src="/cooplogo.jpeg" alt="logo" style={{ height: 36 }} />
                 </Box>
 
-                {/* Center: Title (hidden on small screens) */}
+                {/* Center: Title */}
                 <Typography
                     variant="h6"
-                    component="div"
                     sx={{
-                        flex: "1 1 auto",
+                        flex: 1,
                         textAlign: "center",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
                         fontWeight: 600,
                         fontSize: 18,
-                        display: { xs: "none", sm: "block" }, // 👈 hides on xs (mobile)
+                        display: { xs: "none", sm: "block" },
                     }}
                 >
                     Account Statement
                 </Typography>
 
-                {/* Right: User Email */}
+                {/* Right: Email + Role */}
                 <Box
                     sx={{
-                        flex: "0 0 auto",
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "flex-end",
-                        whiteSpace: "nowrap",
                         gap: 1,
+                        color: "#fff",
+                        whiteSpace: "nowrap",
                     }}
                 >
-                    <User size="15" color="#fff" />
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            color: "#fff",
-                            fontSize: "14px",
-                        }}
-                    >
-                        joeabala@co-opbank.co.ke
+                    <User size="16" color="#fff" />
+                    <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
+                        {email} | <strong style={{ fontStyle: "bold", fontWeight: 600 }}>{roleName}</strong>
                     </Typography>
                 </Box>
             </Toolbar>

@@ -1,28 +1,14 @@
-import React, { useState, useEffect, useCallback } from "react";
-import dayjs from "dayjs";
-import api from "../services/axios";
+import React, {useState, useEffect, useCallback} from "react";
 import {
     Box,
-    Button,
     CircularProgress,
-    TextField,
-    IconButton,
-    Menu,
-    MenuItem,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Snackbar,
-    Alert,
-    Autocomplete, Checkbox, FormControlLabel
+    TextField,Typography, Paper, InputAdornment, Fade, Chip, Slide
 } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-
+import {DataGrid} from "@mui/x-data-grid";
+import {
+    SearchNormal1
+} from "iconsax-react";
 const AccountManagement = () => {
-    const [email, setEmail] = useState("");
-    const [roles, setRoles] = useState("");
     const [loading, setLoading] = useState(false);
     const [rows, setRows] = useState([]);
     const [rowCount, setRowCount] = useState(0); // total elements from backend
@@ -30,45 +16,19 @@ const AccountManagement = () => {
         page: 0,
         pageSize: 10,
     });
-    const [sortModel, setSortModel] = useState([{ field: "id", sort: "desc" }]);
+    const [sortModel, setSortModel] = useState([{field: "id", sort: "desc"}]);
     const [searchVal, setSearchVal] = useState("");
-    const [anchorEl, setAnchorEl] = useState(null);
-    const [selectedRow, setSelectedRow] = useState(null);
-    const [openEditModal, setOpenEditModal] = useState(false);
-    const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
-    const [error, setError] = useState(false);
-    const [emailError, setEmailError] = useState(false);
-    const [emailHelper, setEmailHelper] = useState("");
-    const [emailErrorEdit, setEmailErrorEdit] = useState(false);
-    const [emailHelperEdit, setEmailHelperEdit] = useState("");
-    const [roleError, setRoleError] = useState(false);
-    const [roleHelper, setRoleHelper] = useState("");
-    const [branchError, setBranchError] = useState(false);
-    const [branchHelper, setBranchHelper] = useState("");
-    const [managerError, setManagerError] = useState(false);
-    const [managerHelper, setManagerHelper] = useState("");
-    const [managerErrorEdit, setManagerErrorEdit] = useState(false);
-    const [managerHelperEdit, setManagerHelperEdit] = useState("");
-    const [helperText, setHelperText] = useState("");
-    const [role, setRole] = useState(null);
-    const [editFormData, setEditFormData] = useState({
-        id: "",
-        name: "",
-        email: "",
-        role: "",
-    });
-
-    const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
     // Fetch pageable users
     const fetchUsers = useCallback(async () => {
+
         setLoading(true);
         try {
             const sortField = sortModel[0]?.field || "id";
             const sortDir = sortModel[0]?.sort?.toUpperCase() || "DESC";
 
             const response = await fetch(
-                `http://localhost:7081/api/accountstatementengine/v1/user/findAllAccountManagement?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                `http://localhost:8082/api/accountstatementengine/v1/user/findAllAccountManagement?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
             );
 
             if (!response.ok) {
@@ -102,527 +62,176 @@ const AccountManagement = () => {
         fetchUsers();
     }, [fetchUsers]);
 
-    // Add account
-    const handleAddAccount = async () => {
-        if (!email || !validateEmail(email)) {
-            setSnackbar({ open: true, message: "Please enter a valid email address", severity: "error" });
-            setEmailError(true);
-            setEmailHelper("Enter a valid email address");
-            return;
-        }
-
-        // reset email error if valid
-        setEmailError(false);
-        setEmailHelper("");
-
-        // ✅ Role validation
-        if (!role) { // role is your state from Autocomplete
-            setSnackbar({ open: true, message: "Please select role", severity: "error" });
-            setRoleError(true);
-            setRoleHelper("Role is required");
-            return;
-        }
-
-        // reset role error if valid
-        setRoleError(false);
-        setRoleHelper("");
-
-        // ✅ Branch validation
-        if (!branch) { // role is your state from Autocomplete
-            setSnackbar({ open: true, message: "Please select branch", severity: "error" });
-            setBranchError(true);
-            setBranchHelper("Branch is required");
-            return;
-        }
-
-        // reset role error if valid
-        setBranchError(false);
-        setBranchHelper("");
-
-        // ✅ Branch validation
-        if (!manager) { // role is your state from Autocomplete
-            setSnackbar({ open: true, message: "Please select manager", severity: "error" });
-            setManagerError(true);
-            setManagerHelper("Manager is required");
-            return;
-        }
-
-        // reset role error if valid
-        setManagerError(false);
-        setManagerHelper("");
-
-    };
-
-
-    // Menu actions
-    const handleMenuOpen = (event, row) => {
-        setAnchorEl(event.currentTarget);
-        setSelectedRow(row);
-    };
-    const handleMenuClose = () => setAnchorEl(null);
-
-    const handleEditClick = () => {
-        setEditFormData({
-            id: selectedRow.id,
-            email: selectedRow.email,
-            role: selectedRow.role,
-            branch: selectedRow.branch,
-            manager: selectedRow.manager,
-            status: selectedRow.status,
-        });
-        setOpenEditModal(true);
-        handleMenuClose();
-    };
-    const handleEditModalClose = () => {
-        setOpenEditModal(false);
-        setEditFormData({ id: "", name: "", email: "", role: "" });
-    };
-
-    const handleFormChange = (field, value) => {
-        setEditFormData((prev) => ({ ...prev, [field]: value }));
-    };
-
-    const handleSaveChanges = async () => {
-        console.log("New values:", editFormData);
-        console.log("New values2:", editFormData.email);
-
-        if (!editFormData.email || !validateEmail(editFormData.email)) {
-            setSnackbar({ open: true, message: "Please enter a valid email address", severity: "error" });
-            setEmailErrorEdit(true);
-            setEmailHelperEdit("Enter a valid email address");
-            return;
-        }
-
-        setEmailErrorEdit(false);
-        setEmailHelperEdit("");
-
-        // ✅ Branch validation
-        if (!editFormData.manager) { // role is your state from Autocomplete
-            setSnackbar({ open: true, message: "Please select manager", severity: "error" });
-            setManagerErrorEdit(true);
-            setManagerHelperEdit("Manager is required");
-            return;
-        }
-
-        setManagerErrorEdit(false);
-        setManagerHelperEdit("");
-
-        return
-        setLoading(true);
-        try {
-            const response = await fetch(
-                "http://localhost:7081/api/accountstatementengine/v1/user/edit",
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(editFormData),
-                }
-            );
-            if (!response.ok) {
-                const errData = await response.json();
-                setSnackbar({ open: true, message: "Something went wrong", severity: "error" });
-                throw new Error(errData.message || "Failed to add user");
-            }
-            await fetchUsers(); // refresh list from server
-            setSnackbar({ open: true, message: "Successfully edited user", severity: "success" });
-            setRoles("");
-            setEmail("");
-        } catch (err) {
-            console.error("Add user error:", err);
-            alert(err.message);
-        } finally {
-            setLoading(false);
-            handleEditModalClose()
-        }
-    };
-
-    const branchOptions = ["Finance", "IT", "HR", "Sales", "Operations"];
-    const roleOptions = ["Admin", "Manager", "User", "Viewer"];
-
-    // ✅ Mapping of branch → manager options
-    const managerOptionsByBranch = {
-        Finance: ["Manager1", "Manager2"],
-        IT: ["Manager3", "Manager4"],
-        HR: ["Manager5", "Manager6"],
-        Sales: ["Manager7", "Manager8"],
-        Operations: ["Manager9", "Manager10"],
-    };
-
-    const [branch, setBranch] = useState(null);
-    const [manager, setManager] = useState(null);
-    const [managers, setManagers] = useState([]);
-    const [loadingManagers, setLoadingManagers] = useState(false);
-
-    // 🔹 When branch changes → reset manager + load new options
-    useEffect(() => {
-        if (branch) {
-            setLoadingManagers(true);
-            setManager(null);
-            // simulate async fetch
-            setTimeout(() => {
-                setManagers(managerOptionsByBranch[branch] || []);
-                setLoadingManagers(false);
-            }, 300);
-        } else {
-            setManagers([]);
-            setManager(null);
-        }
-    }, [branch]);
-
-
-    // Add these states near the top of your component
-    const [editManagerOptions, setEditManagerOptions] = useState([]);
-    const [editLoadingManagers, setEditLoadingManagers] = useState(false);
-
-// Watch for branch change inside edit form
-    useEffect(() => {
-        if (editFormData.branch) {
-            setEditLoadingManagers(true);
-            // Simulate API fetch for managers by branch
-            setTimeout(() => {
-                setEditManagerOptions(managerOptionsByBranch[editFormData.branch] || []);
-                setEditLoadingManagers(false);
-            }, 300);
-        } else {
-            setEditManagerOptions([]);
-        }
-    }, [editFormData.branch]);
 
     const columns = [
-        { field: "email", headerName: "Email Address", flex: 1, minWidth: 150 },
-        { field: "role", headerName: "Role", flex: 1, minWidth: 150 },
-        { field: "branch", headerName: "Branch", flex: 1, minWidth: 150 },
-        { field: "manager", headerName: "Manager", flex: 1, minWidth: 150 },
-        { field: "createdby", headerName: "Created By", flex: 1, minWidth: 150 },
-        { field: "datecreated", headerName: "Date Created", flex: 1, minWidth: 150 },
-        { field: "status", headerName: "Status", flex: 1, minWidth: 150 },
+        {field: "email", headerName: "Email Address", flex: 1, minWidth: 150},
+        {field: "role", headerName: "Role", flex: 1, minWidth: 150},
+        {field: "branch", headerName: "Branch", flex: 1, minWidth: 150},
+        {field: "manager", headerName: "Manager", flex: 1, minWidth: 150},
+        {field: "createdby", headerName: "Created By", flex: 1, minWidth: 150},
+        {field: "datecreated", headerName: "Date Created", flex: 1, minWidth: 150},
         {
-            field: "actions",
-            headerName: "Action",
-            width: 70,
-            sortable: false,
-            renderCell: (params) => (
-                <IconButton
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleMenuOpen(e, params.row);
-                    }}
-                    size="small"
-                >
-                    <MoreVertIcon />
-                </IconButton>
-            ),
+            field: "status",
+            headerName: "Status",
+            flex: 0.8,
+            minWidth: 100,
+            renderCell: (params) => getStatusChip(params.value),
         },
     ];
 
-    return (
-        <Box sx={{
-            pt: 2,  // padding-top
-            pb: 3,  // padding-bottom
-            pl: 2,  // padding-left
-            pr: 1,  // padding-right
-        }}>
-            <Box
+    const getStatusChip = (status) => {
+        const statusConfig = {
+            1: {
+                color: "#B26A00", // warm amber
+                bg: "#FFF4E5", // soft orange background
+                label: "Pending",
+            },
+            2: {
+                color: "#1B5E20", // deep green
+                bg: "#C8E6C9", // minty green background
+                label: "Approved",
+            },
+            3: {
+                color: "#B71C1C", // bold red
+                bg: "#FFCDD2", // light red background
+                label: "Rejected",
+            },
+        };
+
+        const config = statusConfig[status] || {
+            color: "#424242",
+            bg: "#E0E0E0",
+            label: "Unknown",
+        };
+
+        return (
+            <Chip
+                label={config.label}
+                size="small"
                 sx={{
-                    display: "flex",
-                    flexDirection: { xs: "column", sm: "row" },
-                    gap: 2,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    maxWidth: "1000px",
-                    mx: "auto",
-                    width: "100%",
-                    flexWrap: "wrap",
+                    backgroundColor: config.bg,
+                    color: config.color,
+                    fontWeight: 700,
+                    fontSize: "0.75rem",
+                    height: "24px",
+                    borderRadius: "8px",
+                    letterSpacing: 0.3,
                 }}
-            >
-                {/* Snackbar */}
-                <Snackbar
-                    open={snackbar.open}
-                    autoHideDuration={3000}
-                    onClose={() => setSnackbar({ ...snackbar, open: false })}
-                    anchorOrigin={{ vertical: "top", horizontal: "right" }}
-                >
-                    <Alert
-                        onClose={() => setSnackbar({ ...snackbar, open: false })}
-                        severity={snackbar.severity}
-                        sx={{ width: "100%" }}
+            />
+        );
+    };
+
+    return (
+
+        <Box
+            sx={{
+                backgroundColor: "#f6f8fa",
+                pt: {xs: 0, sm: 0, md: 0},
+                px: {xs: 1, sm: 2, md: 3},
+                pb: {xs: 2, sm: 3, md: 5},
+                fontFamily: "'SUSE', sans-serif",
+            }}
+        >
+            {/* Page Header */}
+            <Fade in={true} timeout={600}>
+                <Box sx={{mb: 2}}>
+                    <Typography
+                        variant="h5"
+                        sx={{fontWeight: 700, color: "#116530", mb: 0.5}}
                     >
-                        {snackbar.message}
-                    </Alert>
-                </Snackbar>
+                        Account Management
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Manage system users, roles, and permissions.
+                    </Typography>
+                </Box>
+            </Fade>
 
-                {/* Email Field */}
-                <TextField
-                    label="Email Address"
-                    variant="outlined"
-                    size="small"
-                    fullWidth
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    error={emailError}
-                    // helperText={emailHelper}
-                    sx={{ "& .MuiInputBase-root": { height: 40 }, flex: 1}}
-                />
-
-                {/* Role Autocomplete */}
-                <Autocomplete
-                    options={roleOptions}
-                    value={role}
-                    onChange={(event, newValue) => setRole(newValue)}
-                    renderInput={(params) => (
-                        <TextField {...params}
-                                   label="Role"
-                                   variant="outlined"
-                                   size="small"
-                                   error={roleError && !role} // ✅ Pass error here
-                                   sx={{ "& .MuiInputBase-root": { height: 40 } }}
-                        />
-                    )}
+            {/* 🔍 Data Table + Search */}
+            <Fade in={true} timeout={1600}>
+                <Paper
+                    elevation={3}
                     sx={{
-                        flex: 1,
-                        "& .MuiInputBase-root": { height: 40 },
-                        minWidth: { xs: "100%", sm: "auto" },
+                        p: 1,
+                        borderRadius: 1,
+                        backgroundColor: "#fff",
                     }}
-                    fullWidth
-                />
-
-                {/* Department Autocomplete */}
-                <Autocomplete
-                    options={branchOptions}
-                    value={branch}
-                    onChange={(e, newValue) => setBranch(newValue)}
-                    getOptionLabel={(option) => option}
-                    renderInput={(params) => (
-                        <TextField {...params}
-                                   label="Branch"
-                                   variant="outlined"
-                                   size="small"
-                                   error={branchError && !branch} // ✅ Pass error here
-                                   sx={{ "& .MuiInputBase-root": { height: 40 } }}/>
-                    )}
-                    sx={{
-                        flex: 1,
-                        "& .MuiInputBase-root": { height: 40 },
-                        minWidth: { xs: "100%", sm: "auto" },
-                    }}
-                    fullWidth
-                />
-
-                {/* ✅ Manager Autocomplete (Dynamic) */}
-
-                <Autocomplete
-                    value={manager}
-                    onChange={(e, newValue) => setManager(newValue)}
-                    options={managers}
-                    getOptionLabel={(option) => option}
-                    loading={loadingManagers}
-                    disabled={!branch}
-                    renderInput={(params) => (
+                >
+                    {/* 🔍 Search Field above DataGrid */}
+                    <Box sx={{mb: 1, display: "flex", justifyContent: "flex-start"}}>
                         <TextField
-                            {...params}
-                            label="Manager"
+                            placeholder="Search email address..."
                             variant="outlined"
                             size="small"
-                            error={managerError && !manager} // ✅ Pass error here
-                            sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                            value={searchVal}
+                            onChange={(e) => setSearchVal(e.target.value)}
                             InputProps={{
-                                ...params.InputProps,
-                                endAdornment: (
-                                    <>
-                                        {loadingManagers ? <CircularProgress size={20} /> : null}
-                                        {params.InputProps.endAdornment}
-                                    </>
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <SearchNormal1 size="18" color="#666"/>
+                                    </InputAdornment>
+                                ),
+                            }}
+                            sx={{
+                                width: {xs: "100%", sm: "280px"},
+                                "& .MuiOutlinedInput-root": {
+                                    borderRadius: 1,
+                                    backgroundColor: "#f8f9fa",
+                                    transition: "all 0.3s",
+                                    "&:hover": {
+                                        backgroundColor: "#fff",
+                                        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                                    },
+                                    "&.Mui-focused": {
+                                        backgroundColor: "#fff",
+                                        boxShadow: "0 4px 16px rgba(17, 101, 48, 0.15)",
+                                    },
+                                },
+                                "& .MuiInputBase-input": {
+                                    fontSize: "0.9rem",
+                                },
+                            }}
+                        />
+                    </Box>
+
+                    <Box sx={{height: 550, width: "100%"}}>
+                        <DataGrid
+                            rows={rows}
+                            columns={columns}
+                            rowCount={rowCount}
+                            loading={loading}
+                            paginationModel={paginationModel}
+                            onPaginationModelChange={setPaginationModel}
+                            paginationMode="server"
+                            sortingMode="server"
+                            onSortModelChange={setSortModel}
+                            pageSizeOptions={[5, 10, 20, 50]}
+                            disableColumnMenu
+                            rowHeight={40}          // 👈 smaller rows
+                            headerHeight={38}       // 👈 smaller header
+                            sx={{
+                                "& .MuiDataGrid-columnHeaderTitle": {
+                                    fontWeight: "700",
+                                },
+                            }}
+                            slots={{
+                                loadingOverlay: () => (
+                                    <Box
+                                        sx={{
+                                            height: "100%",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                        }}
+                                    >
+                                        <CircularProgress/>
+                                    </Box>
                                 ),
                             }}
                         />
-                    )}
-                    sx={{
-                        flex: 1,
-                        "& .MuiInputBase-root": { height: 40 },
-                        minWidth: { xs: "100%", sm: "auto" },
-                    }}
-                    fullWidth
-                />
-
-
-                {/* Add Button */}
-                <Button
-                    variant="contained"
-                    onClick={handleAddAccount}
-                    disabled={loading}
-                    sx={{
-                        height: 38,
-                        minWidth: 150,
-                        width: { xs: "100%", sm: "auto" },
-                        textTransform: "none",
-                        mt: -0.2,
-                    }}
-                >
-                    {loading ? <CircularProgress size={20} color="inherit" /> : "Add User"}
-                </Button>
-            </Box>
-
-            {/* 🔍 Global Filter Bar */}
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "flex-start",
-                    alignItems: "center",
-                    mb: 2,
-                    mt: 1
-                }}
-            >
-                <TextField
-                    label="Search"
-                    variant="standard"
-                    size="small"
-                    value={searchVal}
-                    onChange={(e) => setSearchVal(e.target.value)}
-
-                    sx={{ width: 250 }}
-                />
-            </Box>
-            <Box sx={{ height: 520, width: "100%" }}>
-                <DataGrid
-                    rows={rows}
-                    columns={columns}
-                    rowCount={rowCount}
-                    loading={loading}
-                    paginationModel={paginationModel}
-                    onPaginationModelChange={setPaginationModel}
-                    paginationMode="server"
-                    sortingMode="server"
-                    onSortModelChange={setSortModel}
-                    pageSizeOptions={[5, 10, 20, 50]}
-                    disableColumnMenu
-                    rowHeight={40}          // 👈 smaller rows
-                    headerHeight={38}       // 👈 smaller header
-                    sx={{
-                        "& .MuiDataGrid-columnHeaderTitle": {
-                            fontWeight: "700",
-                        },
-                    }}
-                    slots={{
-                        loadingOverlay: () => (
-                            <Box
-                                sx={{
-                                    height: "100%",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
-                            >
-                                <CircularProgress />
-                            </Box>
-                        ),
-                    }}
-                />
-            </Box>
-
-            {/* Actions Menu */}
-            <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleMenuClose}
-            >
-                <MenuItem onClick={handleEditClick}>Edit</MenuItem>
-            </Menu>
-
-            {/* Edit Modal */}
-            <Dialog
-                open={openEditModal}
-                onClose={handleEditModalClose}
-                maxWidth="sm"
-                fullWidth
-            >
-                <DialogTitle>Edit Account Management</DialogTitle>
-                <DialogContent>
-                    <Box sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
-                        {/* Email */}
-                        <TextField
-                            label="Email"
-                            fullWidth
-                            type="email"
-                            value={editFormData.email}
-                            error={emailErrorEdit}
-                            onChange={(e) => handleFormChange("email", e.target.value)}
-                        />
-
-                        {/* Role */}
-                        <Autocomplete
-                            options={roleOptions}
-                            value={editFormData.role || ""}
-                            onChange={(e, newValue) => handleFormChange("role", newValue || "")}
-                            renderInput={(params) => (
-                                <TextField {...params} label="Role" variant="outlined" fullWidth />
-                            )}
-                        />
-
-                        {/* Branch */}
-                        <Autocomplete
-                            options={branchOptions}
-                            value={editFormData.branch || ""}
-                            onChange={(e, newValue) => {
-                                handleFormChange("branch", newValue || "");
-                                handleFormChange("manager", ""); // reset manager
-                            }}
-                            renderInput={(params) => (
-                                <TextField {...params} label="Branch" variant="outlined" fullWidth />
-                            )}
-                        />
-
-                        {/* Manager */}
-                        <Autocomplete
-                            options={editManagerOptions}
-                            value={editFormData.manager || ""}
-                            onChange={(e, newValue) => handleFormChange("manager", newValue || "")}
-                            loading={editLoadingManagers}
-                            disabled={!editFormData.branch}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    label="Manager"
-                                    variant="outlined"
-                                    error={managerErrorEdit && editFormData.manager === ""}
-                                    fullWidth
-                                    InputProps={{
-                                        ...params.InputProps,
-                                        endAdornment: (
-                                            <>
-                                                {editLoadingManagers ? <CircularProgress size={20} /> : null}
-                                                {params.InputProps.endAdornment}
-                                            </>
-                                        ),
-                                    }}
-                                />
-                            )}
-                        />
-
-                        {/* Status */}
-                        <FormControlLabel
-                            control={
-                                <Checkbox
-                                    checked={editFormData.status === 1}
-                                    onChange={(e) => handleFormChange("active", e.target.checked)}
-                                />
-                            }
-                            label="Active"
-                        />
                     </Box>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleEditModalClose} disabled={loading}>
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={handleSaveChanges}
-                        variant="contained"
-                        disabled={loading}
-                    >
-                        {loading ? <CircularProgress size={20} /> : "Save Changes"}
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                </Paper>
+            </Fade>
         </Box>
     );
 };

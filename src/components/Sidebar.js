@@ -4,7 +4,8 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { IconButton, Tooltip, Button, useMediaQuery, useTheme } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
-import { ArrangeHorizontalSquare, ProfileTick, Back, ArchiveMinus, Candle, Layer, TextalignJustifyleft } from "iconsax-react";
+import { ArrangeHorizontalSquare, ProfileTick, Back, ArchiveMinus, Candle, Layer, TextalignJustifyleft,
+    EmptyWallet, UserAdd, UserEdit } from "iconsax-react";
 
 export default function Sidebar({ collapsed, setCollapsed }) {
     const theme = useTheme();
@@ -12,7 +13,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     const navigate = useNavigate(); // ✅ initialize navigate
 
     // Get user role from localStorage (same as your MainRouter)
-    const userRole = localStorage.getItem("role") || "USER";
+    const userRole = localStorage.getItem("role");
 
     // Collapse sidebar on small screens by default
     useEffect(() => {
@@ -43,17 +44,22 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                 "Head_Office"
             ],
             icon: <ArrangeHorizontalSquare size="20" color="currentColor" /> },
-        // { label: "Account Statement2", path: "/accountStatement2", icon: <ArrangeHorizontalSquare size="24" color="currentColor" /> },
         { label: "Account Management",
             path: "/accountManagement",
             allowedRoles: ["ICT_Administrator", "ICT_Service_Desk"],
             icon: <ProfileTick size="20" color="currentColor" /> },
-        // { label: "Account Management2", path: "/accountManagement2", icon: <ProfileTick size="24" color="currentColor" /> },
-        // { label: "Account Management3", path: "/accountManagement3", icon: <ProfileTick size="24" color="currentColor" /> },
         { label: "Approve Charge Waiver",
             path: "/approveChargeWaiver",
             allowedRoles: ["Branch_Checker"],
-            icon: <ProfileTick size="20" color="currentColor" /> },
+            icon: <EmptyWallet size="20" color="currentColor" /> },
+        { label: "Create Account Management",
+            path: "/createAccountManagement",
+            allowedRoles: ["ICT_Service_Desk_Maker"],
+            icon: <UserAdd size="20" color="currentColor" /> },
+        { label: "Approve Account Management",
+            path: "/approveAccountManagement",
+            allowedRoles: ["ICT_Service_Desk_Checker"],
+            icon: <UserEdit size="20" color="currentColor" /> },
         { label: "Track Record",
             path: "/trackRecord",
             allowedRoles: ["ICT_Administrator", "Branch_Maker", "Branch_Checker"],
@@ -62,12 +68,10 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             path: "/printHistory",
             allowedRoles: ["ICT_Administrator", "Branch_Maker", "Branch_Checker"],
             icon: <ArchiveMinus size="20" color="currentColor" /> },
-        // { label: "Print History2", path: "/printHistory2", icon: <ArchiveMinus size="24" color="currentColor" /> },
         { label: "General Configs",
             path: "/generalConfigs",
             allowedRoles: ["ICT_Administrator"],
             icon: <Candle size="20" color="currentColor" /> },
-        // { label: "General Configs2", path: "/generalConfigs2", icon: <Candle size="24" color="currentColor" /> },
         { label: "System Logs",
             path: "/systemLogs",
             allowedRoles: ["ICT_Administrator", "Branch_Maker", "Branch_Checker"],
