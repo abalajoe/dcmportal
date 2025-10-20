@@ -84,21 +84,23 @@ function LoginPage() {
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
                 navigate("/accountStatement");
-            } else if (roleName === "ICT_Service_Desk_Maker") {
+            }
+            else if (roleName === "ICT_Service_Desk_Maker") {
                 //setubmitting(false);
                 console.log("User is an ICT Service Desk Maker.");
                 localStorage.setItem("userRole", "ICT_Service_Desk_Maker");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
-                navigate("/createAccountManagement");
+                navigate("/accountManagement");
             } else if (roleName === "ICT_Service_Desk_Checker") {
                 //setubmitting(false);
                 console.log("User is an ICT Service Desk Checker.");
                 localStorage.setItem("userRole", "ICT_Service_Desk_Checker");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
-                navigate("/approveAccountManagement");
-            } else if (roleName === "Contact_Centre_Officer") {
+                navigate("/accountManagement");
+            }
+            else if (roleName === "Contact_Centre_Officer") {
                 //setubmitting(false);
                 console.log("User is a Contact Centre Officer.");
                 localStorage.setItem("userRole", "Contact_Centre_Officer");

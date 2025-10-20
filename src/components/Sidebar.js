@@ -48,20 +48,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             icon: <ArrangeHorizontalSquare size="20" color="currentColor" /> },
         { label: "Account Management",
             path: "/accountManagement",
-            allowedRoles: ["ICT_Administrator", "ICT_Service_Desk"],
+            allowedRoles: ["ICT_Administrator", "ICT_Service_Desk", "ICT_Service_Desk_Maker", "ICT_Service_Desk_Checker"],
             icon: <ProfileTick size="20" color="currentColor" /> },
         { label: "Approve Charge Waiver",
             path: "/approveChargeWaiver",
             allowedRoles: ["Branch_Checker"],
             icon: <EmptyWallet size="20" color="currentColor" /> },
-        { label: "Create Account Management",
-            path: "/createAccountManagement",
-            allowedRoles: ["ICT_Service_Desk_Maker"],
-            icon: <UserAdd size="20" color="currentColor" /> },
-        { label: "Approve Account Management",
-            path: "/approveAccountManagement",
-            allowedRoles: ["ICT_Service_Desk_Checker"],
-            icon: <UserEdit size="20" color="currentColor" /> },
         { label: "Track Record",
             path: "/trackRecord",
             allowedRoles: ["ICT_Administrator", "Branch_Maker", "Branch_Checker"],
@@ -72,7 +64,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             icon: <ArchiveMinus size="20" color="currentColor" /> },
         { label: "General Configs",
             path: "/generalConfigs",
-            allowedRoles: ["ICT_Administrator"],
+            allowedRoles: ["ICT_Administrator", "ICT_Service_Desk_Maker", "ICT_Service_Desk_Checker"],
             icon: <Candle size="20" color="currentColor" /> },
         { label: "System Logs",
             path: "/systemLogs",
@@ -80,7 +72,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             icon: <Layer size="20" color="currentColor" /> },
         { label: "Settings",
             path: "/settings",
-            allowedRoles: ["ICT_Administrator", "Branch_Maker", "Branch_Checker"],
+            allowedRoles: ["ICT_Administrator", "ICT_Service_Desk_Maker", "ICT_Service_Desk_Checker"],
             icon: <Setting2 size="20" color="currentColor" /> },
     ];
 
@@ -213,3 +205,4 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         </Box>
     );
 }
+

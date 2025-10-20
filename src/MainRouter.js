@@ -6,18 +6,15 @@ import ProtectedRoute from "./ProtectedRoute";
 import AccountStatement from "./components/AccountStatement";
 import TrackRecord from "./components/TrackRecord";
 import LoginPage from "./components/Login";
-import GeneralConfigs from "./components/GeneralConfigs";
 import PrintHistory from "./components/PrintHistory";
-import AccountManagement from "./components/AccountManagement";
 import SystemLogs from "./components/SystemLogs";
 import Unauthorized from "./components/Unauthorized";
 import NotFound from "./components/NotFound";
 import ApproveChargeWaiver from "./components/ApproveChargeWaiver";
-import AccountManagementApprove from "./components/AccountManagementApprove";
-import AccountManagementCreate from "./components/AccountManagementCreate";
-import GeneralConfigsCreate from "./components/GeneralConfigsCreate";
-import GeneralConfigsApprove from "./components/GeneralConfigsApprove";
-import Settings from "./components/Settings";
+import AllSettings from "./components/AllSettings";
+import AccountManagement from "./components/AccountManagement";
+import GeneralConfigs2 from "./components/GeneralConfigs";
+import GeneralConfigs from "./components/GeneralConfigs";
 
 export default function MainRouter() {
     // ✅ Don't use default value - force it to read fresh each time
@@ -76,7 +73,7 @@ export default function MainRouter() {
                 <Route path="/accountManagement"
                        element={
                            <ProtectedRoute
-                               element={<AccountManagementCreate />}
+                               element={<AccountManagement />}
                                allowedRoles={["ICT_Administrator", "ICT_Service_Desk_Maker", "ICT_Service_Desk_Checker"]}
                                userRole={userRole}
                            />
@@ -100,54 +97,17 @@ export default function MainRouter() {
                            />
                        }
                 />
-                <Route path="/createAccountManagement"
-                       element={
-                           <ProtectedRoute
-                               element={<AccountManagementCreate />}
-                               allowedRoles={["ICT_Service_Desk_Maker"]}
-                               userRole={userRole}
-                           />
-                       }
-                />
 
-                <Route path="/approveAccountManagement"
-                       element={
-                           <ProtectedRoute
-                               element={<AccountManagementApprove />}
-                               allowedRoles={["ICT_Service_Desk_Checker"]}
-                               userRole={userRole}
-                           />
-                       }
-                />
                 <Route path="/GeneralConfigs"
                        element={
                            <ProtectedRoute
-                               element={<GeneralConfigsApprove />}
-                               allowedRoles={["ICT_Administrator"]}
+                               element={<GeneralConfigs />}
+                               allowedRoles={["ICT_Administrator", "ICT_Service_Desk_Maker", "ICT_Service_Desk_Checker"]}
                                userRole={userRole}
                            />
                        }
                 />
 
-                <Route path="/GeneralConfigsCreate"
-                       element={
-                           <ProtectedRoute
-                               element={<GeneralConfigsCreate />}
-                               allowedRoles={["ICT_Administrator"]}
-                               userRole={userRole}
-                           />
-                       }
-                />
-
-                <Route path="/GeneralConfigsApprove"
-                       element={
-                           <ProtectedRoute
-                               element={<GeneralConfigsApprove />}
-                               allowedRoles={["ICT_Administrator"]}
-                               userRole={userRole}
-                           />
-                       }
-                />
 
                 <Route path="/PrintHistory"
                        element={
@@ -171,8 +131,8 @@ export default function MainRouter() {
                 <Route path="/Settings"
                        element={
                            <ProtectedRoute
-                               element={<Settings />}
-                               allowedRoles={["ICT_Administrator"]}
+                               element={<AllSettings />}
+                               allowedRoles={["ICT_Administrator", "ICT_Service_Desk_Maker", "ICT_Service_Desk_Checker"]}
                                userRole={userRole}
                            />
                        }
