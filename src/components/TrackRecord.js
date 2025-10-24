@@ -4,7 +4,7 @@ import {
     Box,
     Button,
     CircularProgress,
-    TextField,Typography, Paper, Tooltip, InputAdornment
+    TextField, Typography, Paper, Tooltip, InputAdornment, Alert, Snackbar
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import {
@@ -13,6 +13,7 @@ import {
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
 import {DatePicker} from "@mui/x-date-pickers/DatePicker";
+import {FetchSignature, TrackSmtAPI} from "../services/Api";
 
 const TrackRecord = () => {
     const [loading, setLoading] = useState(false);
@@ -27,13 +28,43 @@ const TrackRecord = () => {
 
     const [startDate, setStartDate] = useState(dayjs());
     const [endDate, setEndDate] = useState(dayjs());
+    const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+    const trackRecord = async () => {
+        console.log('hello')
+        setLoading(true);
+        // const params = {
+        //     stdt: startDate,
+        //     eddt: endDate,
+        // };
+
+        const params = {
+            startDt: startDate ? dayjs(startDate).toISOString() : null,
+            endDt: endDate ? dayjs(endDate).toISOString() : null,
+        };
+        console.log('hello - ', params )
+        try {
+            const data = await TrackSmtAPI(params)
+            console.log('data -> ',data)
+            if (data) {
+                setRows(data)
+            } else {
+                setSnackbar({ open: true, message: "No values recorded", severity: "success" });
+            }
+        } catch (error) {
+            console.error(error);
+            setSnackbar({ open: true, message: "Something went wrong", severity: "error" });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const columns = [
-        { field: "email", headerName: "Staff Email", flex: 1, minWidth: 150 },
-        { field: "role", headerName: "Customer Email", flex: 1, minWidth: 150 },
+        { field: "senderemail", headerName: "Staff Email", flex: 1, minWidth: 150 },
+        { field: "totalsent", headerName: "Customer Email", flex: 1, minWidth: 150 },
         { field: "branch", headerName: "Customer Account", flex: 1, minWidth: 150 },
         { field: "manager", headerName: "Sent On", flex: 1, minWidth: 150 },
-        { field: "createdby", headerName: "From", flex: 1, minWidth: 150 },
+        { field: "statementdate", headerName: "From", flex: 1, minWidth: 150 },
         { field: "datecreated", headerName: "To", flex: 1, minWidth: 150 },
     ];
 
@@ -47,6 +78,20 @@ const TrackRecord = () => {
                 fontFamily: "'SUSE', sans-serif",
             }}
         >
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: "top", horizontal: "right" }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: "100%" }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
             {/* Page Header */}
             <Box sx={{ mb: 2 }}>
                 <Typography
@@ -87,7 +132,6 @@ const TrackRecord = () => {
                             label="Start Date"
                             value={startDate}
                             onChange={(newValue) => setStartDate(newValue)}
-                            minDate={startDate}
                             slotProps={{
                                 textField: {
                                     size: "small",
@@ -128,7 +172,6 @@ const TrackRecord = () => {
                             label="End Date"
                             value={endDate}
                             onChange={(newValue) => setEndDate(newValue)}
-                            minDate={startDate}
                             slotProps={{
                                 textField: {
                                     size: "small",
@@ -168,6 +211,7 @@ const TrackRecord = () => {
                         <Button
                             variant="contained"
                             disabled={loading}
+                            onClick={trackRecord}
                             sx={{
                                 height: 34,
                                 minWidth: 120,
@@ -224,6 +268,12 @@ const TrackRecord = () => {
                     <DataGrid
                         rows={rows}
                         columns={columns}
+                        pageSize={10}
+                        rowsPerPageOptions={[5]}
+                    />
+                    {/*<DataGrid
+                        rows={rows}
+                        columns={columns}
                         rowCount={rowCount}
                         loading={loading}
                         paginationModel={paginationModel}
@@ -254,7 +304,7 @@ const TrackRecord = () => {
                                 </Box>
                             ),
                         }}
-                    />
+                    />*/}
                 </Box>
             </Paper>
         </Box>

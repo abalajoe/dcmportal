@@ -21,6 +21,7 @@ import {
     SearchNormal1, Link2, Link1, Hashtag, Settings
 } from "iconsax-react";
 import AddIcon from "@mui/icons-material/Add";
+import {ConfigDetailsAPI} from "../services/Api";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -81,34 +82,43 @@ const GeneralConfigs = () => {
     };
 
     // Fetch pageable users
-    const fetchUsers = useCallback(async () => {
+    const fetchConfigs = useCallback(async () => {
 
         setLoading(true);
         try {
             const sortField = sortModel[0]?.field || "id";
             const sortDir = sortModel[0]?.sort?.toUpperCase() || "DESC";
 
-            const response = await fetch(
-                `http://localhost:8082/api/accountstatementengine/v1/user/findAllConfigs?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
-            );
+            ConfigDetailsAPI().then((data) => {
+                console.log('data - ', data)
+                if (data.status === 200){
+                    setRows(data.data);
+                } else {
+                    setSnackbar({ open: true, message: "No values recorded", severity: "success" });
+                }
 
-            if (!response.ok) {
-                throw new Error("Failed to fetch data");
-            }
-
-            const data = await response.json();
-            console.log('data - ', data)
-
-            setRows(
-                data.content.map((item, index) => ({
-                    id: item.id,
-                    param: item.param || "-",
-                    value: item.value || "-",
-                    valueType: item.valueType || "-",
-                    status: item.status || "-",
-                }))
-            );
-            setRowCount(data.totalElements);
+            });
+            // const response = await fetch(
+            //     `http://localhost:8082/api/accountstatementengine/v1/user/findAllConfigs?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+            // );
+            //
+            // if (!response.ok) {
+            //     throw new Error("Failed to fetch data");
+            // }
+            //
+            // const data = await response.json();
+            // console.log('data - ', data)
+            //
+            // setRows(
+            //     data.content.map((item, index) => ({
+            //         id: item.id,
+            //         param: item.param || "-",
+            //         value: item.value || "-",
+            //         valueType: item.valueType || "-",
+            //         status: item.status || "-",
+            //     }))
+            // );
+            // setRowCount(data.totalElements);
         } catch (error) {
             console.error("Error fetching account data:", error);
         } finally {
@@ -117,8 +127,8 @@ const GeneralConfigs = () => {
     }, [paginationModel, sortModel, searchVal]);
 
     useEffect(() => {
-        fetchUsers();
-    }, [fetchUsers]);
+        fetchConfigs();
+    }, [fetchConfigs]);
 
     // Add account
     const handleAddConfig = async () => {
@@ -160,7 +170,7 @@ const GeneralConfigs = () => {
             id: row.id || "",
             param: row.param || "",
             value: row.value || "",
-            valueType: row.valueType || "",
+            valType: row.valType || "",
             status: row.status || "",
         });
         setOpenEditModal(true);
@@ -229,7 +239,7 @@ const GeneralConfigs = () => {
                 setSnackbar({open: true, message: "Something went wrong", severity: "error"});
                 throw new Error(errData.message || "Failed to add user");
             }
-            await fetchUsers(); // refresh list from server
+            await fetchConfigs(); // refresh list from server
             setSnackbar({open: true, message: "Successfully edited user", severity: "success"});
             setParameterValue("");
         } catch (err) {
@@ -287,7 +297,7 @@ const GeneralConfigs = () => {
         const cols = [
             {field: "param", headerName: "Parameter", flex: 1, minWidth: 150},
             {field: "value", headerName: "Value", flex: 1, minWidth: 150},
-            {field: "valueType", headerName: "Type", flex: 1, minWidth: 150},
+            {field: "valType", headerName: "Type", flex: 1, minWidth: 150},
             {
                 field: "status",
                 headerName: "Status",

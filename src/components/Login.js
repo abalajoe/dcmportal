@@ -65,8 +65,8 @@ function LoginPage() {
             completeEmail = lowredEmail;
         }
         try {
-            const data = await loginUser(email, password);
-            // const data = await loginUser(completeEmail, password);
+            // const data = await loginUser(email, password);
+            const data = await loginUser(completeEmail, password);
             console.log("Login successful:", data);
 
             localStorage.setItem("token", data.token);
@@ -237,7 +237,7 @@ function LoginPage() {
                                 helperText={passwordError.helperText}
                                 sx={{ "& .MuiInputBase-root": { height: 40 } }}
                             />
-                            <FormControlLabel
+                           {/* <FormControlLabel
                                 control={
                                     <Checkbox
                                         checked={rememberMe}
@@ -245,7 +245,7 @@ function LoginPage() {
                                     />
                                 }
                                 label="Remember me"
-                            />
+                            />*/}
 
                             <Button
                                 variant="contained"

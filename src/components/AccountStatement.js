@@ -22,8 +22,11 @@ import dayjs from "dayjs";
 import {Sms, Calendar, Card, Book1, Export, ArrowRotateRight, Printer} from "iconsax-react";
 import {Document, pdfjs, Page} from "react-pdf";
 import {ImportCurve, CloseCircle} from "iconsax-react";
-import {AccountSmtAPI} from "../services/Api";
-
+import {AccountSmtAPI, FetchSignature, PrintSmtAPI, WaiveChargeAPI} from "../services/Api";
+import axios from "axios";
+import SignatureModal from "./SignatureModal";
+import ConfirmModal from "./ConfirmPayment";
+import ModalComponent from "./ConfirmPrint";
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
     "pdfjs-dist/legacy/build/pdf.worker.min.mjs",
     import.meta.url
@@ -32,13 +35,89 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 const AccountStatement = () => {
     const userRole = localStorage.getItem("role");
     const [snackbar, setSnackbar] = useState({open: false, message: "", severity: "success"});
-    const [statement, setStatement] = useState("");
+    const [accountNumber, setAccountNumber] = useState("");
     const [startDate, setStartDate] = useState(dayjs());
     const [endDate, setEndDate] = useState(dayjs());
     const [loading, setLoading] = useState(false);
     const [base64, setBase64] = useState(null);
     const [numPages, setNumPages] = useState(null);
     const [openDialog, setOpenDialog] = useState(false);
+    const [image1, setImage1] = useState(null);
+    const [captured, setCaptured] = useState(false);
+    const [retrieved, setRetrieved] = useState(false);
+    const [base64Image, setBase64Image] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [charges, setCharges] = useState("");
+    const [pages, setPages] = useState("");
+    const [currency, setCurrency] = useState("");
+    const [captureEnabled, setCaptureEnabled] = useState(true);
+    const [retrieveEnabled, setRetrieveEnabled] = useState(false);
+    const [image, setImage] = useState("");
+    const [accObject, setAccObject] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [isPrintingStmt, setIsPrintingStmt] = useState(false);
+    const [isCharged, setCharged] = useState(false);
+    const [data, setData] = useState({
+        title: "",
+        description: "",
+    });
+    const [showPayModal, setShowPayModal] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [actionConfirmed, setActionConfirmed] = useState(false);
+    const usrtype = localStorage.getItem("userRole");
+    const branch = localStorage.getItem("branch");
+    const curUserEmail = localStorage.getItem("curUserEmail");
+
+    const handleCloseSignatureModal = () => {
+        setModalOpen(false);
+        setCaptureEnabled(true);
+        setRetrieveEnabled(false);
+        setImage("");
+        setImage1("");
+    };
+
+    const getOrdinalSuffix = (day) => {
+        if (day > 3 && day < 21) return "th"; // All teens use 'th'
+        switch (day % 10) {
+            case 1:
+                return "st";
+            case 2:
+                return "nd";
+            case 3:
+                return "rd";
+            default:
+                return "th";
+        }
+    };
+
+    const updateAccountParams = (accParams) => {
+        let accPrms = {
+            loanAcc: accParams.loanAcc,
+            startDt: accParams.startDt,
+            endDt: accParams.endDt,
+            base64Stmt: base64,
+            numPages: 0,
+            curUser: localStorage.getItem("curUserEmail"),
+            request: `account`,
+        };
+        setAccObject(accPrms);
+    };
+
+    const formatDate = (date) => {
+        const options = {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        };
+        const formattedDate = new Date(date).toLocaleDateString("en-GB", options);
+
+        const day = new Date(date).getDate(); // Get the day of the month
+        const dayWithSuffix = `${day}${getOrdinalSuffix(day)}`; // Add the ordinal suffix to the day
+
+        // Replace the default day number with the day and ordinal suffix
+        return formattedDate.replace(/\d+/, dayWithSuffix);
+    };
 
     function onDocumentLoadSuccess({numPages}) {
         console.log("numPages - ", numPages);
@@ -48,7 +127,7 @@ const AccountStatement = () => {
     const handleAccountStatement = async () => {
         setLoading(true);
         const userParams = {
-            loanAcc: statement,
+            loanAcc: accountNumber,
             startDt: startDate,
             endDt: endDate,
         };
@@ -63,6 +142,7 @@ const AccountStatement = () => {
 
             if (pth.status === "00") {
                 setBase64(pth.base64);
+                updateAccountParams(userParams);
                 setSnackbar({open: true, message: "Statement loaded", severity: "success"});
             }
         } catch (error) {
@@ -71,6 +151,170 @@ const AccountStatement = () => {
         } finally {
             setLoading(false);
         }
+    };
+    const fetchSignature = async () => {
+        /*axios
+            .get(
+                `${process.env.REACT_APP_SIGN_URL}/retrieve?accountNumber=${accountNumber}`
+            )
+            .then((response) => {
+                const data = response.data;
+                console.log('dt - ', data)
+            })
+            .catch(() => {
+                alert("Sorry, service unavailable. Try again later.");
+            });*/
+        try {
+            const data = await FetchSignature(accountNumber);
+            console.log('data -> ',data)
+            if (data) {
+                const signatureImage = `data:image/png;base64,${data}`;
+                setRetrieved(true);
+                console.log("Retrieved after", retrieved)
+                // console.log("Signature fetched successfully: ", signatureImage);
+                console.log("Retrieved clicked with captured:", captured, "retrieved:", retrieved);
+                setImage1(signatureImage);
+            } else {
+                alert("No signature found for this account.");
+            }
+        } catch (error) {
+            console.error(error);
+            setSnackbar({open: true, message: "Failed to fetch statement", severity: "error"});
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const captureSignature = () => {
+        setImage("");
+        setCaptureEnabled(false);
+        setRetrieveEnabled(true);
+
+        axios
+            .get(`${process.env.REACT_APP_SIGN_URL}/capture`)
+            .then((response) => response.data)
+            .then((data) => {
+                const capturedSignature = `data:image/png;base64,${data}`;
+                setImage(capturedSignature); // Set the image data to state
+                console.log("Base64 Image:", data);
+            })
+            .catch((error) => {
+                console.error("Error fetching image:", error);
+                setImage(""); // Optionally set an error message or keep it empty
+            });
+    };
+
+    const retrieveSignature = () => {
+        console.log('Retrieving signature for account : ' + accObject.loanAcc)
+        axios
+            .get(
+                `${process.env.REACT_APP_SIGN_URL}/retrieve?accountNumber=${accObject.loanAcc}`
+            )
+            .then((response) => {
+                const data = response.data;
+                const retrievedSignature = `data:image/png;base64,${data}`;
+                if (data) {
+                    setCaptureEnabled(true);
+                    setImage1(retrievedSignature);
+                } else {
+                    alert("No signature found for this account.");
+                }
+            })
+            .catch(() => {
+                alert("Sorry, service unavailable. Try again later.");
+            });
+    };
+
+    const storeSignature = () => {
+        const url = `${process.env.REACT_APP_SIGN_URL}/store`;
+        const payload = {
+            accountNumber: accObject.loanAcc,
+            AccountNo: accObject.loanAcc,
+            signature: image,
+        };
+        axios
+            .post(url, payload)
+            .then((response) => {
+                console.log("Response:", response.data);
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+            });
+    };
+
+    const handleSignatureApproval = () => {
+        console.log('respBal02')
+        handleCloseSignatureModal();
+        console.log('respBal03')
+        printStatement();
+    };
+
+    const handleSignatureRejection = () => {
+        handleCloseSignatureModal();
+    };
+
+
+    const printStatement = () => {
+
+        setIsLoading(true); // Start the loader
+        accObject.numPages = numPages;
+        accObject.base64Stmt = base64;
+        console.log('accObject - ', accObject)
+        PrintSmtAPI(accObject)
+            .then((respBal) => {
+                setIsLoading(false);
+                console.log('respBal - ', respBal)
+
+                if (respBal.status === "008") {
+                    data.title = "Account Balance Inquiry";
+                    data.description = `${respBal.statusDesc} `;
+                    setData(data);
+                    handleOpenPayModal();
+                } else {
+                    data.title = "Account Balance Inquiry Error!!";
+                    data.description = `${respBal.statusDesc} `;
+                    setData(data);
+                    handleOpenModal();
+                }
+            })
+            .catch((err) => {
+                setIsLoading(false);
+                // setError(err);
+                console.log('Closed Account Response.' + err);
+                if(err == 'Error: Request failed with status code 500'){
+                    data.title = "Balance Inquiry Error!!";
+                    data.description = "Kindly note that there is an issue with the Account Number Provided. For A Closed Account, Kindly Proceed to Recover the Charges Manually";
+                    setData(data);
+                    handleWaive();
+                    handleOpenModal();
+                }
+            });
+    };
+
+    const handleClosePayModal = () => {
+        setShowPayModal(false);
+    };
+
+    const handleButtonClick = () => {
+        // console.log(
+        //   "window.wizardEventController ====>" + window.wizardEventController
+        // );
+        // console.log(
+        //   "window.wizardEventController.start_stop ====>" +
+        //     window.wizardEventController.start_stop
+        // );
+        if (
+            window.wizardEventController &&
+            window.wizardEventController.start_stop
+        ) {
+            window.wizardEventController.start_stop(3); // Call start_stop function
+        }
+        setCaptured(true);
+        console.log("Captured clicked with captured:", captured, "retrieved:", retrieved);
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
     };
 
     useEffect(() => {
@@ -84,6 +328,103 @@ const AccountStatement = () => {
             document.body.style.overflow = "auto";
         };
     }, [base64]);
+
+    const handleDeny = () => {
+        setActionConfirmed(false);
+        console.log("Transaction Denied, Not Processed.");
+        setShowPayModal(false);
+    };
+
+    const handleWaive = () => {
+        setActionConfirmed(true);
+        setIsPrintingStmt(true);
+        accObject.curUserEmail = curUserEmail;
+        WaiveChargeAPI(accObject)
+            .then((data) => {
+                setIsPrintingStmt(false);
+                if (data.status === "002") {
+                    data.title = "Charge Waiving";
+                    data.description = `${data.statusDesc} `;
+                    setData(data);
+                    setShowPayModal(false);
+                    handleOpenModal();
+                } else {
+                    setShowPayModal(false);
+                    data.title = "Charge Waiving";
+                    data.description = `${data.statusDesc} `;
+                    setData(data);
+                    handleOpenModal();
+                }
+            })
+            .catch((err) => {
+                // setError(err);
+                console.log(err);
+            });
+        console.log("Charge Waiver Processed!");
+        setShowPayModal(false);
+    };
+
+    const handleOpenPayModal = () => {
+        setShowPayModal(true);
+    };
+
+    const handleOpenModal = () => {
+        setShowModal(true);
+    };
+
+    const handleConfirm = () => {
+        setActionConfirmed(true);
+        setIsPrintingStmt(true);
+        PrintSmtAPI(accObject)
+            .then((data) => {
+                setIsPrintingStmt(false);
+                // if(true){
+                //   handleOpenPayModal();
+                // }else{
+
+                // }
+                if (data.status === "002") {
+                    handlePrint(base64);
+                    // return window.alert(`${data.statusDesc} `);
+                    data.title = "Account Statement Printing";
+                    data.description = `${data.statusDesc} `;
+                    setData(data);
+                    setShowPayModal(false);
+                    handleOpenModal();
+                    setCharged(true);
+                } else {
+                    // return window.alert(`${data.statusDesc} `);
+                    setShowPayModal(false);
+                    data.title = "Account Statement Printing";
+                    data.description = `${data.statusDesc} `;
+                    setData(data);
+                    handleOpenModal();
+                }
+            })
+            .catch((err) => {
+                // setError(err);
+                console.log(err);
+            });
+        console.log("Transaction Accepted and Processed!");
+        setShowPayModal(false);
+    };
+
+    const handlePrint = (base64) => {
+        const linkSource = `data:application/pdf;base64,${base64}`;
+        const iframe = document.createElement("iframe");
+        iframe.style.position = "absolute";
+        iframe.style.width = "0px";
+        iframe.style.height = "0px";
+        iframe.src = linkSource;
+
+        document.body.appendChild(iframe);
+
+        // iframe.onload = () => {
+        //   iframe.contentWindow.focus();
+        //   iframe.contentWindow.print();
+        //   document.body.removeChild(iframe); // Clean up after printing
+        // };
+    };
 
     return (
         <Box
@@ -144,8 +485,8 @@ const AccountStatement = () => {
                                 variant="outlined"
                                 size="small"
                                 fullWidth
-                                value={statement}
-                                onChange={(e) => setStatement(e.target.value)}
+                                value={accountNumber}
+                                onChange={(e) => setAccountNumber(e.target.value)}
                                 InputProps={{
                                     style: {fontSize: '0.8rem'},
                                     startAdornment: (
@@ -272,10 +613,11 @@ const AccountStatement = () => {
                             </Button>
 
                             {/* Print Button */}
-                            {base64 && ["Branch_Maker", "Branch_Checker", "Security_Services_User", "Head_Office"].includes(userRole) && (
+                            {base64 && ["Branch_Maker", "Branch_Checker", "Security_Services_User", "Head_Office", "ICT_Administrator"].includes(userRole) && (
                                 <Button
                                     variant="contained"
-                                    onClick={() => setOpenDialog(true)}
+                                    onClick={() => setModalOpen(true)}
+                                    // onClick={() => setOpenDialog(true)}
                                     disabled={loading}
                                     startIcon={<Printer size="18" color="#fff"/>}
                                     sx={{
@@ -383,7 +725,7 @@ const AccountStatement = () => {
             )}
 
             {/* Signature Dialog */}
-            <Dialog
+            {/*<Dialog
                 open={openDialog}
                 onClose={() => setOpenDialog(false)}
                 maxWidth="md"
@@ -429,7 +771,7 @@ const AccountStatement = () => {
                     <Typography sx={{fontWeight: 600, mb: 1}}>
                         Account Number:{" "}
                         <Box component="span" sx={{fontWeight: 500}}>
-                            {statement || "—"}
+                            {accountNumber || "—"}
                         </Box>
                     </Typography>
 
@@ -476,7 +818,19 @@ const AccountStatement = () => {
                                 alignItems: "center",
                                 backgroundColor: "#fafafa",
                             }}
+
                         >
+                            {image1 && (
+                                <img
+                                    src={image1}
+                                    alt="Base64 Image"
+                                    style={{
+                                        height: "35mm",
+                                        width: "60mm",
+                                        border: "1px solid #d3d3d3",
+                                    }}
+                                />
+                            )}
                             <Typography sx={{fontSize: 13}}>
                                 Retrieved Signature
                             </Typography>
@@ -504,6 +858,7 @@ const AccountStatement = () => {
                     >
                         <Button
                             variant="contained"
+                            onClick={handleButtonClick}
                             sx={{
                                 background: "#116530",
                                 textTransform: "uppercase",
@@ -517,6 +872,7 @@ const AccountStatement = () => {
                         </Button>
                         <Button
                             variant="contained"
+                            onClick={fetchSignature}
                             sx={{
                                 background: "#116530",
                                 textTransform: "uppercase",
@@ -567,7 +923,40 @@ const AccountStatement = () => {
                         </Button>
                     </Box>
                 </DialogActions>
-            </Dialog>
+            </Dialog>*/}
+            <SignatureModal
+                isOpen={modalOpen}
+                onClose={handleCloseSignatureModal}
+                charges={charges}
+                pages={pages}
+                currency={currency}
+                image={image}
+                image1={image1}
+                accountNo={accountNumber}
+                stDate={formatDate(startDate)}
+                enDate={formatDate(endDate)}
+                captureSignature={captureSignature}
+                retrieveSignature={retrieveSignature}
+                handleSignatureApproval={handleSignatureApproval}
+                handleSignatureRejection={handleSignatureRejection}
+                storeSignature={storeSignature}
+                captureEnabled={captureEnabled}
+                retrieveEnabled={retrieveEnabled}
+            />
+
+            <ConfirmModal
+                data={data}
+                show={showPayModal}
+                onClose={handleClosePayModal}
+                onConfirm={handleConfirm}
+                onWaive={handleWaive}
+                onDeny={handleDeny}
+            />
+            <ModalComponent
+                data={data}
+                show={showModal}
+                onClose={handleCloseModal}
+            />
         </Box>
     );
 };

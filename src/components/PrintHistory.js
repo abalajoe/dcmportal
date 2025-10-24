@@ -59,7 +59,19 @@ const PrintHistory = () => {
     const [loading, setLoading] = useState(false);
     const [totalPages, setTotalPages] = useState(0);
     const tableBodyRef = useRef(null);
-
+    const [search, setSearch] = useState('');
+    const curUserEmail = localStorage.getItem("curUserEmail");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pagination, setPagination] = useState({
+        start: 0,
+        length: 10,
+        sortBy: 'time',
+        sortOrder: 'desc',
+        search: '',
+        filterAccount:'',
+        currentUser: curUserEmail || '',
+        draw: 1,
+    });
     // Modal state
     const [openModal, setOpenModal] = useState(false);
     const [selectedSignature, setSelectedSignature] = useState(null);
@@ -80,13 +92,15 @@ const PrintHistory = () => {
                 searchVal: searchVal || "",
                 sort: ["id", "desc"],
             };
-
-            const response = await axios.get("http://localhost:7081/api/accountstatementengine/v1/user/findAllPrintHistory", {
+            let url = `${process.env.REACT_APP_LOG_URL}/retrieveHistory`;
+            // const response = await axios.get("http://localhost:7081/api/accountstatementengine/v1/user/findAllPrintHistory", {
+            const response = await axios.get(url, {
                 params,
             });
+            console.log('response2 -', response.data)
 
-            setData(response.data.content || []);
-            setTotalPages(response.data.totalPages || 0);
+            setData(response.data.data || []);
+            setTotalPages(response.data.recordsTotal || 0);
         } catch (error) {
             console.error("Error fetching data:", error);
         } finally {
@@ -103,11 +117,6 @@ const PrintHistory = () => {
     useEffect(() => {
         fetchData();
     }, [page, searchVal]);
-
-    const handleSearchChange = (e) => {
-        setSearchVal(e.target.value);
-        setPage(0);
-    };
 
     const handleNext = () => {
         if (page < totalPages - 1) setPage((p) => p + 1);
@@ -213,6 +222,7 @@ const PrintHistory = () => {
                             size="small"
                             label="Search"
                             variant="outlined"
+                            onChange={(e) => setSearchVal(e.target.value)}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start" sx={{ color: "grey.500" }}>
@@ -327,21 +337,21 @@ const PrintHistory = () => {
                         ) : data.length > 0 ? (
                             data.map((row, index) => (
                                 <StyledTableRow key={row.id} index={index}>
-                                    <TableCell>{row.email}</TableCell>
+                                    <TableCell>{row.user}</TableCell>
                                     <TableCell>
-                                        {new Date(row.logdate).toLocaleString()}
+                                        {new Date(row.logDate).toLocaleString()}
                                     </TableCell>
-                                    <TableCell>{row.accountnumber}</TableCell>
+                                    <TableCell>{row.account}</TableCell>
                                     <TableCell>{row.accountname}</TableCell>
                                     <TableCell>{row.natid}</TableCell>
                                     <TableCell>{row.pageno}</TableCell>
                                     <TableCell>{row.currency}</TableCell>
                                     <TableCell>{row.charges}</TableCell>
                                     <TableCell>
-                                        {new Date(row.startdate).toLocaleDateString()}
+                                        {new Date(row.startDate).toLocaleDateString()}
                                     </TableCell>
                                     <TableCell>
-                                        {new Date(row.enddate).toLocaleDateString()}
+                                        {new Date(row.endDate).toLocaleDateString()}
                                     </TableCell>
                                     <TableCell>
                                         <Button size="small" color="success" onClick={() => handleOpenModal(row.email)}>

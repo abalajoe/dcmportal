@@ -74,7 +74,13 @@ const SystemLogs = () => {
     // Modal state
     const [openModal, setOpenModal] = useState(false);
     const [selectedSignature, setSelectedSignature] = useState(null);
-
+    const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize, setPageSize] = useState(10);
+    const [search, setSearch] = useState('');
+    const [order, setOrder] = useState('desc');
+    const [orderBy, setOrderBy] = useState('logDate');
+    const [account, setAccount] = useState('')
+    const [selectedCategory, setSelectedCategory] = useState('');
     // 🔥 Fetch data from backend
     const fetchData = async () => {
         setLoading(true);
@@ -92,12 +98,29 @@ const SystemLogs = () => {
                 sort: ["id", "desc"],
             };
 
-            const response = await axios.get("http://localhost:7081/api/accountstatementengine/v1/user/findAllPrintHistory", {
+            /*const response = await axios.get("http://localhost:7081/api/accountstatementengine/v1/user/findAllPrintHistory", {
                 params,
+            });*/
+            const response = await axios.get(`${process.env.REACT_APP_LOG_URL}/retrieve`, {
+                params: {
+                    start: pageIndex * pageSize,
+                    length: pageSize,
+                    sortBy: orderBy,
+                    sortOrder: order,
+                    search,
+                    filterAccount: account,
+                    // filterCategory: selectedCategory === 'All' ? undefined : selectedCategory,
+                    // startDate: startDate ? startDate.toISOString() : undefined,
+                    // endDate: endDate ? endDate.toISOString() : undefined,
+                },
             });
 
-            setData(response.data.content || []);
-            setTotalPages(response.data.totalPages || 0);
+            console.log("response1 - ", response)
+            console.log("response2 - ", response.data)
+            console.log("response3 - ", response.data.data)
+
+            setData(response.data.data || []);
+            setTotalPages(response.data.recordsTotal || 0);
         } catch (error) {
             console.error("Error fetching data:", error);
         } finally {
@@ -456,10 +479,12 @@ const SystemLogs = () => {
                 >
                     <TableHead>
                         <TableRow>
-                            <StyledTableHeadCell sx={{ width: "12%" }}>Log ID</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "12%" }}>Log Date</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "8%" }}>User</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "10%" }}>Description</StyledTableHeadCell>
+                            <StyledTableHeadCell sx={{ width: "20%" }}>Log ID</StyledTableHeadCell>
+                            <StyledTableHeadCell sx={{ width: "20%" }}>Log Date</StyledTableHeadCell>
+                            <StyledTableHeadCell sx={{ width: "20%" }}>User</StyledTableHeadCell>
+                            <StyledTableHeadCell sx={{ width: "20%" }}>Category</StyledTableHeadCell>
+                            <StyledTableHeadCell sx={{ width: "20%" }}>Account</StyledTableHeadCell>
+                            <StyledTableHeadCell sx={{ width: "100%" }}>Description</StyledTableHeadCell>
                         </TableRow>
                     </TableHead>
 
@@ -478,12 +503,14 @@ const SystemLogs = () => {
                         ) : data.length > 0 ? (
                             data.map((row, index) => (
                                 <StyledTableRow key={row.id} index={index}>
-                                    <TableCell>{row.email}</TableCell>
+                                    <TableCell>{row.logId}</TableCell>
                                     <TableCell>
-                                        {new Date(row.logdate).toLocaleString()}
+                                        {new Date(row.logDate).toLocaleString()}
                                     </TableCell>
-                                    <TableCell>{row.accountnumber}</TableCell>
-                                    <TableCell>{row.accountname}</TableCell>
+                                    <TableCell>{row.user}</TableCell>
+                                    <TableCell>{row.category}</TableCell>
+                                    <TableCell>{row.account}</TableCell>
+                                    <TableCell>{row.description}</TableCell>
                                 </StyledTableRow>
                             ))
                         ) : (

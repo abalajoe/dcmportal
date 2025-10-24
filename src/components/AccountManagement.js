@@ -31,6 +31,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import AddIcon from "@mui/icons-material/Add";
+import {ConfigDetailsAPI, UsersAPI} from "../services/Api";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -85,7 +86,29 @@ const AccountManagement = () => {
             const sortField = sortModel[0]?.field || "id";
             const sortDir = sortModel[0]?.sort?.toUpperCase() || "DESC";
 
-            const response = await fetch(
+            UsersAPI().then((data) => {
+                console.log('data - ', data)
+                if (data.status === 200){
+                    //setRows(data.data);
+                    setRows(
+                        data.data.map((item, index) => ({
+                            id: item.id,
+                            email: item.email || "-",
+                            role: item.role || "-",
+                            branch: item.branch || "-",
+                            lineManager: item.lineManager || "-",
+                            createdBy: item.createdBy || "-",
+                            dateCreated: new Date(item.dateCreated).toLocaleString() || "-",
+                            active: item.active || "-",
+                        }))
+                    );
+                } else {
+                    setSnackbar({ open: true, message: "No values recorded", severity: "success" });
+                }
+
+            });
+
+            /*const response = await fetch(
                 `http://localhost:8082/api/accountstatementengine/v1/user/findAllAccountManagement?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
             );
 
@@ -108,7 +131,7 @@ const AccountManagement = () => {
                     status: item.status || "-",
                 }))
             );
-            setRowCount(data.totalElements);
+            setRowCount(data.totalElements);*/
         } catch (error) {
             console.error("Error fetching account data:", error);
         } finally {
@@ -386,11 +409,11 @@ const AccountManagement = () => {
             {field: "email", headerName: "Email Address", flex: 1, minWidth: 150},
             {field: "role", headerName: "Role", flex: 1, minWidth: 150},
             {field: "branch", headerName: "Branch", flex: 1, minWidth: 150},
-            {field: "manager", headerName: "Manager", flex: 1, minWidth: 150},
-            {field: "createdby", headerName: "Created By", flex: 1, minWidth: 150},
-            {field: "datecreated", headerName: "Date Created", flex: 1, minWidth: 150},
+            {field: "lineManager", headerName: "Manager", flex: 1, minWidth: 150},
+            {field: "createdBy", headerName: "Created By", flex: 1, minWidth: 150},
+            {field: "dateCreated", headerName: "Date Created", flex: 1, minWidth: 150},
             {
-                field: "status",
+                field: "active",
                 headerName: "Status",
                 flex: 0.8,
                 minWidth: 100,

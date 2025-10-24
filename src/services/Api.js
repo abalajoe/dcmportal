@@ -33,8 +33,8 @@ export const loginUser = async (email, pswrd) => {
 
 export const AccountSmtAPI = (userParams) => {
     console.log('llllll')
-    // const httpUrl = `${process.env.REACT_APP_BASE_URL}/accountStatement`;
-    const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/accountStatement";
+    const httpUrl = `${process.env.REACT_APP_BASE_URL}/accountStatement`;
+    // const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/accountStatement";
 
     const resp = new Promise((resolve, reject) => {
         const headers = {
@@ -67,6 +67,19 @@ export const AccountSmtAPI = (userParams) => {
 export const FetchDepartments = async () => {
     try {
         const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/findAllDepartment";
+        const response = await axios.get(httpUrl, {
+            timeout: 30000, // 30s timeout
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching departments:", error);
+        throw error;
+    }
+};
+
+export const FetchSignature = async (accountNo) => {
+    try {
+        const httpUrl = `${process.env.REACT_APP_SIGN_URL}/retrieve?accountNumber=${accountNo}`;
         const response = await axios.get(httpUrl, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -181,6 +194,150 @@ export const CreateRole = (roleParams) => {
             .post(httpUrl, params, { headers, timeout: 1200000 })
             .then((res) => {
                 resolve(res);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+
+    return resp;
+};
+
+export const TrackSmtAPI = (userParams) => {
+    const httpUrl = `${process.env.REACT_APP_BASE_URL}/trackStatement`;
+
+    const resp = new Promise((resolve, reject) => {
+        const headers = {
+            method: "POST",
+            "Content-Type": "application/json",
+            Authorization: localStorage.getItem("token"),
+        };
+        const params = {
+            startDt: userParams.startDt,
+            endDt: userParams.endDt,
+        };
+        console.log(`httpUrl ${httpUrl}`);
+        console.log(`Request ${JSON.stringify(params)}`);
+        axios
+            .post(httpUrl, params, { headers })
+            .then((res) => {
+                console.log(`Reccord statement ${JSON.stringify(res)}`);
+                resolve(res.data);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+
+    return resp;
+};
+
+export const ConfigDetailsAPI = () => {
+    const httpUrl = `${process.env.REACT_APP_BASE_URL}/fetchConfigs`;
+
+    const resp = new Promise((resolve, reject) => {
+        const headers = {
+            method: "GET",
+            "Content-Type": "application/json",
+            Authorization: localStorage.getItem("token"),
+        };
+        // window.alert(`Selected Date ${JSON.stringify(params)}`);
+        axios
+            .get(httpUrl, { headers })
+            .then((res) => {
+                // console.log(`Config response response ${JSON.stringify(res)}`);
+                resolve(res);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+
+    return resp;
+};
+
+export const UsersAPI = () => {
+    const httpUrl = `${process.env.REACT_APP_BASE_URL}/allUsers`;
+
+    const resp = new Promise((resolve, reject) => {
+        const headers = {
+            method: "GET",
+            "Content-Type": "application/json",
+            Authorization: localStorage.getItem("token"),
+        };
+        axios
+            .get(httpUrl, { headers })
+            .then((res) => {
+                // console.log(`users ${JSON.stringify(res)}`);
+                resolve(res);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+
+    return resp;
+};
+
+export const PrintSmtAPI = (userParams) => {
+    const httpUrl = `${process.env.REACT_APP_BASE_URL}/accountBalance`;
+
+    const resp = new Promise((resolve, reject) => {
+        const headers = {
+            method: "POST",
+            "Content-Type": "application/json",
+            Authorization: localStorage.getItem("token"),
+        };
+        const params = {
+            accountNo: userParams.loanAcc,
+            startDt: userParams.startDt,
+            endDt: userParams.endDt,
+            base64Stmt: userParams.base64Stmt,
+            numPages: userParams.numPages,
+            curUser: userParams.curUser,
+            statementType: userParams.request,
+        };
+        console.log(`Request ${JSON.stringify(params)}`);
+
+        axios
+            .post(httpUrl, params, { headers })
+            .then((res) => {
+                console.log(`Printer Response ${JSON.stringify(res.data)}`);
+                resolve(res.data);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+
+    return resp;
+};
+
+export const WaiveChargeAPI = (userParams) => {
+    const httpUrl = `${process.env.REACT_APP_BASE_URL}/waivecharge`;
+
+    const resp = new Promise((resolve, reject) => {
+        const headers = {
+            method: "POST",
+            "Content-Type": "application/json",
+            Authorization: localStorage.getItem("token"),
+        };
+        const params = {
+            accountNo: userParams.loanAcc,
+            startDt: userParams.startDt,
+            endDt: userParams.endDt,
+            base64Stmt: userParams.base64Stmt,
+            numPages: userParams.numPages,
+            curUser: userParams.curUser,
+            statementType: userParams.request,
+        };
+        console.log(`Request ${JSON.stringify(params)}`);
+
+        axios
+            .post(httpUrl, params, { headers })
+            .then((res) => {
+                console.log(`Printer Response ${JSON.stringify(res.data)}`);
+                resolve(res.data);
             })
             .catch((err) => {
                 reject(err);
