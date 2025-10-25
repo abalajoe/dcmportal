@@ -13,9 +13,9 @@ import {
     InputAdornment, Divider, Menu, MenuItem, DialogActions, Typography, Paper, Chip, IconButton, Slide, Autocomplete
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import {Edit2, InfoCircle, Keyboard, Profile2User, Settings} from "iconsax-react";
+import {Data, Edit2, InfoCircle, Keyboard, Profile, Settings, Receipt1} from "iconsax-react";
 import AddIcon from "@mui/icons-material/Add";
-import {CreateDept, CreateRole, EditDept, FetchDepartments, UpdateDept} from "../services/Api";
+import {CreateDept, CreateRole, EditDept, EditRole, FetchDepartments, UpdateDept, UpdateRole} from "../services/Api";
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -51,7 +51,7 @@ const RolesTab = () => {
     const [departments, setDepartments] = useState([]);
     const [departments2, setDepartments2] = useState([]);
     const [openEditModal, setOpenEditModal] = useState(false);
-    const [editRoleFormData, seteditRoleFormData] = useState({
+    const [editRoleFormData, setEditRoleFormData] = useState({
         id: "",
         name: "",
         description: "",
@@ -82,7 +82,7 @@ const RolesTab = () => {
     const [loadingDepartments, setloadingDepartments] = useState(false);
     const handleAddRole = async () => {
         if (!roleName) {
-            setSnackbar({open: true, message: "Please enter name", severity: "error"});
+            setSnackbar({open: true, message: "Please enter role name", severity: "error"});
             setRoleNameError(true);
             return;
         }
@@ -99,7 +99,7 @@ const RolesTab = () => {
         setdepartmentError(false);
 
         if (!roleDescription) {
-            setSnackbar({open: true, message: "Please enter description", severity: "error"});
+            setSnackbar({open: true, message: "Please enter role description", severity: "error"});
             setRoleDescriptionError(true);
             return;
         }
@@ -117,6 +117,8 @@ const RolesTab = () => {
             const data = await CreateRole(params);
             console.log("data - ",data)
             console.log("data2 - ",data.status)
+            console.log("data2department - ",data.data.department)
+            console.log("data2name - ",data.data.department.name)
 
             if (data.status === 400) {
                 setSnackbar({open: true, message: data.error, severity: "error"});
@@ -127,10 +129,11 @@ const RolesTab = () => {
                 setSnackbar({open: true, message: "Department loaded", severity: "success"});
 
                 // ✅ Add to DataGrid state immediately
-                const newDepartment = {
+                const newRole = {
                     id: data.data.id,
                     name: roleName,
                     description: roleDescription,
+                    department: data.data.department.name,
                     status: data.data.status?.name ?? "Active",
                     createdBy: data.data.createdBy,
                     updatedBy: data.data.updatedBy,
@@ -138,13 +141,14 @@ const RolesTab = () => {
                     dateUpdated: data.data.updatedBy,
                 };
 
-                console.log('newDepartment - ', newDepartment)
+                console.log('newRole - ', newRole)
 
-                setRolesRows((prev) => [newDepartment, ...prev]);
-
+                setRolesRows((prev) => [newRole, ...prev]);
+                setRolesRowCount((prev) => prev + 1);
                 // Optional: clear fields
                 setRoleName("");
                 setRoleDescription("");
+                setselectedDepartment(null);
             }
         } catch (error) {
             console.error(error);
@@ -161,28 +165,6 @@ const RolesTab = () => {
         setOpenApproveDialog(true);
     };
 
-
-    const handleRoleEditMenuOpen = (e, row) => {
-        e.stopPropagation();
-        //setRoleSelectedRow(row);
-        console.log('rowRoles01 - ',row)
-        console.log('rowRoles05 - ',departments)
-        console.log('rowRoles02 - ',departmentRows)
-        console.log('rowRoles03890 - ',departments)
-        console.log('rowRoles0389 - ',departments2)
-
-        // ✅ Find the full department object from the departments array
-        const departmentObj = departments2.find(dept => dept.name === row.department);
-        console.log('departmentObj220983 >>> ',departmentObj)
-        seteditRoleFormData({
-            id: row.id || "",
-            name: row.name || "",
-            description: row.description || "",
-            department: departmentObj || null, // ✅ Store the full object, not just the name
-        });
-
-        setOpenEditModal(true);
-    };
     const handleRolesEditClick = () => {
     };
 
@@ -239,9 +221,10 @@ const RolesTab = () => {
 
     const handleEditModalClose = () => {
         setOpenEditModal(false);
-        seteditRoleFormData({id: "", name: "", description: "", department: null});
+        setEditRoleFormData({id: "", name: "", description: "", department: null});
     };
-    const handleEditDepartment = async () => {
+    const handleEditRole = async () => {
+        console.log('editRoleFormData = ', editRoleFormData)
         if (!editRoleFormData.name) {
             setSnackbar({open: true, message: "Please enter name", severity: "error"});
             setroleNameErrorEdit(true);
@@ -260,11 +243,12 @@ const RolesTab = () => {
         const params = {
             id: editRoleFormData.id,
             name: editRoleFormData.name,
+            department: editRoleFormData.department.id,
             description: editRoleFormData.description,
         };
-
+        console.log('editRoleFormDataparams = ', params)
         try {
-            const data = await EditDept(params);
+            const data = await EditRole(params);
             console.log("data - ",data)
             console.log("data2 - ",data.status)
 
@@ -277,10 +261,11 @@ const RolesTab = () => {
                 setSnackbar({open: true, message: "Department loaded", severity: "success"});
 
                 // ✅ Add to DataGrid state immediately
-                const updatedDepartment = {
+                const updatedRole = {
                     id: data.data.id,
                     name: data.data.name,
                     description: data.data.description,
+                    department: data.data.department.name,
                     status: data.data.status?.name ?? "Active",
                     dateCreated: new Date(data.data.dateCreated).toLocaleString() || "-",
                     dateUpdated: new Date(data.data.dateUpdated).toLocaleString() || "-",
@@ -288,12 +273,12 @@ const RolesTab = () => {
                     updatedBy: data.data.updatedBy,
                 };
 
-                console.log("updatedDepartment - ", updatedDepartment);
+                console.log("updatedRole - ", updatedRole);
 
                 // ✅ Update the existing row in DataGrid
-                setDepartmentRows((prevRows) =>
+                setRolesRows((prevRows) =>
                     prevRows.map((row) =>
-                        row.id === updatedDepartment.id ? updatedDepartment : row
+                        row.id === updatedRole.id ? updatedRole : row
                     )
                 );
 
@@ -301,7 +286,7 @@ const RolesTab = () => {
                 setOpenEditModal(false);
 
                 // ✅ Optionally reset form
-                seteditRoleFormData({
+                setEditRoleFormData({
                     id: "",
                     name: "",
                     description: "",
@@ -337,7 +322,7 @@ const RolesTab = () => {
         };
 
         try {
-            const data = await UpdateDept(params);
+            const data = await UpdateRole(params);
             console.log("data - ",data)
             console.log("data2 - ",data.status)
 
@@ -350,10 +335,11 @@ const RolesTab = () => {
                 setSnackbar({open: true, message: "Department loaded", severity: "success"});
 
                 // ✅ Add to DataGrid state immediately
-                const updatedDepartment = {
+                const updatedRole = {
                     id: data.data.id,
                     name: data.data.name,
                     description: data.data.description,
+                    department: data.data.department.name,
                     status: data.data.status?.name ?? "Active",
                     dateCreated: new Date(data.data.dateCreated).toLocaleString() || "-",
                     dateUpdated: new Date(data.data.dateUpdated).toLocaleString() || "-",
@@ -361,12 +347,12 @@ const RolesTab = () => {
                     updatedBy: data.data.updatedBy,
                 };
 
-                console.log("updatedDepartment - ", updatedDepartment);
+                console.log("updatedDepartment - ", updatedRole);
 
                 // ✅ Update the existing row in DataGrid
-                setDepartmentRows((prevRows) =>
+                setRolesRows((prevRows) =>
                     prevRows.map((row) =>
-                        row.id === updatedDepartment.id ? updatedDepartment : row
+                        row.id === updatedRole.id ? updatedRole : row
                     )
                 );
 
@@ -381,8 +367,26 @@ const RolesTab = () => {
     };
 
     const handleFormChange = (field, value) => {
-        seteditRoleFormData((prev) => ({...prev, [field]: value}));
+        setEditRoleFormData((prev) => ({...prev, [field]: value}));
     };
+
+    const handleRoleEditMenuOpen = useCallback((e, row) => {
+        e.stopPropagation();
+        console.log('rowRoles05 - ', departments2);
+
+        const departmentObj = departments2.find(dept => dept.name === row.department);
+
+        console.log('departmentObj220983 >>> ', departmentObj);
+
+        setEditRoleFormData({
+            id: row.id || "",
+            name: row.name || "",
+            description: row.description || "",
+            department: departmentObj || null,
+        });
+
+        setOpenEditModal(true);
+    }, [departments2]); // ✅ ADD departments2 to dependency array
     const rolesColumns = useMemo(() => {
         const cols = [
             {field: "name", headerName: "Name", flex: 1, minWidth: 150},
@@ -390,8 +394,18 @@ const RolesTab = () => {
             {field: "description", headerName: "Description", flex: 1, minWidth: 150},
             {field: "createdBy", headerName: "Created By", flex: 1, minWidth: 150},
             {field: "updatedBy", headerName: "Updated By", flex: 1, minWidth: 150},
-            {field: "dateCreated", headerName: "Date Created", flex: 1, minWidth: 150},
-            {field: "dateUpdated", headerName: "Date Updated", flex: 1, minWidth: 150},
+            {field: "dateCreated", headerName: "Date Created", flex: 1, minWidth: 150,
+                renderCell: (params) => (
+                    <span style={{ fontSize: "0.8rem", color: "#555" }}>
+                    {params.value}
+                  </span>
+                ),},
+            {field: "dateUpdated", headerName: "Date Updated", flex: 1, minWidth: 150,
+                renderCell: (params) => (
+                    <span style={{ fontSize: "0.8rem", color: "#555" }}>
+                    {params.value}
+                  </span>
+                ),},
             {
                 field: "status",
                 headerName: "Status",
@@ -402,7 +416,7 @@ const RolesTab = () => {
         ];
 
         // Add action column based on role
-        if (userRole === "ICT_Service_Desk_Maker") {
+        if (userRole === "ICT_Service_Desk_Checker") {
             cols.push({
                 field: "edit",
                 headerName: "",
@@ -420,7 +434,7 @@ const RolesTab = () => {
                     </IconButton>
                 ),
             });
-        } else if (userRole === "ICT_Service_Desk_Checker") {
+        } else if (userRole === "ICT_Service_Desk_Maker") {
             cols.push({
                 field: "approve",
                 headerName: "",
@@ -445,10 +459,10 @@ const RolesTab = () => {
         }
 
         return cols;
-    }, [userRole]);
+    }, [userRole, handleRoleEditMenuOpen]);
 
     // Fetch pageable users
-    const fetchUsers = useCallback(async () => {
+    const fetchAllRoles = useCallback(async () => {
 
         setLoading(true);
         try {
@@ -464,7 +478,7 @@ const RolesTab = () => {
             }
 
             const data = await response.json();
-            console.log('dataRole - ', data)
+            console.log('dataRole ----------------------------------- ', data)
 
             setRolesRows(
                 data.content.map((item, index) => ({
@@ -474,8 +488,20 @@ const RolesTab = () => {
                     department: item.department.name || "-",
                     createdBy: item.createdBy || "-",
                     updatedBy: item.updatedBy || "-",
-                    dateCreated: new Date(item.dateCreated).toLocaleString() || "-",
-                    dateUpdated: new Date(item.dateUpdated).toLocaleString() || "-",
+                    dateCreated: new Date(item.dateCreated).toLocaleString("en-GB", {
+                        year: "numeric",
+                        month: "short",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    }) || "-",
+                    dateUpdated: new Date(item.dateUpdated).toLocaleString("en-GB", {
+                        year: "numeric",
+                        month: "short",
+                        day: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    }) || "-",
                     status: item.status.name || "-",
                 }))
             );
@@ -488,16 +514,17 @@ const RolesTab = () => {
     }, [departmentPaginationModel, departmentSortModel, searchVal]);
 
     useEffect(() => {
-        fetchUsers();
-    }, [fetchUsers]);
+        fetchAllRoles();
+    }, [fetchAllRoles]);
 
     useEffect(() => {
         const loadDepartments = async () => {
             setLoading(true);
             try {
                 const data = await FetchDepartments();
-                console.log('depts - ', data)
-                setDepartments(data);
+                console.log('depts303 - ', data)
+                //setDepartments(data);
+                setDepartments2(data);
             } catch (error) {
                 setSnackbar({ open: true, message: "Failed to fetch departments", severity: "error" });
             } finally {
@@ -506,55 +533,6 @@ const RolesTab = () => {
         };
         loadDepartments();
     }, []);
-
-    const fetchDepartments = useCallback(async () => {
-
-        setLoading(true);
-        try {
-            const sortField = departmentSortModel[0]?.field || "id";
-            const sortDir = departmentSortModel[0]?.sort?.toUpperCase() || "DESC";
-
-            const response = await fetch(
-                `http://localhost:8082/api/accountstatementengine/v1/user/findAllDepartments?start=${departmentPaginationModel.page}&length=${departmentPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
-            );
-
-            if (!response.ok) {
-                throw new Error("Failed to fetch data");
-            }
-
-            const data = await response.json();
-            console.log('data009 - ', data)
-
-            setDepartmentRows(
-                data.content.map((item, index) => ({
-                    id: item.id,
-                    name: item.name || "-",
-                    description: item.description || "-",
-                    createdBy: item.createdBy || "-",
-                    updatedBy: item.updatedBy || "-",
-                    dateCreated: new Date(item.dateCreated).toLocaleString() || "-",
-                    dateUpdated: new Date(item.dateUpdated).toLocaleString() || "-",
-                    status: item.status.name || "-",
-                }))
-            );
-
-            console.log('data894 - ', data)
-            console.log('data894 - ', data.content)
-            setDepartments2(data.content)
-            setDepartments(data.content)
-            console.log('data899 - ', departments2)
-            //setDepartmentRowCount(data.totalElements);
-        } catch (error) {
-            console.error("Error fetching account data:", error);
-        } finally {
-            setLoading(false);
-        }
-    }, [departmentPaginationModel, departmentSortModel, searchVal]);
-
-
-    useEffect(() => {
-        fetchDepartments();
-    }, [fetchDepartments]);
 
     return (
         <Paper elevation={5} sx={{p: 2, borderRadius: 2, backgroundColor: "#fff"}}>
@@ -592,7 +570,7 @@ const RolesTab = () => {
                         startAdornment:
                             <InputAdornment position="start" sx={{color: "grey.500"}}>
                                 {/* icon inherits currentColor from the adornment */}
-                                <InfoCircle size="18"
+                                <Profile size="16"
                                             color={
                                                 departmentNameError && !roleName
                                                     ? "#d32f2f" // 🔴 red when error
@@ -609,7 +587,11 @@ const RolesTab = () => {
                             color: "black",
                         },
                         "& .MuiInputLabel-root.Mui-focused": {
-                            color: "black", // keep label black when focused
+                            color: "#1976d2",  // keep label black when focused
+                        },
+                        // 🔹 label when error
+                        "& .MuiInputLabel-root.Mui-error": {
+                            color: "#d32f2f", // red
                         },
                     }}
                 />
@@ -630,7 +612,7 @@ const RolesTab = () => {
                                 ...params.InputProps,
                                 startAdornment: (
                                     <InputAdornment position="start" sx={{ color: "grey.500" }}>
-                                        <Settings size="18"
+                                        <Data size="16"
                                                   color={
                                                       departmentError && !selectedDepartment
                                                           ? "#d32f2f" // 🔴 red when error
@@ -652,10 +634,13 @@ const RolesTab = () => {
                         minWidth: "220px",
                         "& .MuiInputBase-input": { fontSize: "0.9rem" },
                         "& .MuiInputLabel-root": { fontSize: "1.0rem", color: "black" },
-                        "& .MuiInputLabel-root.Mui-error": {
-                            color: "#d32f2f !important", // MUI's default error color
+                        "& .MuiInputLabel-root.Mui-focused": {
+                            color: "#1976d2",  // keep label black when focused
                         },
-                        "& .MuiInputLabel-root.Mui-focused": { color: "black" },
+                        // 🔹 label when error
+                        "& .MuiInputLabel-root.Mui-error": {
+                            color: "#d32f2f", // red
+                        },
                     }}
                 />
 
@@ -687,7 +672,11 @@ const RolesTab = () => {
                             color: "black",
                         },
                         "& .MuiInputLabel-root.Mui-focused": {
-                            color: "black", // keep label black when focused
+                            color: "#1976d2",  // keep label black when focused
+                        },
+                        // 🔹 label when error
+                        "& .MuiInputLabel-root.Mui-error": {
+                            color: "#d32f2f", // red
                         },
                     }}
                 />
@@ -800,7 +789,7 @@ const RolesTab = () => {
                                 size="small"
                                 value={editRoleFormData.name}
                                 onChange={(e) =>
-                                    seteditRoleFormData({
+                                    setEditRoleFormData({
                                         ...editRoleFormData,
                                         name: e.target.value,
                                     })
@@ -808,6 +797,18 @@ const RolesTab = () => {
                                 error={roleNameErrorEdit}
                                 InputProps={{
                                     sx: { fontSize: 14, height: 36 },
+                                    startAdornment: (
+                                        <InputAdornment position="start" sx={{ color: "grey.700",marginLeft: "-12px", paddingX: "6px"  }}>
+                                            <Profile
+                                                size="16    "
+                                                color={
+                                                    roleNameErrorEdit && !editRoleFormData.name
+                                                        ? "#d32f2f" // 🔴 red when error
+                                                        : "currentColor" // normal color
+                                                }
+                                            />
+                                        </InputAdornment>
+                                    ),
                                 }}
                                 InputLabelProps={{
                                     sx: { fontSize: 14 },
@@ -815,16 +816,16 @@ const RolesTab = () => {
                             />
 
                             <Autocomplete
-                                options={departments}
-                                value={editRoleFormData.name} // ✅ Now this is an object or null
+                                options={departments2}
+                                value={editRoleFormData.department} // ✅ CHANGED from .name to .department
                                 onChange={(e, newValue) => {
-                                    seteditRoleFormData({
+                                    setEditRoleFormData({
                                         ...editRoleFormData,
-                                        department: newValue, // ✅ Store the full object
+                                        department: newValue,
                                     });
                                 }}
                                 getOptionLabel={(option) => option?.name || ""}
-                                isOptionEqualToValue={(option, value) => option?.id === value?.id} // ✅ Compare by ID
+                                isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                 loading={loadingDepartments}
                                 size="small"
                                 renderInput={(params) => (
@@ -836,8 +837,8 @@ const RolesTab = () => {
                                             ...params.InputProps,
                                             startAdornment: (
                                                 <InputAdornment position="start">
-                                                    <Settings
-                                                        size="18"
+                                                    <Data
+                                                        size="16"
                                                         color={
                                                             departmentError && !editRoleFormData.department
                                                                 ? "#d32f2f"
@@ -878,14 +879,26 @@ const RolesTab = () => {
                                 size="small"
                                 value={editRoleFormData.description}
                                 onChange={(e) =>
-                                    seteditRoleFormData({
+                                    setEditRoleFormData({
                                         ...editRoleFormData,
                                         description: e.target.value,
                                     })
                                 }
-                                error={roleDescriptionErrorEdit}
+                                error={roleNameErrorEdit}
                                 InputProps={{
                                     sx: { fontSize: 14, height: 36 },
+                                    startAdornment: (
+                                        <InputAdornment position="start" sx={{ color: "grey.700",marginLeft: "-12px", paddingX: "6px"  }}>
+                                            <Receipt1
+                                                size="16"
+                                                color={
+                                                    roleNameErrorEdit && !editRoleFormData.name
+                                                        ? "#d32f2f" // 🔴 red when error
+                                                        : "currentColor" // normal color
+                                                }
+                                            />
+                                        </InputAdornment>
+                                    ),
                                 }}
                                 InputLabelProps={{
                                     sx: { fontSize: 14 },
@@ -898,7 +911,7 @@ const RolesTab = () => {
                             Cancel
                         </Button>
                         <Button
-                            onClick={handleEditDepartment}
+                            onClick={handleEditRole}
                             variant="contained"
                             disabled={loading}
                         >
@@ -931,13 +944,13 @@ const RolesTab = () => {
                             py: 2.5,
                         }}
                     >
-                        Validate Department
+                        Validate Role
                     </DialogTitle>
                     <DialogContent sx={{mt: 3, pb: 2}}>
                         {selectedDepartmentRow && (
                             <Box>
                                 <Typography sx={{mb: 3, color: "#555", fontSize: "1.1rem", fontWeight: 800}}>
-                                    Confirm department
+                                    Confirm role
                                 </Typography>
                                 <Paper
                                     elevation={0}
@@ -955,6 +968,20 @@ const RolesTab = () => {
                                             </Typography>
                                             <Typography sx={{fontWeight: 600, fontSize: "0.8rem"}}>
                                                 {selectedDepartmentRow.name}
+                                            </Typography>
+                                        </Box>
+                                        <Box sx={{display: "flex", justifyContent: "space-between"}}>
+                                            <Typography sx={{color: "#666", fontSize: "0.9rem"}}>
+                                                Department
+                                            </Typography>
+                                            <Typography
+                                                sx={{
+                                                    fontWeight: 600,
+                                                    color: "#116530",
+                                                    fontSize: "0.8rem",
+                                                }}
+                                            >
+                                                {selectedDepartmentRow.department}
                                             </Typography>
                                         </Box>
                                         <Box sx={{display: "flex", justifyContent: "space-between"}}>

@@ -15,19 +15,17 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import {Edit2, ArchiveAdd, Keyboard, Receipt1, Settings, ArchiveTick, Profile} from "iconsax-react";
 import AddIcon from "@mui/icons-material/Add";
-import {CreateDept, EditDept, UpdateDept} from "../services/Api";
+import {CreateBranch, CreateDept, EditBranch, EditDept, UpdateBranch, UpdateDept} from "../services/Api";
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
-const DepartmentTab = () => {
+const BranchTab = () => {
     const userRole = localStorage.getItem("role");
-    const [departmentName, setDeparmentName] = useState("");
-    const [departmentDescription, setDeparmentDescription] = useState("");
+    const [branchName, setBranchName] = useState("");
+    const [branchDescription, setBranchDescription] = useState("");
     const [selectedRow, setSelectedRow] = useState(null);
-    const [departmentNameEdit, setDeparmentNameEdit] = useState("");
-    const [departmentDescriptionEdit, setDeparmentDescriptionEdit] = useState("");
-    const [departmentNameError, setDepartmentNameError] = useState(false);
-    const [departmentDescriptionError, setDepartmentDescriptionError] = useState(false);
+    const [branchNameError, setBranchNameError] = useState(false);
+    const [branchDescriptionError, setBranchDescriptionError] = useState(false);
     const [tabIndex, setTabIndex] = useState(0);
     const [loading, setLoading] = useState(false);
     const [snackbar, setSnackbar] = useState({open: false, message: "", severity: "success"});
@@ -35,19 +33,19 @@ const DepartmentTab = () => {
     const [rowsRoles, setRowsRoles] = useState([]);
     const [rowRolesCount, setRowRolesCount] = useState(0); // total elements from backend
     const [openRolesEditModal, setOpenRolesEditModal] = useState(false);
-    const [departmentDescriptionErrorEdit, setDepartmentDescriptionErrorEdit] = useState(false);
-    const [departmentNameErrorEdit, setDepartmentNameErrorEdit] = useState(false);
-    const [departmentSortModel, setDepartmentSortModel] = useState([{field: "id", sort: "desc"}]);
-    const [departmentRows, setDepartmentRows] = useState([]);
-    const [departmentRowCount, setDepartmentRowCount] = useState(0); // total elements from backend
-    const [selectedDepartmentRow, setDepartmentSelectedRow] = useState(null);
+    const [branchDescriptionErrorEdit, setBranchDescriptionErrorEdit] = useState(false);
+    const [branchNameErrorEdit, setBranchNameErrorEdit] = useState(false);
+    const [branchSortModel, setBranchSortModel] = useState([{field: "id", sort: "desc"}]);
+    const [branchRows, setBranchRows] = useState([]);
+    const [branchRowCount, setBranchRowCount] = useState(0); // total elements from backend
+    const [selectedBranchRow, setBranchSelectedRow] = useState(null);
     const [openApproveDialog, setOpenApproveDialog] = useState(false);
-    const [departmentPaginationModel, setDepartmentPaginationModel] = useState({
+    const [branchPaginationModel, setBranchPaginationModel] = useState({
         page: 0,
         pageSize: 9,
     });
     const [openEditModal, setOpenEditModal] = useState(false);
-    const [editDepartmentFormData, setEditDepartmentFormData] = useState({
+    const [editBranchFormData, setEditBranchFormData] = useState({
         id: "",
         name: "",
         description: "",
@@ -72,30 +70,30 @@ const DepartmentTab = () => {
     const [rolesAnchorEl, setRolesAnchorEl] = useState(null);
     const handleChange = (_, newIndex) => setTabIndex(newIndex);
     const handleRolesMenuClose = () => setRolesAnchorEl(null);
-    const handleAddDepartment = async () => {
-        if (!departmentName) {
-            setSnackbar({open: true, message: "Please enter department name", severity: "error"});
-            setDepartmentNameError(true);
+    const handleAddBranch = async () => {
+        if (!branchName) {
+            setSnackbar({open: true, message: "Please enter branch name", severity: "error"});
+            setBranchNameError(true);
             return;
         }
-        setDepartmentNameError(false);
+        setBranchNameError(false);
 
-        if (!departmentDescription) {
-            setSnackbar({open: true, message: "Please enter department description", severity: "error"});
-            setDepartmentDescriptionError(true);
+        if (!branchDescription) {
+            setSnackbar({open: true, message: "Please enter branch description", severity: "error"});
+            setBranchDescriptionError(true);
             return;
         }
 
-        setDepartmentDescriptionError(false);
+        setBranchDescriptionError(false);
 
         setLoading(true);
         const params = {
-            name: departmentName,
-            description: departmentDescription,
+            name: branchName,
+            description: branchDescription,
         };
 
         try {
-            const data = await CreateDept(params);
+            const data = await CreateBranch(params);
             console.log("data - ",data)
             console.log("data2 - ",data.status)
 
@@ -105,13 +103,13 @@ const DepartmentTab = () => {
             }
 
             if (data.status === 200) {
-                setSnackbar({open: true, message: "Department loaded", severity: "success"});
+                setSnackbar({open: true, message: "Branch created", severity: "success"});
 
                 // ✅ Add to DataGrid state immediately
-                const newDepartment = {
+                const newBranch = {
                     id: data.data.id,
-                    name: departmentName,
-                    description: departmentDescription,
+                    name: branchName,
+                    description: branchDescription,
                     status: data.data.status?.name ?? "Active",
                     createdBy: data.data.createdBy,
                     updatedBy: data.data.updatedBy,
@@ -119,14 +117,13 @@ const DepartmentTab = () => {
                     dateUpdated: data.data.updatedBy,
                 };
 
-                console.log('newDepartment - ', newDepartment)
-                setDepartmentRows((prev) => [newDepartment, ...prev]);
-                setDepartmentRowCount((prev) => prev + 1);
-
+                console.log('newDepartment - ', newBranch)
+                setBranchRows((prev) => [newBranch, ...prev]);
+                setBranchRowCount((prev) => prev + 1);
 
                 // Optional: clear fields
-                setDeparmentName("");
-                setDeparmentDescription("");
+                setBranchName("");
+                setBranchDescription("");
             }
         } catch (error) {
             console.error(error);
@@ -139,15 +136,15 @@ const DepartmentTab = () => {
     const handleApproveMenuOpen = (e, row) => {
         e.stopPropagation();
         console.log('--row ', row)
-        setDepartmentSelectedRow(row);
+        setBranchSelectedRow(row);
         setOpenApproveDialog(true);
     };
 
-    const handleDepartmentEditMenuOpen = (e, row) => {
+    const handleBranchEditMenuOpen = (e, row) => {
         e.stopPropagation();
-        setDepartmentSelectedRow(row);
+        setBranchSelectedRow(row);
         console.log(row)
-        setEditDepartmentFormData({
+        setEditBranchFormData({
             id: row.id || "",
             name: row.name || "",
             description: row.description || "",
@@ -221,32 +218,32 @@ const DepartmentTab = () => {
 
     const handleEditModalClose = () => {
         setOpenEditModal(false);
-        setEditDepartmentFormData({id: "", name: "", email: "", role: ""});
+        setEditBranchFormData({id: "", name: "", email: "", role: ""});
     };
-    const handleEditDepartment = async () => {
-        if (!editDepartmentFormData.name) {
+    const handleEditBranch = async () => {
+        if (!editBranchFormData.name) {
             setSnackbar({open: true, message: "Please enter department name", severity: "error"});
-            setDepartmentNameErrorEdit(true);
+            setBranchNameErrorEdit(true);
             return;
         }
-        setDepartmentNameErrorEdit(false);
+        setBranchNameErrorEdit(false);
 
-        if (!editDepartmentFormData.description) {
+        if (!editBranchFormData.description) {
             setSnackbar({open: true, message: "Please enter department description", severity: "error"});
-            setDepartmentDescriptionErrorEdit(true);
+            setBranchDescriptionErrorEdit(true);
             return;
         }
-        setDepartmentDescriptionErrorEdit(false);
+        setBranchDescriptionErrorEdit(false);
 
         setLoading(true);
         const params = {
-            id: editDepartmentFormData.id,
-            name: editDepartmentFormData.name,
-            description: editDepartmentFormData.description,
+            id: editBranchFormData.id,
+            name: editBranchFormData.name,
+            description: editBranchFormData.description,
         };
 
         try {
-            const data = await EditDept(params);
+            const data = await EditBranch(params);
             console.log("data - ",data)
             console.log("data2 - ",data.status)
 
@@ -256,10 +253,10 @@ const DepartmentTab = () => {
             }
 
             if (data.status === 200) {
-                setSnackbar({open: true, message: "Department loaded", severity: "success"});
+                setSnackbar({open: true, message: "Branch updated", severity: "success"});
 
                 // ✅ Add to DataGrid state immediately
-                const updatedDepartment = {
+                const updatedBranch = {
                     id: data.data.id,
                     name: data.data.name,
                     description: data.data.description,
@@ -270,12 +267,12 @@ const DepartmentTab = () => {
                     updatedBy: data.data.updatedBy,
                 };
 
-                console.log("updatedDepartment - ", updatedDepartment);
+                console.log("updatedBranch - ", updatedBranch);
 
                 // ✅ Update the existing row in DataGrid
-                setDepartmentRows((prevRows) =>
+                setBranchRows((prevRows) =>
                     prevRows.map((row) =>
-                        row.id === updatedDepartment.id ? updatedDepartment : row
+                        row.id === updatedBranch.id ? updatedBranch : row
                     )
                 );
 
@@ -283,7 +280,7 @@ const DepartmentTab = () => {
                 setOpenEditModal(false);
 
                 // ✅ Optionally reset form
-                setEditDepartmentFormData({
+                setEditBranchFormData({
                     id: "",
                     name: "",
                     description: "",
@@ -302,7 +299,7 @@ const DepartmentTab = () => {
     };
 
     const handleApprove = () => {
-        console.log("Approved:", selectedDepartmentRow);
+        console.log("Approved:", selectedBranchRow);
         handleApproveSubmit("approve");
     };
 
@@ -311,15 +308,15 @@ const DepartmentTab = () => {
         handleApproveSubmit("reject");
     };
     const handleApproveSubmit = async (action) => {
-        console.log("Approved:", selectedDepartmentRow);
+        console.log("Approved:", selectedBranchRow);
         setLoading(true);
         const params = {
-            id: selectedDepartmentRow.id,
+            id: selectedBranchRow.id,
             action: action,
         };
 
         try {
-            const data = await UpdateDept(params);
+            const data = await UpdateBranch(params);
             console.log("data - ",data)
             console.log("data2 - ",data.status)
 
@@ -329,10 +326,10 @@ const DepartmentTab = () => {
             }
 
             if (data.status === 200) {
-                setSnackbar({open: true, message: "Department loaded", severity: "success"});
+                setSnackbar({open: true, message: "Branch updated", severity: "success"});
 
                 // ✅ Add to DataGrid state immediately
-                const updatedDepartment = {
+                const updatedBranch = {
                     id: data.data.id,
                     name: data.data.name,
                     description: data.data.description,
@@ -343,12 +340,12 @@ const DepartmentTab = () => {
                     updatedBy: data.data.updatedBy,
                 };
 
-                console.log("updatedDepartment - ", updatedDepartment);
+                console.log("updatedBranch - ", updatedBranch);
 
                 // ✅ Update the existing row in DataGrid
-                setDepartmentRows((prevRows) =>
+                setBranchRows((prevRows) =>
                     prevRows.map((row) =>
-                        row.id === updatedDepartment.id ? updatedDepartment : row
+                        row.id === updatedBranch.id ? updatedBranch : row
                     )
                 );
 
@@ -356,16 +353,16 @@ const DepartmentTab = () => {
             }
         } catch (error) {
             console.error(error);
-            setSnackbar({open: true, message: "Failed to create department", severity: "error"});
+            setSnackbar({open: true, message: "Failed to create branch", severity: "error"});
         } finally {
             setLoading(false);
         }
     };
 
     const handleFormChange = (field, value) => {
-        setEditDepartmentFormData((prev) => ({...prev, [field]: value}));
+        setEditBranchFormData((prev) => ({...prev, [field]: value}));
     };
-    const departmentColumns = useMemo(() => {
+    const branchColumns = useMemo(() => {
         const cols = [
             {field: "name", headerName: "Name", flex: 1, minWidth: 150},
             {field: "description", headerName: "Description", flex: 1, minWidth: 150},
@@ -403,7 +400,7 @@ const DepartmentTab = () => {
                     <IconButton
                         onClick={(e) => {
                             e.stopPropagation();
-                            handleDepartmentEditMenuOpen(e, params.row);
+                            handleBranchEditMenuOpen(e, params.row);
                         }}
                         size="small"
                     >
@@ -439,15 +436,15 @@ const DepartmentTab = () => {
     }, [userRole]);
 
     // Fetch pageable users
-    const fetchAllDepartments = useCallback(async () => {
+    const fetchAllBranches = useCallback(async () => {
 
         setLoading(true);
         try {
-            const sortField = departmentSortModel[0]?.field || "id";
-            const sortDir = departmentSortModel[0]?.sort?.toUpperCase() || "DESC";
+            const sortField = branchSortModel[0]?.field || "id";
+            const sortDir = branchSortModel[0]?.sort?.toUpperCase() || "DESC";
 
             const response = await fetch(
-                `http://localhost:8082/api/accountstatementengine/v1/user/findAllDepartments?start=${departmentPaginationModel.page}&length=${departmentPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                `http://localhost:8082/api/accountstatementengine/v1/user/findAllBranches?start=${branchPaginationModel.page}&length=${branchPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
             );
 
             if (!response.ok) {
@@ -455,9 +452,9 @@ const DepartmentTab = () => {
             }
 
             const data = await response.json();
-            console.log('dataDepartment--------------- - ', data)
+            console.log('dataBranch--------------- - ', data)
 
-            setDepartmentRows(
+            setBranchRows(
                 data.content.map((item, index) => ({
                     id: item.id,
                     name: item.name || "-",
@@ -481,17 +478,17 @@ const DepartmentTab = () => {
                     status: item.status.name || "-",
                 }))
             );
-            setDepartmentRowCount(data.totalElements);
+            setBranchRowCount(data.totalElements);
         } catch (error) {
             console.error("Error fetching account data:", error);
         } finally {
             setLoading(false);
         }
-    }, [departmentPaginationModel, departmentSortModel, searchVal]);
+    }, [branchPaginationModel, branchSortModel, searchVal]);
 
     useEffect(() => {
-        fetchAllDepartments();
-    }, [fetchAllDepartments]);
+        fetchAllBranches();
+    }, [fetchAllBranches]);
 
 
     return (
@@ -521,18 +518,18 @@ const DepartmentTab = () => {
                 </Snackbar>
                 <TextField
                     size="small"
-                    label="Department Name"
+                    label="Branch Name"
                     variant="outlined"
-                    value={departmentName}
-                    onChange={(e) => setDeparmentName(e.target.value)}
-                    error={departmentNameError}
+                    value={branchName}
+                    onChange={(e) => setBranchName(e.target.value)}
+                    error={branchNameError}
                     InputProps={{
                         startAdornment:
                             <InputAdornment position="start" sx={{color: "grey.500"}}>
                                 {/* icon inherits currentColor from the adornment */}
                                 <ArchiveAdd size="16"
                                          color={
-                                             departmentNameError && !departmentName
+                                             branchNameError && !branchName
                                                  ? "#d32f2f" // 🔴 red when error
                                                  : "currentColor" // normal color
                                          }/> {/* optional icon */}
@@ -557,18 +554,18 @@ const DepartmentTab = () => {
                 />
                 <TextField
                     size="small"
-                    label="Department Description"
+                    label="Branch Description"
                     variant="outlined"
-                    value={departmentDescription}
-                    onChange={(e) => setDeparmentDescription(e.target.value)}
-                    error={departmentDescriptionError}
+                    value={branchDescription}
+                    onChange={(e) => setBranchDescription(e.target.value)}
+                    error={branchDescriptionError}
                     InputProps={{
                         startAdornment:
                             <InputAdornment position="start" sx={{color: "grey.500"}}>
                                 {/* icon inherits currentColor from the adornment */}
                                 <Keyboard size="16"
                                          color={
-                                             departmentDescriptionError && !departmentDescription
+                                             branchDescriptionError && !branchDescription
                                                  ? "#d32f2f" // 🔴 red when error
                                                  : "currentColor" // normal color
                                          }/> {/* optional icon */}
@@ -593,7 +590,7 @@ const DepartmentTab = () => {
                 />
                 <Button
                     variant="contained"
-                    onClick={handleAddDepartment}
+                    onClick={handleAddBranch}
                     disabled={loading}
                     startIcon={<AddIcon size="18" color="#fff"/>}
                     sx={{
@@ -611,22 +608,22 @@ const DepartmentTab = () => {
                         },
                     }}
                 >
-                    {loading ? <CircularProgress size={20} color="inherit"/> : "Add Department"}
+                    {loading ? <CircularProgress size={20} color="inherit"/> : "Add Branch"}
                 </Button>
             </Box>
 
             <Divider sx={{mb: 2}}/>
             <Box sx={{height: 440}}>
                 <DataGrid
-                    rows={departmentRows}
-                    columns={departmentColumns}
-                    rowCount={departmentRowCount}
+                    rows={branchRows}
+                    columns={branchColumns}
+                    rowCount={branchRowCount}
                     loading={loading}
-                    paginationModel={departmentPaginationModel}
-                    onPaginationModelChange={setDepartmentPaginationModel}
+                    paginationModel={branchPaginationModel}
+                    onPaginationModelChange={setBranchPaginationModel}
                     paginationMode="server"
                     sortingMode="server"
-                    onSortModelChange={setDepartmentSortModel}
+                    onSortModelChange={setBranchSortModel}
                     pageSizeOptions={[5, 10, 20, 50]}
                     disableColumnMenu
                     rowHeight={40}          // 👈 smaller rows
@@ -687,24 +684,24 @@ const DepartmentTab = () => {
                             py: 2.5,
                         }}
                     >
-                        Edit Department
+                        Edit Branch
                     </DialogTitle>
                     <DialogContent>
                         <Box sx={{display: "flex", flexDirection: "column", gap: 2, pt: 2}}>
 
                             <TextField
-                                label="Department Name"
+                                label="Branch Name"
                                 fullWidth
                                 type="text"
                                 size="small"
-                                value={editDepartmentFormData.name}
+                                value={editBranchFormData.name}
                                 onChange={(e) =>
-                                    setEditDepartmentFormData({
-                                        ...editDepartmentFormData,
+                                    setEditBranchFormData({
+                                        ...editBranchFormData,
                                         name: e.target.value,
                                     })
                                 }
-                                error={departmentNameErrorEdit}
+                                error={branchNameErrorEdit}
                                 InputProps={{
                                     sx: { fontSize: 14, height: 36,  "&.Mui-focused .MuiInputAdornment-root": {
                                             color: "#1976d2", // MUI default blue
@@ -714,7 +711,7 @@ const DepartmentTab = () => {
                                             <ArchiveTick
                                                 size="16"
                                                 color={
-                                                    departmentNameErrorEdit && !editDepartmentFormData.name
+                                                    branchNameErrorEdit && !editBranchFormData.name
                                                         ? "#d32f2f" // 🔴 red when error
                                                         : "currentColor" // normal color
                                                 }
@@ -728,18 +725,18 @@ const DepartmentTab = () => {
                             />
 
                             <TextField
-                                label="Description"
+                                label="Branch Description"
                                 fullWidth
                                 type="text"
                                 size="small"
-                                value={editDepartmentFormData.description}
+                                value={editBranchFormData.description}
                                 onChange={(e) =>
-                                    setEditDepartmentFormData({
-                                        ...editDepartmentFormData,
+                                    setEditBranchFormData({
+                                        ...editBranchFormData,
                                         description: e.target.value,
                                     })
                                 }
-                                error={departmentDescriptionErrorEdit}
+                                error={branchDescriptionErrorEdit}
                                 InputProps={{
                                     sx: { fontSize: 14, height: 36,
                                         "&.Mui-focused .MuiInputAdornment-root": {
@@ -750,7 +747,7 @@ const DepartmentTab = () => {
                                             <Keyboard
                                                 size="16"
                                                 color={
-                                                    departmentDescriptionErrorEdit && !editDepartmentFormData.description
+                                                    branchDescriptionErrorEdit && !editBranchFormData.description
                                                         ? "#d32f2f" // 🔴 red when error
                                                         : "currentColor" // normal color
                                                 }
@@ -769,7 +766,7 @@ const DepartmentTab = () => {
                             Cancel
                         </Button>
                         <Button
-                            onClick={handleEditDepartment}
+                            onClick={handleEditBranch}
                             variant="contained"
                             disabled={loading}
                         >
@@ -802,13 +799,13 @@ const DepartmentTab = () => {
                             py: 2.5,
                         }}
                     >
-                        Validate Department
+                        Validate Branch
                     </DialogTitle>
                     <DialogContent sx={{mt: 3, pb: 2}}>
-                        {selectedDepartmentRow && (
+                        {selectedBranchRow && (
                             <Box>
                                 <Typography sx={{mb: 3, color: "#555", fontSize: "1.1rem", fontWeight: 800}}>
-                                    Confirm department
+                                    Confirm branch
                                 </Typography>
                                 <Paper
                                     elevation={0}
@@ -825,7 +822,7 @@ const DepartmentTab = () => {
                                                 Name
                                             </Typography>
                                             <Typography sx={{fontWeight: 600, fontSize: "0.8rem"}}>
-                                                {selectedDepartmentRow.name}
+                                                {selectedBranchRow.name}
                                             </Typography>
                                         </Box>
                                         <Box sx={{display: "flex", justifyContent: "space-between"}}>
@@ -839,7 +836,7 @@ const DepartmentTab = () => {
                                                     fontSize: "0.8rem",
                                                 }}
                                             >
-                                                {selectedDepartmentRow.description}
+                                                {selectedBranchRow.description}
                                             </Typography>
                                         </Box>
                                     </Box>
@@ -868,7 +865,7 @@ const DepartmentTab = () => {
                                 Cancel
                             </Button>
                             <Box sx={{display: "flex", gap: 1.5}}>
-                                {selectedDepartmentRow?.status === 'PENDING' && (
+                                {selectedBranchRow?.status === 'PENDING' && (
                                     <>
                                         <Button
                                             onClick={handleReject}
@@ -887,7 +884,7 @@ const DepartmentTab = () => {
                                         </Button>
                                     </>
                                 )}
-                                {selectedDepartmentRow?.status === 'ACTIVE' && (
+                                {selectedBranchRow?.status === 'ACTIVE' && (
                                     <Button
                                         onClick={handleReject}
                                         variant="outlined"
@@ -898,7 +895,7 @@ const DepartmentTab = () => {
                                     </Button>
                                 )}
 
-                                {selectedDepartmentRow?.status === 'REJECTED' && (
+                                {selectedBranchRow?.status === 'REJECTED' && (
                                     <Button
                                         onClick={handleApprove}
                                         variant="contained"
@@ -916,4 +913,4 @@ const DepartmentTab = () => {
     );
 };
 
-export default DepartmentTab;
+export default BranchTab;

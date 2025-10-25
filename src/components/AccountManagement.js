@@ -86,7 +86,7 @@ const AccountManagement = () => {
             const sortField = sortModel[0]?.field || "id";
             const sortDir = sortModel[0]?.sort?.toUpperCase() || "DESC";
 
-            UsersAPI().then((data) => {
+            /*UsersAPI().then((data) => {
                 console.log('data - ', data)
                 if (data.status === 200){
                     //setRows(data.data);
@@ -106,9 +106,9 @@ const AccountManagement = () => {
                     setSnackbar({ open: true, message: "No values recorded", severity: "success" });
                 }
 
-            });
+            });*/
 
-            /*const response = await fetch(
+            const response = await fetch(
                 `http://localhost:8082/api/accountstatementengine/v1/user/findAllAccountManagement?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
             );
 
@@ -131,7 +131,7 @@ const AccountManagement = () => {
                     status: item.status || "-",
                 }))
             );
-            setRowCount(data.totalElements);*/
+            setRowCount(data.totalElements);
         } catch (error) {
             console.error("Error fetching account data:", error);
         } finally {

@@ -19,7 +19,7 @@ import {CreateDept, EditDept, UpdateDept} from "../services/Api";
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
-const DepartmentTab = () => {
+const LogCategoryTab = () => {
     const userRole = localStorage.getItem("role");
     const [departmentName, setDeparmentName] = useState("");
     const [departmentDescription, setDeparmentDescription] = useState("");
@@ -916,4 +916,4 @@ const DepartmentTab = () => {
     );
 };
 
-export default DepartmentTab;
+export default LogCategoryTab;

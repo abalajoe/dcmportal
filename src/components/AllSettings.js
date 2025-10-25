@@ -35,6 +35,9 @@ import AddIcon from "@mui/icons-material/Add";
 import {AccountSmtAPI, CreateDept, EditDept, UpdateDept} from "../services/Api";
 import DepartmentTab from "./DepartmentTab";
 import RolesTab from "./RolesTab";
+import BranchTab from "./BranchTab";
+import ManagerTab from "./ManagerTab";
+import LogCategoryTab from "./LogCategoryTab";
 
 const RolesTransition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -463,49 +466,6 @@ const AllSettings = () => {
         return cols;
     }, [userRole]);
 
-    // Fetch pageable users
-    const fetchUsers = useCallback(async () => {
-
-        setLoading(true);
-        try {
-            const sortField = departmentSortModel[0]?.field || "id";
-            const sortDir = departmentSortModel[0]?.sort?.toUpperCase() || "DESC";
-
-            const response = await fetch(
-                `http://localhost:8082/api/accountstatementengine/v1/user/findAllDepartments?start=${departmentPaginationModel.page}&length=${departmentPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
-            );
-
-            if (!response.ok) {
-                throw new Error("Failed to fetch data");
-            }
-
-            const data = await response.json();
-            console.log('data - ', data)
-
-            setDepartmentRows(
-                data.content.map((item, index) => ({
-                    id: item.id,
-                    name: item.name || "-",
-                    description: item.description || "-",
-                    createdBy: item.createdBy || "-",
-                    updatedBy: item.updatedBy || "-",
-                    dateCreated: new Date(item.dateCreated).toLocaleString() || "-",
-                    dateUpdated: new Date(item.dateUpdated).toLocaleString() || "-",
-                    status: item.status.name || "-",
-                }))
-            );
-            setDepartmentRowCount(data.totalElements);
-        } catch (error) {
-            console.error("Error fetching account data:", error);
-        } finally {
-            setLoading(false);
-        }
-    }, [departmentPaginationModel, departmentSortModel, searchVal]);
-
-    useEffect(() => {
-        fetchUsers();
-    }, [fetchUsers]);
-
     return (
         <Box
             sx={{
@@ -580,235 +540,36 @@ const AllSettings = () => {
                             },
                         }}
                     >
+                        <Tab icon={<Save2 size="18" color="currentColor"/>} iconPosition="start" label="Branches"/>
                         <Tab icon={<Data size="18" color="currentColor"/>} iconPosition="start"
                              label="Departments"/>
                         <Tab icon={<UserEdit size="18" color="currentColor"/>} iconPosition="start" label="Roles"/>
-                        <Tab icon={<Save2 size="18" color="currentColor"/>} iconPosition="start" label="Branches"/>
                         <Tab icon={<Profile2User size="18" color="currentColor"/>} iconPosition="start"
                              label="Managers"/>
-                        <Tab icon={<Cpu size="18" color="currentColor"/>} iconPosition="start" label="Config Type"/>
-                        <Tab icon={<Setting4 size="18" color="currentColor"/>} iconPosition="start"
-                             label="Config Category"/>
                         <Tab icon={<Firstline size="18" color="currentColor"/>} iconPosition="start"
                              label="Logs Category"/>
                     </Tabs>
                 </Paper>
             </Fade>
-
-            {/* ------------------------ TAB 1: Departments ------------------------ */}
             <TabPanel value={tabIndex} index={0}>
+                <BranchTab />
+            </TabPanel>
+            {/* ------------------------ TAB 1: Departments ------------------------ */}
+            <TabPanel value={tabIndex} index={1}>
                 <DepartmentTab/>
             </TabPanel>
 
             {/* ------------------------ TAB 1: Roles ------------------------ */}
-            <TabPanel value={tabIndex} index={1}>
+            <TabPanel value={tabIndex} index={2}>
                 <RolesTab />
             </TabPanel>
 
-            {/* ------------------------ TAB 3: Permissions ------------------------ */}
-            <TabPanel value={tabIndex} index={2}>
-                <Paper elevation={5} sx={{p: 2, borderRadius: 2, backgroundColor: "#fff"}}>
-                    <Typography variant="body1" sx={{mb: 2}}>
-                        Manage permissions for roles and users.
-                    </Typography>
-                    <Divider sx={{mb: 2}}/>
-                    <Box sx={{height: 400}}>
-                        <DataGrid rows={sampleRows} columns={columns} disableColumnMenu/>
-                    </Box>
-                </Paper>
+            <TabPanel value={tabIndex} index={3}>
+                <ManagerTab />
             </TabPanel>
 
-
-            <TabPanel value={tabIndex} index={3}>
-                <Paper elevation={5} sx={{p: 2, borderRadius: 2, backgroundColor: "#fff"}}>
-                    <Box
-                        sx={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: 2,
-                            mb: 2,
-                            justifyContent: "space-between",
-                        }}
-                    >
-                        <TextField
-                            label="Parameter Type"
-                            size="small"
-                            sx={{flex: 1, minWidth: 180}}
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <Link2 size="18" color="#666"/>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                        <TextField
-                            label="Parameter Category"
-                            size="small"
-                            sx={{flex: 1, minWidth: 180}}
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <Link1 size="18" color="#666"/>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                        <TextField
-                            label="Parameter Value"
-                            size="small"
-                            sx={{flex: 1, minWidth: 180}}
-                            InputProps={{
-                                startAdornment: (
-                                    <InputAdornment position="start">
-                                        <Hashtag size="18" color="#666"/>
-                                    </InputAdornment>
-                                ),
-                            }}
-                        />
-                        <Button
-                            variant="contained"
-                            startIcon={<AddIcon/>}
-                            sx={{
-                                height: 36,
-                                background: "linear-gradient(90deg, #116530, #1b7a3e)",
-                                textTransform: "none",
-                                fontWeight: 600,
-                            }}
-                        >
-                            Add Config
-                        </Button>
-                    </Box>
-
-                    <Divider sx={{mb: 2}}/>
-                    <Box sx={{height: 440}}>
-                        <DataGrid
-                            rows={rowsRoles}
-                            columns={columns}
-                            rowCount={rowRolesCount}
-                            loading={loading}
-                            paginationModel={paginationRolesModel}
-                            onPaginationModelChange={setPaginationRolesModel}
-                            paginationMode="server"
-                            sortingMode="server"
-                            onSortModelChange={setSortRolesModel}
-                            pageSizeOptions={[5, 10, 20, 50]}
-                            disableColumnMenu
-                            rowHeight={40}          // 👈 smaller rows
-                            headerHeight={38}       // 👈 smaller header
-                            sx={{
-                                "& .MuiDataGrid-columnHeaderTitle": {
-                                    fontWeight: "700",
-                                },
-                            }}
-                            slots={{
-                                loadingOverlay: () => (
-                                    <Box
-                                        sx={{
-                                            height: "100%",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                        }}
-                                    >
-                                        <CircularProgress/>
-                                    </Box>
-                                ),
-                            }}
-                        />
-
-                        {/* Actions Menu */}
-                        <Menu
-                            anchorEl={rolesAnchorEl}
-                            open={Boolean(rolesAnchorEl)}
-                            onClose={handleRolesMenuClose}
-                        >
-                            <MenuItem onClick={handleRolesEditClick}>Edit</MenuItem>
-                        </Menu>
-
-                        {/* Edit Modal */}
-                        <Dialog
-                            open={openRolesEditModal}
-                            onClose={handleRolesEditModalClose}
-                            maxWidth="sm"
-                            disableRestoreFocus
-                            fullWidth
-                            TransitionComponent={RolesTransition}
-                            PaperProps={{
-                                sx: {
-                                    borderRadius: 3,
-                                    background: "rgba(255, 255, 255, 0.95)",
-                                    backdropFilter: "blur(20px)",
-                                    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.2)",
-                                },
-                            }}
-                        >
-                            <DialogTitle
-                                sx={{
-                                    background: "linear-gradient(135deg, #116530 0%, #1b7a3e 100%)",
-                                    color: "#fff",
-                                    fontWeight: 700,
-                                    fontSize: "1.25rem",
-                                    py: 2.5,
-                                }}
-                            >
-                                Edit Department
-                            </DialogTitle>
-                            <DialogContent>
-                                <Box sx={{display: "flex", flexDirection: "column", gap: 2, pt: 2}}>
-
-
-                                    {/* Email */}
-                                    <TextField
-                                        label="Parameter Value"
-                                        fullWidth
-                                        type="text"
-                                        size="small"
-                                        value={editRolesFormData.value}
-                                        error={departmentDescriptionErrorEdit}
-                                        InputProps={{
-                                            sx: {
-                                                fontSize: 14, // 👈 reduce input text font size
-                                                height: 36,   // optional: reduce height too
-                                            },
-                                        }}
-                                        InputLabelProps={{
-                                            sx: {fontSize: 14}, // 👈 reduce label font size
-                                        }}
-                                        onChange={(e) => handleRolesFormChange("value", e.target.value)}
-                                    />
-                                    {/* Status */}
-                                    <FormControlLabel
-                                        control={
-                                            <Checkbox
-                                                checked={editRolesFormData.status === 1}
-                                                onChange={(e) => handleRolesFormChange("active", e.target.checked)}
-                                            />
-                                        }
-                                        label="Active"
-                                        sx={{
-                                            "& .MuiFormControlLabel-label": {
-                                                fontSize: "0.95rem", // 👈 smaller label text
-                                            },
-                                        }}
-                                    />
-                                </Box>
-                            </DialogContent>
-                            <DialogActions>
-                                <Button onClick={handleRolesEditModalClose} disabled={loading}>
-                                    Cancel
-                                </Button>
-                                <Button
-                                    onClick={handleRolesEditSave}
-                                    variant="contained"
-                                    disabled={loading}
-                                >
-                                    {loading ? <CircularProgress size={20}/> : "Save Changes"}
-                                </Button>
-                            </DialogActions>
-                        </Dialog>
-                    </Box>
-                </Paper>
+            <TabPanel value={tabIndex} index={4}>
+                <LogCategoryTab/>
             </TabPanel>
 
         </Box>

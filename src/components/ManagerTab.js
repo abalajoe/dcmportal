@@ -10,24 +10,33 @@ import {
     Snackbar,
     Alert,
     TextField,
-    InputAdornment, Divider, Menu, MenuItem, DialogActions, Typography, Paper, Chip, IconButton, Slide
+    InputAdornment, Divider, Menu, MenuItem, DialogActions, Typography, Paper, Chip, IconButton, Slide, Autocomplete
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import {Edit2, ArchiveAdd, Keyboard, Receipt1, Settings, ArchiveTick, Profile} from "iconsax-react";
+import {Data, Edit2, InfoCircle, Keyboard, Profile, Settings, Receipt1} from "iconsax-react";
 import AddIcon from "@mui/icons-material/Add";
-import {CreateDept, EditDept, UpdateDept} from "../services/Api";
+import {
+    CreateDept,
+    CreateManager,
+    CreateRole,
+    EditDept, EditManager,
+    EditRole,
+    FetchDepartments,
+    UpdateDept, UpdateManager,
+    UpdateRole
+} from "../services/Api";
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
-const DepartmentTab = () => {
+const ManagerTab = () => {
     const userRole = localStorage.getItem("role");
-    const [departmentName, setDeparmentName] = useState("");
-    const [departmentDescription, setDeparmentDescription] = useState("");
+    const [managerName, setManagerName] = useState("");
+    const [managerDescription, setManagerDescription] = useState("");
     const [selectedRow, setSelectedRow] = useState(null);
     const [departmentNameEdit, setDeparmentNameEdit] = useState("");
     const [departmentDescriptionEdit, setDeparmentDescriptionEdit] = useState("");
-    const [departmentNameError, setDepartmentNameError] = useState(false);
-    const [departmentDescriptionError, setDepartmentDescriptionError] = useState(false);
+    const [departmentNameError, setRoleNameError] = useState(false);
+    const [managerDescriptionError, setRoleDescriptionError] = useState(false);
     const [tabIndex, setTabIndex] = useState(0);
     const [loading, setLoading] = useState(false);
     const [snackbar, setSnackbar] = useState({open: false, message: "", severity: "success"});
@@ -35,22 +44,27 @@ const DepartmentTab = () => {
     const [rowsRoles, setRowsRoles] = useState([]);
     const [rowRolesCount, setRowRolesCount] = useState(0); // total elements from backend
     const [openRolesEditModal, setOpenRolesEditModal] = useState(false);
-    const [departmentDescriptionErrorEdit, setDepartmentDescriptionErrorEdit] = useState(false);
-    const [departmentNameErrorEdit, setDepartmentNameErrorEdit] = useState(false);
-    const [departmentSortModel, setDepartmentSortModel] = useState([{field: "id", sort: "desc"}]);
+    const [roleDescriptionErrorEdit, setRoleDescriptionErrorEdit] = useState(false);
+    const [managerNameErrorEdit, setManagerNameErrorEdit] = useState(false);
+    const [managerSortModel, setSortModel] = useState([{field: "id", sort: "desc"}]);
     const [departmentRows, setDepartmentRows] = useState([]);
+    const [rolesRows, setManagerRows] = useState([]);
     const [departmentRowCount, setDepartmentRowCount] = useState(0); // total elements from backend
-    const [selectedDepartmentRow, setDepartmentSelectedRow] = useState(null);
+    const [rolesRowCount, setManagerRowCount] = useState(0); // total elements from backend
+    const [selectedManagerRow, setManagerSelectedRow] = useState(null);
     const [openApproveDialog, setOpenApproveDialog] = useState(false);
-    const [departmentPaginationModel, setDepartmentPaginationModel] = useState({
+    const [managerPaginationModel, setManagerPaginationModel] = useState({
         page: 0,
         pageSize: 9,
     });
+    const [departments, setDepartments] = useState([]);
+    const [departments2, setDepartments2] = useState([]);
     const [openEditModal, setOpenEditModal] = useState(false);
-    const [editDepartmentFormData, setEditDepartmentFormData] = useState({
+    const [editManagerFormData, setEditManagerFormData] = useState({
         id: "",
         name: "",
         description: "",
+        department: null,
     });
     const [editRolesFormData, setEditRolesFormData] = useState({
         id: "",
@@ -72,32 +86,48 @@ const DepartmentTab = () => {
     const [rolesAnchorEl, setRolesAnchorEl] = useState(null);
     const handleChange = (_, newIndex) => setTabIndex(newIndex);
     const handleRolesMenuClose = () => setRolesAnchorEl(null);
-    const handleAddDepartment = async () => {
-        if (!departmentName) {
-            setSnackbar({open: true, message: "Please enter department name", severity: "error"});
-            setDepartmentNameError(true);
-            return;
-        }
-        setDepartmentNameError(false);
-
-        if (!departmentDescription) {
-            setSnackbar({open: true, message: "Please enter department description", severity: "error"});
-            setDepartmentDescriptionError(true);
+    const [selectedDepartment, setselectedDepartment] = useState(null);
+    const [departmentError, setdepartmentError] = useState(false);
+    const [loadingDepartments, setloadingDepartments] = useState(false);
+    const handleAddManager = async () => {
+        if (!managerName) {
+            setSnackbar({open: true, message: "Please enter manager name", severity: "error"});
+            setRoleNameError(true);
             return;
         }
 
-        setDepartmentDescriptionError(false);
+        setRoleNameError(false);
+
+        if (!selectedDepartment) {
+            setSnackbar({open: true, message: "Please enter department", severity: "error"});
+            setdepartmentError(true);
+            return;
+        }
+
+        console.log('selectedDepartment - ', selectedDepartment)
+        setdepartmentError(false);
+
+        if (!managerDescription) {
+            setSnackbar({open: true, message: "Please enter description", severity: "error"});
+            setRoleDescriptionError(true);
+            return;
+        }
+
+        setRoleDescriptionError(false);
 
         setLoading(true);
         const params = {
-            name: departmentName,
-            description: departmentDescription,
+            name: managerName,
+            description: managerDescription,
+            department: selectedDepartment.id,
         };
 
         try {
-            const data = await CreateDept(params);
+            const data = await CreateManager(params);
             console.log("data - ",data)
             console.log("data2 - ",data.status)
+            console.log("data2department - ",data.data.department)
+            console.log("data2name - ",data.data.department.name)
 
             if (data.status === 400) {
                 setSnackbar({open: true, message: data.error, severity: "error"});
@@ -108,10 +138,11 @@ const DepartmentTab = () => {
                 setSnackbar({open: true, message: "Department loaded", severity: "success"});
 
                 // ✅ Add to DataGrid state immediately
-                const newDepartment = {
+                const newRole = {
                     id: data.data.id,
-                    name: departmentName,
-                    description: departmentDescription,
+                    name: managerName,
+                    description: managerDescription,
+                    department: data.data.department.name,
                     status: data.data.status?.name ?? "Active",
                     createdBy: data.data.createdBy,
                     updatedBy: data.data.updatedBy,
@@ -119,14 +150,14 @@ const DepartmentTab = () => {
                     dateUpdated: data.data.updatedBy,
                 };
 
-                console.log('newDepartment - ', newDepartment)
-                setDepartmentRows((prev) => [newDepartment, ...prev]);
-                setDepartmentRowCount((prev) => prev + 1);
+                console.log('newRole - ', newRole)
 
-
+                setManagerRows((prev) => [newRole, ...prev]);
+                setManagerRowCount((prev) => prev + 1);
                 // Optional: clear fields
-                setDeparmentName("");
-                setDeparmentDescription("");
+                setManagerName("");
+                setManagerDescription("");
+                setselectedDepartment(null);
             }
         } catch (error) {
             console.error(error);
@@ -139,22 +170,10 @@ const DepartmentTab = () => {
     const handleApproveMenuOpen = (e, row) => {
         e.stopPropagation();
         console.log('--row ', row)
-        setDepartmentSelectedRow(row);
+        setManagerSelectedRow(row);
         setOpenApproveDialog(true);
     };
 
-    const handleDepartmentEditMenuOpen = (e, row) => {
-        e.stopPropagation();
-        setDepartmentSelectedRow(row);
-        console.log(row)
-        setEditDepartmentFormData({
-            id: row.id || "",
-            name: row.name || "",
-            description: row.description || "",
-        });
-
-        setOpenEditModal(true);
-    };
     const handleRolesEditClick = () => {
     };
 
@@ -166,16 +185,6 @@ const DepartmentTab = () => {
     };
     const handleRolesFormChange = (field, value) => {
     };
-    // sample rows for DataGrid
-    const sampleRows = [
-        {id: 1, name: "Admin", type: "System", status: "Active"},
-        {id: 2, name: "Manager", type: "Custom", status: "Active"},
-    ];
-    const columns = [
-        {field: "name", headerName: "Name", flex: 1},
-        {field: "type", headerName: "Type", flex: 1},
-        {field: "status", headerName: "Status", flex: 1},
-    ];
 
     const getStatusChip = (status) => {
         const statusConfig = {
@@ -221,32 +230,34 @@ const DepartmentTab = () => {
 
     const handleEditModalClose = () => {
         setOpenEditModal(false);
-        setEditDepartmentFormData({id: "", name: "", email: "", role: ""});
+        setEditManagerFormData({id: "", name: "", description: "", department: null});
     };
-    const handleEditDepartment = async () => {
-        if (!editDepartmentFormData.name) {
-            setSnackbar({open: true, message: "Please enter department name", severity: "error"});
-            setDepartmentNameErrorEdit(true);
+    const handleEditManager = async () => {
+        console.log('editManagerFormData = ', editManagerFormData)
+        if (!editManagerFormData.name) {
+            setSnackbar({open: true, message: "Please enter name", severity: "error"});
+            setManagerNameErrorEdit(true);
             return;
         }
-        setDepartmentNameErrorEdit(false);
+        setManagerNameErrorEdit(false);
 
-        if (!editDepartmentFormData.description) {
-            setSnackbar({open: true, message: "Please enter department description", severity: "error"});
-            setDepartmentDescriptionErrorEdit(true);
+        if (!editManagerFormData.description) {
+            setSnackbar({open: true, message: "Please enter description", severity: "error"});
+            setRoleDescriptionErrorEdit(true);
             return;
         }
-        setDepartmentDescriptionErrorEdit(false);
+        setRoleDescriptionErrorEdit(false);
 
         setLoading(true);
         const params = {
-            id: editDepartmentFormData.id,
-            name: editDepartmentFormData.name,
-            description: editDepartmentFormData.description,
+            id: editManagerFormData.id,
+            name: editManagerFormData.name,
+            department: editManagerFormData.department.id,
+            description: editManagerFormData.description,
         };
-
+        console.log('editRoleFormDataparams = ', params)
         try {
-            const data = await EditDept(params);
+            const data = await EditManager(params);
             console.log("data - ",data)
             console.log("data2 - ",data.status)
 
@@ -256,13 +267,14 @@ const DepartmentTab = () => {
             }
 
             if (data.status === 200) {
-                setSnackbar({open: true, message: "Department loaded", severity: "success"});
+                setSnackbar({open: true, message: "Manager loaded", severity: "success"});
 
                 // ✅ Add to DataGrid state immediately
-                const updatedDepartment = {
+                const updatedManager = {
                     id: data.data.id,
                     name: data.data.name,
                     description: data.data.description,
+                    department: data.data.department.name,
                     status: data.data.status?.name ?? "Active",
                     dateCreated: new Date(data.data.dateCreated).toLocaleString() || "-",
                     dateUpdated: new Date(data.data.dateUpdated).toLocaleString() || "-",
@@ -270,12 +282,12 @@ const DepartmentTab = () => {
                     updatedBy: data.data.updatedBy,
                 };
 
-                console.log("updatedDepartment - ", updatedDepartment);
+                console.log("updatedManager - ", updatedManager);
 
                 // ✅ Update the existing row in DataGrid
-                setDepartmentRows((prevRows) =>
+                setManagerRows((prevRows) =>
                     prevRows.map((row) =>
-                        row.id === updatedDepartment.id ? updatedDepartment : row
+                        row.id === updatedManager.id ? updatedManager : row
                     )
                 );
 
@@ -283,7 +295,7 @@ const DepartmentTab = () => {
                 setOpenEditModal(false);
 
                 // ✅ Optionally reset form
-                setEditDepartmentFormData({
+                setEditManagerFormData({
                     id: "",
                     name: "",
                     description: "",
@@ -291,7 +303,7 @@ const DepartmentTab = () => {
             }
         } catch (error) {
             console.error(error);
-            setSnackbar({open: true, message: "Failed to create department", severity: "error"});
+            setSnackbar({open: true, message: "Failed to create manager", severity: "error"});
         } finally {
             setLoading(false);
         }
@@ -302,7 +314,7 @@ const DepartmentTab = () => {
     };
 
     const handleApprove = () => {
-        console.log("Approved:", selectedDepartmentRow);
+        console.log("Approved:", selectedManagerRow);
         handleApproveSubmit("approve");
     };
 
@@ -311,15 +323,15 @@ const DepartmentTab = () => {
         handleApproveSubmit("reject");
     };
     const handleApproveSubmit = async (action) => {
-        console.log("Approved:", selectedDepartmentRow);
+        console.log("Approved:", selectedManagerRow);
         setLoading(true);
         const params = {
-            id: selectedDepartmentRow.id,
+            id: selectedManagerRow.id,
             action: action,
         };
 
         try {
-            const data = await UpdateDept(params);
+            const data = await UpdateManager(params);
             console.log("data - ",data)
             console.log("data2 - ",data.status)
 
@@ -329,13 +341,14 @@ const DepartmentTab = () => {
             }
 
             if (data.status === 200) {
-                setSnackbar({open: true, message: "Department loaded", severity: "success"});
+                setSnackbar({open: true, message: "Manager updated", severity: "success"});
 
                 // ✅ Add to DataGrid state immediately
-                const updatedDepartment = {
+                const updatedRole = {
                     id: data.data.id,
                     name: data.data.name,
                     description: data.data.description,
+                    department: data.data.department.name,
                     status: data.data.status?.name ?? "Active",
                     dateCreated: new Date(data.data.dateCreated).toLocaleString() || "-",
                     dateUpdated: new Date(data.data.dateUpdated).toLocaleString() || "-",
@@ -343,15 +356,14 @@ const DepartmentTab = () => {
                     updatedBy: data.data.updatedBy,
                 };
 
-                console.log("updatedDepartment - ", updatedDepartment);
+                console.log("updatedDepartment - ", updatedRole);
 
                 // ✅ Update the existing row in DataGrid
-                setDepartmentRows((prevRows) =>
+                setManagerRows((prevRows) =>
                     prevRows.map((row) =>
-                        row.id === updatedDepartment.id ? updatedDepartment : row
+                        row.id === updatedRole.id ? updatedRole : row
                     )
                 );
-
                 setOpenApproveDialog(false);
             }
         } catch (error) {
@@ -363,11 +375,30 @@ const DepartmentTab = () => {
     };
 
     const handleFormChange = (field, value) => {
-        setEditDepartmentFormData((prev) => ({...prev, [field]: value}));
+        setEditManagerFormData((prev) => ({...prev, [field]: value}));
     };
-    const departmentColumns = useMemo(() => {
+
+    const handleManagerEditMenuOpen = useCallback((e, row) => {
+        e.stopPropagation();
+        console.log('rowRoles05 - ', departments2);
+
+        const departmentObj = departments2.find(dept => dept.name === row.department);
+
+        console.log('departmentObj220983 >>> ', departmentObj);
+
+        setEditManagerFormData({
+            id: row.id || "",
+            name: row.name || "",
+            description: row.description || "",
+            department: departmentObj || null,
+        });
+
+        setOpenEditModal(true);
+    }, [departments2]); // ✅ ADD departments2 to dependency array
+    const managerColumns = useMemo(() => {
         const cols = [
             {field: "name", headerName: "Name", flex: 1, minWidth: 150},
+            {field: "department", headerName: "Department", flex: 1, minWidth: 150},
             {field: "description", headerName: "Description", flex: 1, minWidth: 150},
             {field: "createdBy", headerName: "Created By", flex: 1, minWidth: 150},
             {field: "updatedBy", headerName: "Updated By", flex: 1, minWidth: 150},
@@ -393,7 +424,7 @@ const DepartmentTab = () => {
         ];
 
         // Add action column based on role
-        if (userRole === "ICT_Service_Desk_Maker") {
+        if (userRole === "ICT_Service_Desk_Checker") {
             cols.push({
                 field: "edit",
                 headerName: "",
@@ -403,7 +434,7 @@ const DepartmentTab = () => {
                     <IconButton
                         onClick={(e) => {
                             e.stopPropagation();
-                            handleDepartmentEditMenuOpen(e, params.row);
+                            handleManagerEditMenuOpen(e, params.row);
                         }}
                         size="small"
                     >
@@ -411,7 +442,7 @@ const DepartmentTab = () => {
                     </IconButton>
                 ),
             });
-        } else if (userRole === "ICT_Service_Desk_Checker") {
+        } else if (userRole === "ICT_Service_Desk_Maker") {
             cols.push({
                 field: "approve",
                 headerName: "",
@@ -436,18 +467,18 @@ const DepartmentTab = () => {
         }
 
         return cols;
-    }, [userRole]);
+    }, [userRole, handleManagerEditMenuOpen]);
 
     // Fetch pageable users
-    const fetchAllDepartments = useCallback(async () => {
+    const fetchAllManagers = useCallback(async () => {
 
         setLoading(true);
         try {
-            const sortField = departmentSortModel[0]?.field || "id";
-            const sortDir = departmentSortModel[0]?.sort?.toUpperCase() || "DESC";
+            const sortField = managerSortModel[0]?.field || "id";
+            const sortDir = managerSortModel[0]?.sort?.toUpperCase() || "DESC";
 
             const response = await fetch(
-                `http://localhost:8082/api/accountstatementengine/v1/user/findAllDepartments?start=${departmentPaginationModel.page}&length=${departmentPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                `http://localhost:8082/api/accountstatementengine/v1/user/findAllManagers?start=${managerPaginationModel.page}&length=${managerPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
             );
 
             if (!response.ok) {
@@ -455,13 +486,14 @@ const DepartmentTab = () => {
             }
 
             const data = await response.json();
-            console.log('dataDepartment--------------- - ', data)
+            console.log('dataRole ----------------------------------- ', data)
 
-            setDepartmentRows(
+            setManagerRows(
                 data.content.map((item, index) => ({
                     id: item.id,
                     name: item.name || "-",
                     description: item.description || "-",
+                    department: item.department.name || "-",
                     createdBy: item.createdBy || "-",
                     updatedBy: item.updatedBy || "-",
                     dateCreated: new Date(item.dateCreated).toLocaleString("en-GB", {
@@ -481,21 +513,51 @@ const DepartmentTab = () => {
                     status: item.status.name || "-",
                 }))
             );
-            setDepartmentRowCount(data.totalElements);
+            setManagerRowCount(data.totalElements);
         } catch (error) {
             console.error("Error fetching account data:", error);
         } finally {
             setLoading(false);
         }
-    }, [departmentPaginationModel, departmentSortModel, searchVal]);
+    }, [managerPaginationModel, managerSortModel, searchVal]);
 
     useEffect(() => {
-        fetchAllDepartments();
-    }, [fetchAllDepartments]);
+        fetchAllManagers();
+    }, [fetchAllManagers]);
 
+    useEffect(() => {
+        const loadDepartments = async () => {
+            setLoading(true);
+            try {
+                const data = await FetchDepartments();
+                console.log('depts303 - ', data)
+                //setDepartments(data);
+                setDepartments2(data);
+            } catch (error) {
+                setSnackbar({ open: true, message: "Failed to fetch departments", severity: "error" });
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadDepartments();
+    }, []);
 
     return (
         <Paper elevation={5} sx={{p: 2, borderRadius: 2, backgroundColor: "#fff"}}>
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: "100%" }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
             <Box
                 sx={{
                     display: "flex",
@@ -505,37 +567,23 @@ const DepartmentTab = () => {
                     justifyContent: "space-between",
                 }}
             >
-                <Snackbar
-                    open={snackbar.open}
-                    autoHideDuration={3000}
-                    onClose={() => setSnackbar({ ...snackbar, open: false })}
-                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-                >
-                    <Alert
-                        onClose={() => setSnackbar({ ...snackbar, open: false })}
-                        severity={snackbar.severity}
-                        sx={{ width: "100%" }}
-                    >
-                        {snackbar.message}
-                    </Alert>
-                </Snackbar>
                 <TextField
                     size="small"
-                    label="Department Name"
+                    label="Manager Name"
                     variant="outlined"
-                    value={departmentName}
-                    onChange={(e) => setDeparmentName(e.target.value)}
+                    value={managerName}
+                    onChange={(e) => setManagerName(e.target.value)}
                     error={departmentNameError}
                     InputProps={{
                         startAdornment:
                             <InputAdornment position="start" sx={{color: "grey.500"}}>
                                 {/* icon inherits currentColor from the adornment */}
-                                <ArchiveAdd size="16"
-                                         color={
-                                             departmentNameError && !departmentName
-                                                 ? "#d32f2f" // 🔴 red when error
-                                                 : "currentColor" // normal color
-                                         }/> {/* optional icon */}
+                                <Profile size="16"
+                                            color={
+                                                departmentNameError && !managerName
+                                                    ? "#d32f2f" // 🔴 red when error
+                                                    : "currentColor" // normal color
+                                            }/> {/* optional icon */}
                             </InputAdornment>,
                     }}
                     sx={{
@@ -555,23 +603,72 @@ const DepartmentTab = () => {
                         },
                     }}
                 />
+
+                <Autocomplete
+                    options={departments2} // 👈 departments is your fetched list
+                    value={selectedDepartment}
+                    onChange={(e, newValue) => setselectedDepartment(newValue)}
+                    getOptionLabel={(option) => option?.name || ""} // 👈 show department name
+                    loading={loadingDepartments}
+                    size="small"
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Department"
+                            error={departmentError && !selectedDepartment}
+                            InputProps={{
+                                ...params.InputProps,
+                                startAdornment: (
+                                    <InputAdornment position="start" sx={{ color: "grey.500" }}>
+                                        <Data size="16"
+                                                  color={
+                                                      departmentError && !selectedDepartment
+                                                          ? "#d32f2f" // 🔴 red when error
+                                                          : "currentColor" // normal color
+                                                  }/> {/* optional icon */}
+                                    </InputAdornment>
+                                ),
+                                endAdornment: (
+                                    <>
+                                        {loadingDepartments ? <CircularProgress size={20} /> : null}
+                                        {params.InputProps.endAdornment}
+                                    </>
+                                ),
+                            }}
+                        />
+                    )}
+                    sx={{
+                        flex: 1,
+                        minWidth: "220px",
+                        "& .MuiInputBase-input": { fontSize: "0.9rem" },
+                        "& .MuiInputLabel-root": { fontSize: "1.0rem", color: "black" },
+                        "& .MuiInputLabel-root.Mui-focused": {
+                            color: "#1976d2",  // keep label black when focused
+                        },
+                        // 🔹 label when error
+                        "& .MuiInputLabel-root.Mui-error": {
+                            color: "#d32f2f", // red
+                        },
+                    }}
+                />
+
                 <TextField
                     size="small"
-                    label="Department Description"
+                    label="Description"
                     variant="outlined"
-                    value={departmentDescription}
-                    onChange={(e) => setDeparmentDescription(e.target.value)}
-                    error={departmentDescriptionError}
+                    value={managerDescription}
+                    onChange={(e) => setManagerDescription(e.target.value)}
+                    error={managerDescriptionError}
                     InputProps={{
                         startAdornment:
                             <InputAdornment position="start" sx={{color: "grey.500"}}>
                                 {/* icon inherits currentColor from the adornment */}
-                                <Keyboard size="16"
-                                         color={
-                                             departmentDescriptionError && !departmentDescription
-                                                 ? "#d32f2f" // 🔴 red when error
-                                                 : "currentColor" // normal color
-                                         }/> {/* optional icon */}
+                                <Keyboard size="18"
+                                          color={
+                                              managerDescriptionError && !managerDescription
+                                                  ? "#d32f2f" // 🔴 red when error
+                                                  : "currentColor" // normal color
+                                          }/> {/* optional icon */}
                             </InputAdornment>,
                     }}
                     sx={{
@@ -583,7 +680,7 @@ const DepartmentTab = () => {
                             color: "black",
                         },
                         "& .MuiInputLabel-root.Mui-focused": {
-                            color: "#1976d2", // keep label black when focused
+                            color: "#1976d2",  // keep label black when focused
                         },
                         // 🔹 label when error
                         "& .MuiInputLabel-root.Mui-error": {
@@ -593,7 +690,7 @@ const DepartmentTab = () => {
                 />
                 <Button
                     variant="contained"
-                    onClick={handleAddDepartment}
+                    onClick={handleAddManager}
                     disabled={loading}
                     startIcon={<AddIcon size="18" color="#fff"/>}
                     sx={{
@@ -611,22 +708,22 @@ const DepartmentTab = () => {
                         },
                     }}
                 >
-                    {loading ? <CircularProgress size={20} color="inherit"/> : "Add Department"}
+                    {loading ? <CircularProgress size={20} color="inherit"/> : "Add Manager"}
                 </Button>
             </Box>
 
             <Divider sx={{mb: 2}}/>
             <Box sx={{height: 440}}>
                 <DataGrid
-                    rows={departmentRows}
-                    columns={departmentColumns}
-                    rowCount={departmentRowCount}
+                    rows={rolesRows}
+                    columns={managerColumns}
+                    rowCount={rolesRowCount}
                     loading={loading}
-                    paginationModel={departmentPaginationModel}
-                    onPaginationModelChange={setDepartmentPaginationModel}
+                    paginationModel={managerPaginationModel}
+                    onPaginationModelChange={setManagerPaginationModel}
                     paginationMode="server"
                     sortingMode="server"
-                    onSortModelChange={setDepartmentSortModel}
+                    onSortModelChange={setSortModel}
                     pageSizeOptions={[5, 10, 20, 50]}
                     disableColumnMenu
                     rowHeight={40}          // 👈 smaller rows
@@ -687,34 +784,33 @@ const DepartmentTab = () => {
                             py: 2.5,
                         }}
                     >
-                        Edit Department
+                        Edit Role
                     </DialogTitle>
                     <DialogContent>
                         <Box sx={{display: "flex", flexDirection: "column", gap: 2, pt: 2}}>
 
+                            {/* Name */}
                             <TextField
-                                label="Department Name"
+                                label="Role Name"
                                 fullWidth
                                 type="text"
                                 size="small"
-                                value={editDepartmentFormData.name}
+                                value={editManagerFormData.name}
                                 onChange={(e) =>
-                                    setEditDepartmentFormData({
-                                        ...editDepartmentFormData,
+                                    setEditManagerFormData({
+                                        ...editManagerFormData,
                                         name: e.target.value,
                                     })
                                 }
-                                error={departmentNameErrorEdit}
+                                error={managerNameErrorEdit}
                                 InputProps={{
-                                    sx: { fontSize: 14, height: 36,  "&.Mui-focused .MuiInputAdornment-root": {
-                                            color: "#1976d2", // MUI default blue
-                                        },},
+                                    sx: { fontSize: 14, height: 36 },
                                     startAdornment: (
                                         <InputAdornment position="start" sx={{ color: "grey.700",marginLeft: "-12px", paddingX: "6px"  }}>
-                                            <ArchiveTick
-                                                size="16"
+                                            <Profile
+                                                size="16    "
                                                 color={
-                                                    departmentNameErrorEdit && !editDepartmentFormData.name
+                                                    managerNameErrorEdit && !editManagerFormData.name
                                                         ? "#d32f2f" // 🔴 red when error
                                                         : "currentColor" // normal color
                                                 }
@@ -727,30 +823,84 @@ const DepartmentTab = () => {
                                 }}
                             />
 
+                            <Autocomplete
+                                options={departments2}
+                                value={editManagerFormData.department} // ✅ CHANGED from .name to .department
+                                onChange={(e, newValue) => {
+                                    setEditManagerFormData({
+                                        ...editManagerFormData,
+                                        department: newValue,
+                                    });
+                                }}
+                                getOptionLabel={(option) => option?.name || ""}
+                                isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                loading={loadingDepartments}
+                                size="small"
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Department"
+                                        error={departmentError && !editManagerFormData.department}
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <Data
+                                                        size="16"
+                                                        color={
+                                                            departmentError && !editManagerFormData.department
+                                                                ? "#d32f2f"
+                                                                : "currentColor"
+                                                        }
+                                                    />
+                                                </InputAdornment>
+                                            ),
+                                            endAdornment: (
+                                                <>
+                                                    {loadingDepartments ? <CircularProgress size={20} /> : null}
+                                                    {params.InputProps.endAdornment}
+                                                </>
+                                            ),
+                                        }}
+                                    />
+                                )}
+                                sx={{
+                                    flex: 1,
+                                    minWidth: "220px",
+                                    "& .MuiInputBase-input": { fontSize: "0.9rem" },
+                                    "& .MuiInputLabel-root": { fontSize: "1.0rem", color: "black" },
+                                    "& .MuiInputLabel-root.Mui-focused": { color: "black" },
+                                    "& .MuiInputLabel-root.Mui-error": {
+                                        color: "#d32f2f !important",
+                                    },
+                                    "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline": {
+                                        borderColor: "#d32f2f !important",
+                                    },
+                                }}
+                            />
+
+                            {/* Name */}
                             <TextField
-                                label="Description"
+                                label="Role Description"
                                 fullWidth
                                 type="text"
                                 size="small"
-                                value={editDepartmentFormData.description}
+                                value={editManagerFormData.description}
                                 onChange={(e) =>
-                                    setEditDepartmentFormData({
-                                        ...editDepartmentFormData,
+                                    setEditManagerFormData({
+                                        ...editManagerFormData,
                                         description: e.target.value,
                                     })
                                 }
-                                error={departmentDescriptionErrorEdit}
+                                error={managerNameErrorEdit}
                                 InputProps={{
-                                    sx: { fontSize: 14, height: 36,
-                                        "&.Mui-focused .MuiInputAdornment-root": {
-                                            color: "#1976d2", // MUI default blue
-                                        },},
+                                    sx: { fontSize: 14, height: 36 },
                                     startAdornment: (
                                         <InputAdornment position="start" sx={{ color: "grey.700",marginLeft: "-12px", paddingX: "6px"  }}>
-                                            <Keyboard
+                                            <Receipt1
                                                 size="16"
                                                 color={
-                                                    departmentDescriptionErrorEdit && !editDepartmentFormData.description
+                                                    managerNameErrorEdit && !editManagerFormData.name
                                                         ? "#d32f2f" // 🔴 red when error
                                                         : "currentColor" // normal color
                                                 }
@@ -769,7 +919,7 @@ const DepartmentTab = () => {
                             Cancel
                         </Button>
                         <Button
-                            onClick={handleEditDepartment}
+                            onClick={handleEditManager}
                             variant="contained"
                             disabled={loading}
                         >
@@ -802,13 +952,13 @@ const DepartmentTab = () => {
                             py: 2.5,
                         }}
                     >
-                        Validate Department
+                        Validate Manager
                     </DialogTitle>
                     <DialogContent sx={{mt: 3, pb: 2}}>
-                        {selectedDepartmentRow && (
+                        {selectedManagerRow && (
                             <Box>
                                 <Typography sx={{mb: 3, color: "#555", fontSize: "1.1rem", fontWeight: 800}}>
-                                    Confirm department
+                                    Confirm Manager
                                 </Typography>
                                 <Paper
                                     elevation={0}
@@ -825,7 +975,21 @@ const DepartmentTab = () => {
                                                 Name
                                             </Typography>
                                             <Typography sx={{fontWeight: 600, fontSize: "0.8rem"}}>
-                                                {selectedDepartmentRow.name}
+                                                {selectedManagerRow.name}
+                                            </Typography>
+                                        </Box>
+                                        <Box sx={{display: "flex", justifyContent: "space-between"}}>
+                                            <Typography sx={{color: "#666", fontSize: "0.9rem"}}>
+                                                Department
+                                            </Typography>
+                                            <Typography
+                                                sx={{
+                                                    fontWeight: 600,
+                                                    color: "#116530",
+                                                    fontSize: "0.8rem",
+                                                }}
+                                            >
+                                                {selectedManagerRow.department}
                                             </Typography>
                                         </Box>
                                         <Box sx={{display: "flex", justifyContent: "space-between"}}>
@@ -839,7 +1003,7 @@ const DepartmentTab = () => {
                                                     fontSize: "0.8rem",
                                                 }}
                                             >
-                                                {selectedDepartmentRow.description}
+                                                {selectedManagerRow.description}
                                             </Typography>
                                         </Box>
                                     </Box>
@@ -868,7 +1032,7 @@ const DepartmentTab = () => {
                                 Cancel
                             </Button>
                             <Box sx={{display: "flex", gap: 1.5}}>
-                                {selectedDepartmentRow?.status === 'PENDING' && (
+                                {selectedManagerRow?.status === 'PENDING' && (
                                     <>
                                         <Button
                                             onClick={handleReject}
@@ -887,7 +1051,7 @@ const DepartmentTab = () => {
                                         </Button>
                                     </>
                                 )}
-                                {selectedDepartmentRow?.status === 'ACTIVE' && (
+                                {selectedManagerRow?.status === 'ACTIVE' && (
                                     <Button
                                         onClick={handleReject}
                                         variant="outlined"
@@ -898,7 +1062,7 @@ const DepartmentTab = () => {
                                     </Button>
                                 )}
 
-                                {selectedDepartmentRow?.status === 'REJECTED' && (
+                                {selectedManagerRow?.status === 'REJECTED' && (
                                     <Button
                                         onClick={handleApprove}
                                         variant="contained"
@@ -916,4 +1080,4 @@ const DepartmentTab = () => {
     );
 };
 
-export default DepartmentTab;
+export default ManagerTab;
