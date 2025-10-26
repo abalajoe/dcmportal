@@ -77,6 +77,18 @@ export const FetchDepartments = async () => {
     }
 };
 
+export const FetchBranches = async () => {
+    try {
+        const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/findAllBranches";
+        const response = await axios.get(httpUrl, {
+            timeout: 30000, // 30s timeout
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching departments:", error);
+        throw error;
+    }
+};
 export const FetchSignature = async (accountNo) => {
     try {
         const httpUrl = `${process.env.REACT_APP_SIGN_URL}/retrieve?accountNumber=${accountNo}`;
@@ -96,6 +108,36 @@ export const FetchSignature = async (accountNo) => {
 export const CreateDept = (deptParams) => {
     // const httpUrl = `${process.env.REACT_APP_BASE_URL}/accountStatement`;
     const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/department";
+
+    const resp = new Promise((resolve, reject) => {
+        const headers = {
+            method: "POST",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        };
+        const params = {
+            name: deptParams.name,
+            description: deptParams.description
+        };
+        console.log(`Request ${JSON.stringify(params)}`);
+
+        // Set timeout to 30 seconds (30000 milliseconds)
+        axios
+            .post(httpUrl, params, { headers, timeout: 1200000 })
+            .then((res) => {
+                resolve(res);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+
+    return resp;
+};
+
+export const CreateLogCategory = (deptParams) => {
+    // const httpUrl = `${process.env.REACT_APP_BASE_URL}/accountStatement`;
+    const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/logCategory";
 
     const resp = new Promise((resolve, reject) => {
         const headers = {
@@ -153,6 +195,35 @@ export const EditDept = (deptParams) => {
     return resp;
 };
 
+export const EditLogCategory = (deptParams) => {
+    // const httpUrl = `${process.env.REACT_APP_BASE_URL}/accountStatement`;
+    const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/logCategory/"+deptParams.id;
+
+    const resp = new Promise((resolve, reject) => {
+        const headers = {
+            method: "PUT",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        };
+        const params = {
+            name: deptParams.name,
+            description: deptParams.description
+        };
+        console.log(`Request ${JSON.stringify(params)}`);
+
+        // Set timeout to 30 seconds (30000 milliseconds)
+        axios
+            .put(httpUrl, params, { headers, timeout: 1200000 })
+            .then((res) => {
+                resolve(res);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+
+    return resp;
+};
 export const EditBranch = (deptParams) => {
     // const httpUrl = `${process.env.REACT_APP_BASE_URL}/accountStatement`;
     const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/branch/"+deptParams.id;
@@ -296,6 +367,25 @@ export const EditManager = (deptParams) => {
 export const UpdateDept = (deptParams) => {
     // e.g. deptParams = { id: 5, action: "approve" }
     const httpUrl = `http://localhost:8082/api/accountstatementengine/v1/user/department/${deptParams.id}/status?action=${deptParams.action}`;
+
+    const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+    };
+
+    console.log(`Requesting: ${httpUrl}`);
+
+    return new Promise((resolve, reject) => {
+        axios
+            .put(httpUrl, {}, { headers, timeout: 1200000 }) // empty body for now
+            .then((res) => resolve(res))
+            .catch((err) => reject(err));
+    });
+};
+
+export const UpdateLogCategory = (deptParams) => {
+    // e.g. deptParams = { id: 5, action: "approve" }
+    const httpUrl = `http://localhost:8082/api/accountstatementengine/v1/user/logCategory/${deptParams.id}/status?action=${deptParams.action}`;
 
     const headers = {
         "Content-Type": "application/json",

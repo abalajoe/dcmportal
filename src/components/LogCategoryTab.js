@@ -15,19 +15,19 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import {Edit2, ArchiveAdd, Keyboard, Receipt1, Settings, ArchiveTick, Profile} from "iconsax-react";
 import AddIcon from "@mui/icons-material/Add";
-import {CreateDept, EditDept, UpdateDept} from "../services/Api";
+import {CreateDept, CreateLogCategory, EditDept, EditLogCategory, UpdateDept, UpdateLogCategory} from "../services/Api";
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
 const LogCategoryTab = () => {
     const userRole = localStorage.getItem("role");
-    const [departmentName, setDeparmentName] = useState("");
-    const [departmentDescription, setDeparmentDescription] = useState("");
+    const [logCategoryName, setDeparmentName] = useState("");
+    const [logCategoryDescription, setDeparmentDescription] = useState("");
     const [selectedRow, setSelectedRow] = useState(null);
     const [departmentNameEdit, setDeparmentNameEdit] = useState("");
     const [departmentDescriptionEdit, setDeparmentDescriptionEdit] = useState("");
-    const [departmentNameError, setDepartmentNameError] = useState(false);
-    const [departmentDescriptionError, setDepartmentDescriptionError] = useState(false);
+    const [departmentNameError, setLogCategoryNameError] = useState(false);
+    const [departmentDescriptionError, setLogCategoryDescriptionError] = useState(false);
     const [tabIndex, setTabIndex] = useState(0);
     const [loading, setLoading] = useState(false);
     const [snackbar, setSnackbar] = useState({open: false, message: "", severity: "success"});
@@ -35,19 +35,19 @@ const LogCategoryTab = () => {
     const [rowsRoles, setRowsRoles] = useState([]);
     const [rowRolesCount, setRowRolesCount] = useState(0); // total elements from backend
     const [openRolesEditModal, setOpenRolesEditModal] = useState(false);
-    const [departmentDescriptionErrorEdit, setDepartmentDescriptionErrorEdit] = useState(false);
+    const [logCategoryDescriptionErrorEdit, setLogCategoryDescriptionErrorEdit] = useState(false);
     const [departmentNameErrorEdit, setDepartmentNameErrorEdit] = useState(false);
-    const [departmentSortModel, setDepartmentSortModel] = useState([{field: "id", sort: "desc"}]);
-    const [departmentRows, setDepartmentRows] = useState([]);
-    const [departmentRowCount, setDepartmentRowCount] = useState(0); // total elements from backend
-    const [selectedDepartmentRow, setDepartmentSelectedRow] = useState(null);
+    const [departmentSortModel, setLogCategorySortModel] = useState([{field: "id", sort: "desc"}]);
+    const [logCategoryRows, setLogCategoryRows] = useState([]);
+    const [logCategoryRowCount, setLogCategoryRowCount] = useState(0); // total elements from backend
+    const [selectedLogCategoryRow, setDepartmentSelectedRow] = useState(null);
     const [openApproveDialog, setOpenApproveDialog] = useState(false);
-    const [departmentPaginationModel, setDepartmentPaginationModel] = useState({
+    const [logCategoryPaginationModel, setLogCategoryPaginationModel] = useState({
         page: 0,
         pageSize: 9,
     });
     const [openEditModal, setOpenEditModal] = useState(false);
-    const [editDepartmentFormData, setEditDepartmentFormData] = useState({
+    const [editLogCategoryFormData, setEditLogCategoryFormData] = useState({
         id: "",
         name: "",
         description: "",
@@ -72,30 +72,30 @@ const LogCategoryTab = () => {
     const [rolesAnchorEl, setRolesAnchorEl] = useState(null);
     const handleChange = (_, newIndex) => setTabIndex(newIndex);
     const handleRolesMenuClose = () => setRolesAnchorEl(null);
-    const handleAddDepartment = async () => {
-        if (!departmentName) {
-            setSnackbar({open: true, message: "Please enter department name", severity: "error"});
-            setDepartmentNameError(true);
+    const handleAddLogCategory = async () => {
+        if (!logCategoryName) {
+            setSnackbar({open: true, message: "Please enter name", severity: "error"});
+            setLogCategoryNameError(true);
             return;
         }
-        setDepartmentNameError(false);
+        setLogCategoryNameError(false);
 
-        if (!departmentDescription) {
-            setSnackbar({open: true, message: "Please enter department description", severity: "error"});
-            setDepartmentDescriptionError(true);
+        if (!logCategoryDescription) {
+            setSnackbar({open: true, message: "Please enter description", severity: "error"});
+            setLogCategoryDescriptionError(true);
             return;
         }
 
-        setDepartmentDescriptionError(false);
+        setLogCategoryDescriptionError(false);
 
         setLoading(true);
         const params = {
-            name: departmentName,
-            description: departmentDescription,
+            name: logCategoryName,
+            description: logCategoryDescription,
         };
 
         try {
-            const data = await CreateDept(params);
+            const data = await CreateLogCategory(params);
             console.log("data - ",data)
             console.log("data2 - ",data.status)
 
@@ -110,8 +110,8 @@ const LogCategoryTab = () => {
                 // ✅ Add to DataGrid state immediately
                 const newDepartment = {
                     id: data.data.id,
-                    name: departmentName,
-                    description: departmentDescription,
+                    name: logCategoryName,
+                    description: logCategoryDescription,
                     status: data.data.status?.name ?? "Active",
                     createdBy: data.data.createdBy,
                     updatedBy: data.data.updatedBy,
@@ -120,8 +120,8 @@ const LogCategoryTab = () => {
                 };
 
                 console.log('newDepartment - ', newDepartment)
-                setDepartmentRows((prev) => [newDepartment, ...prev]);
-                setDepartmentRowCount((prev) => prev + 1);
+                setLogCategoryRows((prev) => [newDepartment, ...prev]);
+                setLogCategoryRowCount((prev) => prev + 1);
 
 
                 // Optional: clear fields
@@ -147,7 +147,7 @@ const LogCategoryTab = () => {
         e.stopPropagation();
         setDepartmentSelectedRow(row);
         console.log(row)
-        setEditDepartmentFormData({
+        setEditLogCategoryFormData({
             id: row.id || "",
             name: row.name || "",
             description: row.description || "",
@@ -221,32 +221,32 @@ const LogCategoryTab = () => {
 
     const handleEditModalClose = () => {
         setOpenEditModal(false);
-        setEditDepartmentFormData({id: "", name: "", email: "", role: ""});
+        setEditLogCategoryFormData({id: "", name: "", email: "", role: ""});
     };
-    const handleEditDepartment = async () => {
-        if (!editDepartmentFormData.name) {
-            setSnackbar({open: true, message: "Please enter department name", severity: "error"});
+    const handleEditLogCategory = async () => {
+        if (!editLogCategoryFormData.name) {
+            setSnackbar({open: true, message: "Please enter name", severity: "error"});
             setDepartmentNameErrorEdit(true);
             return;
         }
         setDepartmentNameErrorEdit(false);
 
-        if (!editDepartmentFormData.description) {
-            setSnackbar({open: true, message: "Please enter department description", severity: "error"});
-            setDepartmentDescriptionErrorEdit(true);
+        if (!editLogCategoryFormData.description) {
+            setSnackbar({open: true, message: "Please enter description", severity: "error"});
+            setLogCategoryDescriptionErrorEdit(true);
             return;
         }
-        setDepartmentDescriptionErrorEdit(false);
+        setLogCategoryDescriptionErrorEdit(false);
 
         setLoading(true);
         const params = {
-            id: editDepartmentFormData.id,
-            name: editDepartmentFormData.name,
-            description: editDepartmentFormData.description,
+            id: editLogCategoryFormData.id,
+            name: editLogCategoryFormData.name,
+            description: editLogCategoryFormData.description,
         };
 
         try {
-            const data = await EditDept(params);
+            const data = await EditLogCategory(params);
             console.log("data - ",data)
             console.log("data2 - ",data.status)
 
@@ -256,7 +256,7 @@ const LogCategoryTab = () => {
             }
 
             if (data.status === 200) {
-                setSnackbar({open: true, message: "Department loaded", severity: "success"});
+                setSnackbar({open: true, message: "Log Category updated", severity: "success"});
 
                 // ✅ Add to DataGrid state immediately
                 const updatedDepartment = {
@@ -273,7 +273,7 @@ const LogCategoryTab = () => {
                 console.log("updatedDepartment - ", updatedDepartment);
 
                 // ✅ Update the existing row in DataGrid
-                setDepartmentRows((prevRows) =>
+                setLogCategoryRows((prevRows) =>
                     prevRows.map((row) =>
                         row.id === updatedDepartment.id ? updatedDepartment : row
                     )
@@ -283,7 +283,7 @@ const LogCategoryTab = () => {
                 setOpenEditModal(false);
 
                 // ✅ Optionally reset form
-                setEditDepartmentFormData({
+                setEditLogCategoryFormData({
                     id: "",
                     name: "",
                     description: "",
@@ -302,7 +302,7 @@ const LogCategoryTab = () => {
     };
 
     const handleApprove = () => {
-        console.log("Approved:", selectedDepartmentRow);
+        console.log("Approved:", selectedLogCategoryRow);
         handleApproveSubmit("approve");
     };
 
@@ -311,15 +311,15 @@ const LogCategoryTab = () => {
         handleApproveSubmit("reject");
     };
     const handleApproveSubmit = async (action) => {
-        console.log("Approved:", selectedDepartmentRow);
+        console.log("Approved:", selectedLogCategoryRow);
         setLoading(true);
         const params = {
-            id: selectedDepartmentRow.id,
+            id: selectedLogCategoryRow.id,
             action: action,
         };
 
         try {
-            const data = await UpdateDept(params);
+            const data = await UpdateLogCategory(params);
             console.log("data - ",data)
             console.log("data2 - ",data.status)
 
@@ -329,7 +329,7 @@ const LogCategoryTab = () => {
             }
 
             if (data.status === 200) {
-                setSnackbar({open: true, message: "Department loaded", severity: "success"});
+                setSnackbar({open: true, message: "Log category updated", severity: "success"});
 
                 // ✅ Add to DataGrid state immediately
                 const updatedDepartment = {
@@ -346,7 +346,7 @@ const LogCategoryTab = () => {
                 console.log("updatedDepartment - ", updatedDepartment);
 
                 // ✅ Update the existing row in DataGrid
-                setDepartmentRows((prevRows) =>
+                setLogCategoryRows((prevRows) =>
                     prevRows.map((row) =>
                         row.id === updatedDepartment.id ? updatedDepartment : row
                     )
@@ -356,16 +356,16 @@ const LogCategoryTab = () => {
             }
         } catch (error) {
             console.error(error);
-            setSnackbar({open: true, message: "Failed to create department", severity: "error"});
+            setSnackbar({open: true, message: "Failed to create log category", severity: "error"});
         } finally {
             setLoading(false);
         }
     };
 
     const handleFormChange = (field, value) => {
-        setEditDepartmentFormData((prev) => ({...prev, [field]: value}));
+        setEditLogCategoryFormData((prev) => ({...prev, [field]: value}));
     };
-    const departmentColumns = useMemo(() => {
+    const logCategoryColumns = useMemo(() => {
         const cols = [
             {field: "name", headerName: "Name", flex: 1, minWidth: 150},
             {field: "description", headerName: "Description", flex: 1, minWidth: 150},
@@ -393,7 +393,7 @@ const LogCategoryTab = () => {
         ];
 
         // Add action column based on role
-        if (userRole === "ICT_Service_Desk_Maker") {
+        if (userRole === "ICT_Service_Desk_Checker") {
             cols.push({
                 field: "edit",
                 headerName: "",
@@ -411,7 +411,7 @@ const LogCategoryTab = () => {
                     </IconButton>
                 ),
             });
-        } else if (userRole === "ICT_Service_Desk_Checker") {
+        } else if (userRole === "ICT_Service_Desk_Maker") {
             cols.push({
                 field: "approve",
                 headerName: "",
@@ -439,7 +439,7 @@ const LogCategoryTab = () => {
     }, [userRole]);
 
     // Fetch pageable users
-    const fetchAllDepartments = useCallback(async () => {
+    const findAllLogCategory = useCallback(async () => {
 
         setLoading(true);
         try {
@@ -447,7 +447,7 @@ const LogCategoryTab = () => {
             const sortDir = departmentSortModel[0]?.sort?.toUpperCase() || "DESC";
 
             const response = await fetch(
-                `http://localhost:8082/api/accountstatementengine/v1/user/findAllDepartments?start=${departmentPaginationModel.page}&length=${departmentPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                `http://localhost:8082/api/accountstatementengine/v1/user/findAllLogCategory?start=${logCategoryPaginationModel.page}&length=${logCategoryPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
             );
 
             if (!response.ok) {
@@ -457,7 +457,7 @@ const LogCategoryTab = () => {
             const data = await response.json();
             console.log('dataDepartment--------------- - ', data)
 
-            setDepartmentRows(
+            setLogCategoryRows(
                 data.content.map((item, index) => ({
                     id: item.id,
                     name: item.name || "-",
@@ -481,17 +481,17 @@ const LogCategoryTab = () => {
                     status: item.status.name || "-",
                 }))
             );
-            setDepartmentRowCount(data.totalElements);
+            setLogCategoryRowCount(data.totalElements);
         } catch (error) {
             console.error("Error fetching account data:", error);
         } finally {
             setLoading(false);
         }
-    }, [departmentPaginationModel, departmentSortModel, searchVal]);
+    }, [logCategoryPaginationModel, departmentSortModel, searchVal]);
 
     useEffect(() => {
-        fetchAllDepartments();
-    }, [fetchAllDepartments]);
+        findAllLogCategory();
+    }, [findAllLogCategory]);
 
 
     return (
@@ -521,9 +521,9 @@ const LogCategoryTab = () => {
                 </Snackbar>
                 <TextField
                     size="small"
-                    label="Department Name"
+                    label=" Name"
                     variant="outlined"
-                    value={departmentName}
+                    value={logCategoryName}
                     onChange={(e) => setDeparmentName(e.target.value)}
                     error={departmentNameError}
                     InputProps={{
@@ -532,7 +532,7 @@ const LogCategoryTab = () => {
                                 {/* icon inherits currentColor from the adornment */}
                                 <ArchiveAdd size="16"
                                          color={
-                                             departmentNameError && !departmentName
+                                             departmentNameError && !logCategoryName
                                                  ? "#d32f2f" // 🔴 red when error
                                                  : "currentColor" // normal color
                                          }/> {/* optional icon */}
@@ -557,9 +557,9 @@ const LogCategoryTab = () => {
                 />
                 <TextField
                     size="small"
-                    label="Department Description"
+                    label="Description"
                     variant="outlined"
-                    value={departmentDescription}
+                    value={logCategoryDescription}
                     onChange={(e) => setDeparmentDescription(e.target.value)}
                     error={departmentDescriptionError}
                     InputProps={{
@@ -568,7 +568,7 @@ const LogCategoryTab = () => {
                                 {/* icon inherits currentColor from the adornment */}
                                 <Keyboard size="16"
                                          color={
-                                             departmentDescriptionError && !departmentDescription
+                                             departmentDescriptionError && !logCategoryDescription
                                                  ? "#d32f2f" // 🔴 red when error
                                                  : "currentColor" // normal color
                                          }/> {/* optional icon */}
@@ -593,7 +593,7 @@ const LogCategoryTab = () => {
                 />
                 <Button
                     variant="contained"
-                    onClick={handleAddDepartment}
+                    onClick={handleAddLogCategory}
                     disabled={loading}
                     startIcon={<AddIcon size="18" color="#fff"/>}
                     sx={{
@@ -611,22 +611,22 @@ const LogCategoryTab = () => {
                         },
                     }}
                 >
-                    {loading ? <CircularProgress size={20} color="inherit"/> : "Add Department"}
+                    {loading ? <CircularProgress size={20} color="inherit"/> : "Add Log Category"}
                 </Button>
             </Box>
 
             <Divider sx={{mb: 2}}/>
             <Box sx={{height: 440}}>
                 <DataGrid
-                    rows={departmentRows}
-                    columns={departmentColumns}
-                    rowCount={departmentRowCount}
+                    rows={logCategoryRows}
+                    columns={logCategoryColumns}
+                    rowCount={logCategoryRowCount}
                     loading={loading}
-                    paginationModel={departmentPaginationModel}
-                    onPaginationModelChange={setDepartmentPaginationModel}
+                    paginationModel={logCategoryPaginationModel}
+                    onPaginationModelChange={setLogCategoryPaginationModel}
                     paginationMode="server"
                     sortingMode="server"
-                    onSortModelChange={setDepartmentSortModel}
+                    onSortModelChange={setLogCategorySortModel}
                     pageSizeOptions={[5, 10, 20, 50]}
                     disableColumnMenu
                     rowHeight={40}          // 👈 smaller rows
@@ -687,20 +687,20 @@ const LogCategoryTab = () => {
                             py: 2.5,
                         }}
                     >
-                        Edit Department
+                        Edit Log Category
                     </DialogTitle>
                     <DialogContent>
                         <Box sx={{display: "flex", flexDirection: "column", gap: 2, pt: 2}}>
 
                             <TextField
-                                label="Department Name"
+                                label="Name"
                                 fullWidth
                                 type="text"
                                 size="small"
-                                value={editDepartmentFormData.name}
+                                value={editLogCategoryFormData.name}
                                 onChange={(e) =>
-                                    setEditDepartmentFormData({
-                                        ...editDepartmentFormData,
+                                    setEditLogCategoryFormData({
+                                        ...editLogCategoryFormData,
                                         name: e.target.value,
                                     })
                                 }
@@ -714,7 +714,7 @@ const LogCategoryTab = () => {
                                             <ArchiveTick
                                                 size="16"
                                                 color={
-                                                    departmentNameErrorEdit && !editDepartmentFormData.name
+                                                    departmentNameErrorEdit && !editLogCategoryFormData.name
                                                         ? "#d32f2f" // 🔴 red when error
                                                         : "currentColor" // normal color
                                                 }
@@ -732,14 +732,14 @@ const LogCategoryTab = () => {
                                 fullWidth
                                 type="text"
                                 size="small"
-                                value={editDepartmentFormData.description}
+                                value={editLogCategoryFormData.description}
                                 onChange={(e) =>
-                                    setEditDepartmentFormData({
-                                        ...editDepartmentFormData,
+                                    setEditLogCategoryFormData({
+                                        ...editLogCategoryFormData,
                                         description: e.target.value,
                                     })
                                 }
-                                error={departmentDescriptionErrorEdit}
+                                error={logCategoryDescriptionErrorEdit}
                                 InputProps={{
                                     sx: { fontSize: 14, height: 36,
                                         "&.Mui-focused .MuiInputAdornment-root": {
@@ -750,7 +750,7 @@ const LogCategoryTab = () => {
                                             <Keyboard
                                                 size="16"
                                                 color={
-                                                    departmentDescriptionErrorEdit && !editDepartmentFormData.description
+                                                    logCategoryDescriptionErrorEdit && !editLogCategoryFormData.description
                                                         ? "#d32f2f" // 🔴 red when error
                                                         : "currentColor" // normal color
                                                 }
@@ -769,7 +769,7 @@ const LogCategoryTab = () => {
                             Cancel
                         </Button>
                         <Button
-                            onClick={handleEditDepartment}
+                            onClick={handleEditLogCategory}
                             variant="contained"
                             disabled={loading}
                         >
@@ -802,13 +802,13 @@ const LogCategoryTab = () => {
                             py: 2.5,
                         }}
                     >
-                        Validate Department
+                        Validate Log Category
                     </DialogTitle>
                     <DialogContent sx={{mt: 3, pb: 2}}>
-                        {selectedDepartmentRow && (
+                        {selectedLogCategoryRow && (
                             <Box>
                                 <Typography sx={{mb: 3, color: "#555", fontSize: "1.1rem", fontWeight: 800}}>
-                                    Confirm department
+                                    Confirm Log Category
                                 </Typography>
                                 <Paper
                                     elevation={0}
@@ -825,7 +825,7 @@ const LogCategoryTab = () => {
                                                 Name
                                             </Typography>
                                             <Typography sx={{fontWeight: 600, fontSize: "0.8rem"}}>
-                                                {selectedDepartmentRow.name}
+                                                {selectedLogCategoryRow.name}
                                             </Typography>
                                         </Box>
                                         <Box sx={{display: "flex", justifyContent: "space-between"}}>
@@ -839,7 +839,7 @@ const LogCategoryTab = () => {
                                                     fontSize: "0.8rem",
                                                 }}
                                             >
-                                                {selectedDepartmentRow.description}
+                                                {selectedLogCategoryRow.description}
                                             </Typography>
                                         </Box>
                                     </Box>
@@ -868,7 +868,7 @@ const LogCategoryTab = () => {
                                 Cancel
                             </Button>
                             <Box sx={{display: "flex", gap: 1.5}}>
-                                {selectedDepartmentRow?.status === 'PENDING' && (
+                                {selectedLogCategoryRow?.status === 'PENDING' && (
                                     <>
                                         <Button
                                             onClick={handleReject}
@@ -887,7 +887,7 @@ const LogCategoryTab = () => {
                                         </Button>
                                     </>
                                 )}
-                                {selectedDepartmentRow?.status === 'ACTIVE' && (
+                                {selectedLogCategoryRow?.status === 'ACTIVE' && (
                                     <Button
                                         onClick={handleReject}
                                         variant="outlined"
@@ -898,7 +898,7 @@ const LogCategoryTab = () => {
                                     </Button>
                                 )}
 
-                                {selectedDepartmentRow?.status === 'REJECTED' && (
+                                {selectedLogCategoryRow?.status === 'REJECTED' && (
                                     <Button
                                         onClick={handleApprove}
                                         variant="contained"
