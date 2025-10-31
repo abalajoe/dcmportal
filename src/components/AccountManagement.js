@@ -25,13 +25,21 @@ import {
     Wallet2,
     Edit2,
     User,
-    SearchNormal1, Settings
+    SearchNormal1, Settings, Data
 } from "iconsax-react";
 import PersonIcon from "@mui/icons-material/Person";
 import ApartmentIcon from "@mui/icons-material/Apartment";
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import AddIcon from "@mui/icons-material/Add";
-import {ConfigDetailsAPI, UsersAPI} from "../services/Api";
+import {
+    ConfigDetailsAPI,
+    CreateManager, CreateUser,
+    FetchDepartments,
+    FetchManagers,
+    FetchRoles,
+    GetBranches,
+    UsersAPI
+} from "../services/Api";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -68,6 +76,18 @@ const AccountManagement = () => {
     const [managerHelperEdit, setManagerHelperEdit] = useState("");
     const [helperText, setHelperText] = useState("");
     const [role, setRole] = useState(null);
+    const [rle, setRle] = useState(null);
+    const [brnch, setBrnch] = useState(null);
+    const [mngr, setMngr] = useState(null);
+    const [rleError, setRleError] = useState(false);
+    const [brnchError, setBrnchError] = useState(false);
+    const [mngrError, setMngrError] = useState(false);
+    const [selectedRole, setSelectedRole] = useState(null);
+    const [selectedBranch, setSelectedBranch] = useState(null);
+    const [selectedManager, setSelectedManager] = useState(null);
+    const [loadingRole, setLoadingRole] = useState(false);
+    const [loadingBranch, setLoadingBranch] = useState(false);
+    const [loadingManager, setLoadingManager] = useState(false);
     const [openApproveDialog, setOpenApproveDialog] = useState(false);
     const [editFormData, setEditFormData] = useState({
         id: "",
@@ -109,7 +129,7 @@ const AccountManagement = () => {
             });*/
 
             const response = await fetch(
-                `http://localhost:8082/api/accountstatementengine/v1/user/findAllAccountManagement?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                `http://localhost:8082/api/findAllUsers?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
             );
 
             if (!response.ok) {
@@ -123,11 +143,11 @@ const AccountManagement = () => {
                 data.content.map((item, index) => ({
                     id: item.id,
                     email: item.email || "-",
-                    role: item.role || "-",
+                    roleId: item.roleId || "-",
                     branch: item.branch || "-",
-                    manager: item.manager || "-",
-                    createdby: item.createdby || "-",
-                    datecreated: new Date(item.datecreated).toLocaleString() || "-",
+                    lineManager: item.lineManager || "-",
+                    createdBy: item.createdBy || "-",
+                    dateCreated: new Date(item.dateCreated).toLocaleString() || "-",
                     status: item.status || "-",
                 }))
             );
@@ -145,7 +165,9 @@ const AccountManagement = () => {
 
     // Add account
     const handleAddAccount = async () => {
+        console.log('hello')
         if (!email || !validateEmail(email)) {
+            console.log('hello1')
             setSnackbar({open: true, message: "Please enter a valid email address", severity: "error"});
             setEmailError(true);
             setEmailHelper("Enter a valid email address");
@@ -157,7 +179,8 @@ const AccountManagement = () => {
         setEmailHelper("");
 
         // ✅ Role validation
-        if (!role) { // role is your state from Autocomplete
+        if (!rle) { // role is your state from Autocomplete
+            console.log('hello2')
             setSnackbar({open: true, message: "Please select role", severity: "error"});
             setRoleError(true);
             setRoleHelper("Role is required");
@@ -169,7 +192,8 @@ const AccountManagement = () => {
         setRoleHelper("");
 
         // ✅ Branch validation
-        if (!branch) { // role is your state from Autocomplete
+        if (!brnch) { // role is your state from Autocomplete
+            console.log('hello3')
             setSnackbar({open: true, message: "Please select branch", severity: "error"});
             setBranchError(true);
             setBranchHelper("Branch is required");
@@ -181,7 +205,8 @@ const AccountManagement = () => {
         setBranchHelper("");
 
         // ✅ Branch validation
-        if (!manager) { // role is your state from Autocomplete
+        if (!mngr) { // role is your state from Autocomplete
+            console.log('hello4')
             setSnackbar({open: true, message: "Please select manager", severity: "error"});
             setManagerError(true);
             setManagerHelper("Manager is required");
@@ -192,6 +217,58 @@ const AccountManagement = () => {
         setManagerError(false);
         setManagerHelper("");
 
+        const params = {
+            email: email,
+            roleId: selectedRole.role_id,
+            branch: selectedBranch.name,
+            lineManager: selectedManager.name,
+            deleted: 0,
+        };
+
+        console.log('params --> ', params)
+        try {
+            const data = await CreateUser(params);
+            console.log("data - ",data)
+            console.log("data2 - ",data.status)
+            console.log("data2department - ",data.data.department)
+            console.log("data2name - ",data.data.department.name)
+
+            if (data.status === 400) {
+                setSnackbar({open: true, message: data.error, severity: "error"});
+                return;
+            }
+
+            /*if (data.status === 200) {
+                setSnackbar({open: true, message: "Department loaded", severity: "success"});
+
+                // ✅ Add to DataGrid state immediately
+                const newRole = {
+                    id: data.data.id,
+                    name: managerName,
+                    description: managerDescription,
+                    department: data.data.department.name,
+                    status: data.data.status?.name ?? "Active",
+                    createdBy: data.data.createdBy,
+                    updatedBy: data.data.updatedBy,
+                    dateCreated: data.data.createdBy,
+                    dateUpdated: data.data.updatedBy,
+                };
+
+                console.log('newRole - ', newRole)
+
+                setManagerRows((prev) => [newRole, ...prev]);
+                setManagerRowCount((prev) => prev + 1);
+                // Optional: clear fields
+                setManagerName("");
+                setManagerDescription("");
+                setselectedDepartment(null);
+            }*/
+        } catch (error) {
+            console.error(error);
+            setSnackbar({open: true, message: "Failed to create department", severity: "error"});
+        } finally {
+            setLoading(false);
+        }
     };
 
 
@@ -345,6 +422,58 @@ const AccountManagement = () => {
     }, [branch]);
 
 
+    useEffect(() => {
+        const loadManagers = async () => {
+            setLoading(true);
+            try {
+                const data = await FetchManagers();
+                console.log('managers - ', data)
+                setMngr(data)
+                //setDepartments(data);
+                //setDepartments2(data);
+            } catch (error) {
+                setSnackbar({ open: true, message: "Failed to fetch managers", severity: "error" });
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadManagers();
+    }, []);
+
+    useEffect(() => {
+        const loadRoles = async () => {
+            setLoading(true);
+            try {
+                const data = await FetchRoles();
+                console.log('roles - ', data)
+                setRle(data)
+            } catch (error) {
+                setSnackbar({ open: true, message: "Failed to fetch roels", severity: "error" });
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadRoles();
+    }, []);
+
+    useEffect(() => {
+        const loadBranches = async () => {
+            setLoading(true);
+            try {
+                const data = await GetBranches();
+                console.log('branches - ', data)
+                //setDepartments(data);
+                setBrnch(data)
+                //setDepartments2(data);
+            } catch (error) {
+                setSnackbar({ open: true, message: "Failed to fetch managers", severity: "error" });
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadBranches();
+    }, []);
+
     // Add these states near the top of your component
     const [editManagerOptions, setEditManagerOptions] = useState([]);
     const [editLoadingManagers, setEditLoadingManagers] = useState(false);
@@ -407,7 +536,7 @@ const AccountManagement = () => {
     const columns = useMemo(() => {
         const cols = [
             {field: "email", headerName: "Email Address", flex: 1, minWidth: 150},
-            {field: "role", headerName: "Role", flex: 1, minWidth: 150},
+            {field: "roleId", headerName: "Role", flex: 1, minWidth: 150},
             {field: "branch", headerName: "Branch", flex: 1, minWidth: 150},
             {field: "lineManager", headerName: "Manager", flex: 1, minWidth: 150},
             {field: "createdBy", headerName: "Created By", flex: 1, minWidth: 150},
@@ -493,7 +622,8 @@ const AccountManagement = () => {
                 </Box>
             </Fade>
             {/* Filter + Add Button Section */}
-            {["ICT_Service_Desk_Maker"].includes(userRole) && (
+            {["ICT_Administrator"].includes(userRole) && (
+            // {["ICT_Service_Desk_Maker"].includes(userRole) && (
                 <Fade in={true} timeout={1200}>
                     <Paper
                         elevation={5}
@@ -549,6 +679,53 @@ const AccountManagement = () => {
 
                             {/* Role */}
                             <Autocomplete
+                                options={rle} // 👈 departments is your fetched list
+                                value={selectedRole}
+                                onChange={(e, newValue) => setSelectedRole(newValue)}
+                                getOptionLabel={(option) => option?.role_name || ""} // 👈 show department name
+                                loading={loadingRole}
+                                size="small"
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Role"
+                                        error={rleError && !selectedRole}
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            startAdornment: (
+                                                <InputAdornment position="start" sx={{ color: "grey.500" }}>
+                                                    <User size="16"
+                                                             color={
+                                                                 rleError && !selectedRole
+                                                                     ? "#d32f2f" // 🔴 red when error
+                                                                     : "currentColor" // normal color
+                                                             }/> {/* optional icon */}
+                                                </InputAdornment>
+                                            ),
+                                            endAdornment: (
+                                                <>
+                                                    {loadingRole ? <CircularProgress size={20} /> : null}
+                                                    {params.InputProps.endAdornment}
+                                                </>
+                                            ),
+                                        }}
+                                    />
+                                )}
+                                sx={{
+                                    flex: 1,
+                                    minWidth: "220px",
+                                    "& .MuiInputBase-input": { fontSize: "0.9rem" },
+                                    "& .MuiInputLabel-root": { fontSize: "1.0rem", color: "black" },
+                                    "& .MuiInputLabel-root.Mui-focused": {
+                                        color: "#1976d2",  // keep label black when focused
+                                    },
+                                    // 🔹 label when error
+                                    "& .MuiInputLabel-root.Mui-error": {
+                                        color: "#d32f2f", // red
+                                    },
+                                }}
+                            />
+                            {/*<Autocomplete
                                 options={roleOptions}
                                 size="small"
                                 value={role}
@@ -562,7 +739,7 @@ const AccountManagement = () => {
                                             ...params.InputProps,
                                             startAdornment:
                                                 <InputAdornment position="start" sx={{color: "grey.500"}}>
-                                                    {/* icon inherits currentColor from the adornment */}
+                                                     icon inherits currentColor from the adornment
                                                     <User size="18" color="currentColor"/>
                                                 </InputAdornment>,
                                         }}
@@ -580,10 +757,57 @@ const AccountManagement = () => {
                                         color: "black", // keep label black when focused
                                     },
                                 }}
-                            />
+                            />*/}
 
                             {/* Branch */}
                             <Autocomplete
+                                options={brnch} // 👈 departments is your fetched list
+                                value={selectedBranch}
+                                onChange={(e, newValue) => setSelectedBranch(newValue)}
+                                getOptionLabel={(option) => option?.name || ""} // 👈 show department name
+                                loading={loadingBranch}
+                                size="small"
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Branch"
+                                        error={brnchError && !selectedBranch}
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            startAdornment: (
+                                                <InputAdornment position="start" sx={{ color: "grey.500" }}>
+                                                    <Wallet2 size="16"
+                                                          color={
+                                                              brnchError && !selectedBranch
+                                                                  ? "#d32f2f" // 🔴 red when error
+                                                                  : "currentColor" // normal color
+                                                          }/> {/* optional icon */}
+                                                </InputAdornment>
+                                            ),
+                                            endAdornment: (
+                                                <>
+                                                    {loadingBranch ? <CircularProgress size={20} /> : null}
+                                                    {params.InputProps.endAdornment}
+                                                </>
+                                            ),
+                                        }}
+                                    />
+                                )}
+                                sx={{
+                                    flex: 1,
+                                    minWidth: "220px",
+                                    "& .MuiInputBase-input": { fontSize: "0.9rem" },
+                                    "& .MuiInputLabel-root": { fontSize: "1.0rem", color: "black" },
+                                    "& .MuiInputLabel-root.Mui-focused": {
+                                        color: "#1976d2",  // keep label black when focused
+                                    },
+                                    // 🔹 label when error
+                                    "& .MuiInputLabel-root.Mui-error": {
+                                        color: "#d32f2f", // red
+                                    },
+                                }}
+                            />
+                            {/*<Autocomplete
                                 options={branchOptions}
                                 size="small"
                                 value={branch}
@@ -598,7 +822,7 @@ const AccountManagement = () => {
                                             ...params.InputProps,
                                             startAdornment:
                                                 <InputAdornment position="start" sx={{color: "grey.500"}}>
-                                                    {/* icon inherits currentColor from the adornment */}
+                                                     icon inherits currentColor from the adornment
                                                     <Wallet2 size="18" color="currentColor"/>
                                                 </InputAdornment>,
                                         }}
@@ -616,10 +840,57 @@ const AccountManagement = () => {
                                         color: "black", // keep label black when focused
                                     },
                                 }}
-                            />
+                            />*/}
 
                             {/* Manager */}
                             <Autocomplete
+                                options={mngr} // 👈 departments is your fetched list
+                                value={selectedManager}
+                                onChange={(e, newValue) => setSelectedManager(newValue)}
+                                getOptionLabel={(option) => option?.name || ""} // 👈 show department name
+                                loading={loadingManager}
+                                size="small"
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Manager"
+                                        error={mngrError && !selectedManager}
+                                        InputProps={{
+                                            ...params.InputProps,
+                                            startAdornment: (
+                                                <InputAdornment position="start" sx={{ color: "grey.500" }}>
+                                                    <Profile2User size="16"
+                                                             color={
+                                                                 mngrError && !selectedManager
+                                                                     ? "#d32f2f" // 🔴 red when error
+                                                                     : "currentColor" // normal color
+                                                             }/> {/* optional icon */}
+                                                </InputAdornment>
+                                            ),
+                                            endAdornment: (
+                                                <>
+                                                    {loadingManager ? <CircularProgress size={20} /> : null}
+                                                    {params.InputProps.endAdornment}
+                                                </>
+                                            ),
+                                        }}
+                                    />
+                                )}
+                                sx={{
+                                    flex: 1,
+                                    minWidth: "220px",
+                                    "& .MuiInputBase-input": { fontSize: "0.9rem" },
+                                    "& .MuiInputLabel-root": { fontSize: "1.0rem", color: "black" },
+                                    "& .MuiInputLabel-root.Mui-focused": {
+                                        color: "#1976d2",  // keep label black when focused
+                                    },
+                                    // 🔹 label when error
+                                    "& .MuiInputLabel-root.Mui-error": {
+                                        color: "#d32f2f", // red
+                                    },
+                                }}
+                            />
+                            {/*<Autocomplete
                                 options={managers}
                                 value={manager}
                                 onChange={(e, newValue) => setManager(newValue)}
@@ -636,7 +907,7 @@ const AccountManagement = () => {
                                             ...params.InputProps,
                                             startAdornment:
                                                 <InputAdornment position="start" sx={{color: "grey.500"}}>
-                                                    {/* icon inherits currentColor from the adornment */}
+                                                     icon inherits currentColor from the adornment
                                                     <Profile2User size="18" color="currentColor"/>
                                                 </InputAdornment>,
                                             endAdornment: (
@@ -660,7 +931,7 @@ const AccountManagement = () => {
                                         color: "black", // keep label black when focused
                                     },
                                 }}
-                            />
+                            />*/}
                         </Box>
 
                         {/* Add User Button */}

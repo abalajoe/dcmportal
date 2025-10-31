@@ -57,7 +57,7 @@ const StyledTableRow = styled(TableRow)(({ index }) => ({
     backgroundColor: index % 2 === 0 ? "#fff" : "#f5f5f5",
 }));
 
-const SystemLogs = () => {
+const SystemLogsBckup = () => {
     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
     const branchOptions = ["Finance", "IT", "HR", "Sales", "Operations"];
     const [data, setData] = useState([]);
@@ -611,4 +611,4 @@ const SystemLogs = () => {
     );
 };
 
-export default SystemLogs;
+export default SystemLogsBckup;

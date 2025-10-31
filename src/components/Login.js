@@ -65,8 +65,8 @@ function LoginPage() {
             completeEmail = lowredEmail;
         }
         try {
-            const data = await loginUser(email, password);
-            // const data = await loginUser(completeEmail, password);
+            // const data = await loginUser(email, password);
+            const data = await loginUser(completeEmail, password);
             console.log("Login successful:", data);
 
             localStorage.setItem("token", data.token);

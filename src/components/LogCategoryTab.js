@@ -393,6 +393,7 @@ const LogCategoryTab = () => {
         ];
 
         // Add action column based on role
+        // if (userRole === "ICT_Administrator") {
         if (userRole === "ICT_Service_Desk_Checker") {
             cols.push({
                 field: "edit",
@@ -411,7 +412,8 @@ const LogCategoryTab = () => {
                     </IconButton>
                 ),
             });
-        } else if (userRole === "ICT_Service_Desk_Maker") {
+        } else if (userRole === "ICT_Administrator") {
+        // } else if (userRole === "ICT_Service_Desk_Maker") {
             cols.push({
                 field: "approve",
                 headerName: "",
@@ -447,7 +449,7 @@ const LogCategoryTab = () => {
             const sortDir = departmentSortModel[0]?.sort?.toUpperCase() || "DESC";
 
             const response = await fetch(
-                `http://localhost:8082/api/accountstatementengine/v1/user/findAllLogCategory?start=${logCategoryPaginationModel.page}&length=${logCategoryPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                `http://localhost:8082/api/logCategory/findAllLogCategory?start=${logCategoryPaginationModel.page}&length=${logCategoryPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
             );
 
             if (!response.ok) {

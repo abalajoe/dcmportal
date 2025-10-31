@@ -543,7 +543,7 @@ const AllSettings = () => {
                         <Tab icon={<Save2 size="18" color="currentColor"/>} iconPosition="start" label="Branches"/>
                         <Tab icon={<Data size="18" color="currentColor"/>} iconPosition="start"
                              label="Departments"/>
-                        <Tab icon={<UserEdit size="18" color="currentColor"/>} iconPosition="start" label="Roles"/>
+                        {/*<Tab icon={<UserEdit size="18" color="currentColor"/>} iconPosition="start" label="Roles"/>*/}
                         <Tab icon={<Profile2User size="18" color="currentColor"/>} iconPosition="start"
                              label="Managers"/>
                         <Tab icon={<Firstline size="18" color="currentColor"/>} iconPosition="start"
@@ -560,15 +560,15 @@ const AllSettings = () => {
             </TabPanel>
 
             {/* ------------------------ TAB 1: Roles ------------------------ */}
-            <TabPanel value={tabIndex} index={2}>
+            {/*<TabPanel value={tabIndex} index={2}>
                 <RolesTab />
-            </TabPanel>
+            </TabPanel>*/}
 
-            <TabPanel value={tabIndex} index={3}>
+            <TabPanel value={tabIndex} index={2}>
                 <ManagerTab />
             </TabPanel>
 
-            <TabPanel value={tabIndex} index={4}>
+            <TabPanel value={tabIndex} index={3}>
                 <LogCategoryTab/>
             </TabPanel>
 

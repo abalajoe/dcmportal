@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, {useEffect, useState, useRef, useMemo} from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import {
@@ -17,7 +17,7 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogActions, InputAdornment, Autocomplete, Tooltip,
+    DialogActions, InputAdornment, Autocomplete, Tooltip, Fade, Menu, MenuItem, FormControlLabel, Checkbox, IconButton,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import {
@@ -29,27 +29,10 @@ import {
     Book1,
     FilterSearch,
     GlobalSearch,
-    SearchNormal, SearchNormal1, Export
+    SearchNormal, SearchNormal1, Export, Edit2, Settings
 } from "iconsax-react";
 import AddIcon from "@mui/icons-material/Add";
-
-const StyledTableHeadCell = styled(TableCell)({
-    backgroundColor: "#0b4b2b",
-    color: "white",
-    fontWeight: 600,
-    textAlign: "left",
-    willChange: "auto",
-    transform: "translateZ(0)",
-    backfaceVisibility: "hidden",
-    WebkitFontSmoothing: "subpixel-antialiased",
-    position: "sticky",
-    top: 0,
-    zIndex: 100,
-});
-
-const StyledTableRow = styled(TableRow)(({ index }) => ({
-    backgroundColor: index % 2 === 0 ? "#fff" : "#f5f5f5",
-}));
+import {DataGrid} from "@mui/x-data-grid";
 
 const PrintHistory = () => {
     const [data, setData] = useState([]);
@@ -59,22 +42,14 @@ const PrintHistory = () => {
     const [loading, setLoading] = useState(false);
     const [totalPages, setTotalPages] = useState(0);
     const tableBodyRef = useRef(null);
-    const [search, setSearch] = useState('');
-    const curUserEmail = localStorage.getItem("curUserEmail");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pagination, setPagination] = useState({
-        start: 0,
-        length: 10,
-        sortBy: 'time',
-        sortOrder: 'desc',
-        search: '',
-        filterAccount:'',
-        currentUser: curUserEmail || '',
-        draw: 1,
+    const [rows, setRows] = useState([]);
+    const [rowCount, setRowCount] = useState(0); // total elements from backend
+    const [sortModel, setSortModel] = useState([{field: "id", sort: "desc"}]);
+    const [paginationModel, setPaginationModel] = useState({
+        page: 0,
+        pageSize: 9,
     });
-    // Modal state
-    const [openModal, setOpenModal] = useState(false);
-    const [selectedSignature, setSelectedSignature] = useState(null);
+
 
     // 🔥 Fetch data from backend
     const fetchData = async () => {
@@ -87,10 +62,11 @@ const PrintHistory = () => {
 
         try {
             const params = {
-                start: page,
-                length: rowsPerPage,
-                searchVal: searchVal || "",
-                sort: ["id", "desc"],
+                start: paginationModel.page * paginationModel.pageSize, // offset
+                length: paginationModel.pageSize,                      // limit
+                search: searchVal || "",                               // match backend param name
+                sortBy: sortModel[0]?.field || "logId",                // match backend
+                sortOrder: sortModel[0]?.sort || "desc",               // match backend
             };
             let url = `${process.env.REACT_APP_LOG_URL}/retrieveHistory`;
             // const response = await axios.get("http://localhost:7081/api/accountstatementengine/v1/user/findAllPrintHistory", {
@@ -98,9 +74,21 @@ const PrintHistory = () => {
                 params,
             });
             console.log('response2 -', response.data)
+            console.log('response22 -', response.data.data)
+            console.log('response23 -', response.data.recordsTotal)
 
-            setData(response.data.data || []);
-            setTotalPages(response.data.recordsTotal || 0);
+            /*setRows(response.data.data || []);
+            setRowCount(response.data.recordsTotal || 0);*/
+
+            setRows(
+                response.data.data.map((item, index) => ({
+                    ...item, // keep everything (logId, user, account, etc.)
+                    logDate: new Date(item.logDate).toLocaleString() || "-",
+                    startDate: new Date(item.startDate).toLocaleString() || "-",
+                    endDate: new Date(item.endDate).toLocaleString() || "-",
+                }))
+            );
+            setRowCount(response.data.recordsTotal);
         } catch (error) {
             console.error("Error fetching data:", error);
         } finally {
@@ -116,51 +104,19 @@ const PrintHistory = () => {
     // 🔄 Fetch whenever page or search changes
     useEffect(() => {
         fetchData();
-    }, [page, searchVal]);
+    }, [paginationModel, sortModel, searchVal]);
 
-    const handleNext = () => {
-        if (page < totalPages - 1) setPage((p) => p + 1);
-    };
-
-    const handlePrevious = () => {
-        if (page > 0) setPage((p) => p - 1);
-    };
-
-    const handleOpenModal = (signature) => {
-        setSelectedSignature(signature);
-        setOpenModal(true);
-    };
-
-    const handleCloseModal = () => {
-        setOpenModal(false);
-        setSelectedSignature(null);
-    };
-
-    const exportToExcel = () => {
-        if (data.length === 0) {
-            alert("No data to export!");
-            return;
-        }
-
-        const formattedData = data.map((row) => ({
-            User: row.email,
-            "Log Date": new Date(row.logdate).toLocaleString(),
-            "Account No": row.accountnumber,
-            "Account Name": row.accountname,
-            "Nat ID No": row.natid,
-            "Pages No": row.pageno,
-            Currency: row.currency,
-            Charges: row.charges,
-            "Start Date": new Date(row.startdate).toLocaleDateString(),
-            "End Date": new Date(row.enddate).toLocaleDateString(),
-            Signature: row.signature,
-        }));
-
-        const worksheet = XLSX.utils.json_to_sheet(formattedData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Print Logs");
-        XLSX.writeFile(workbook, "PrintLogs.xlsx");
-    };
+    const columns = useMemo(() => {
+        const cols = [
+            {field: "logId", headerName: "Log Id", flex: 1, minWidth: 150},
+            {field: "user", headerName: "User", flex: 1, minWidth: 150},
+            {field: "account", headerName: "Account", flex: 1, minWidth: 150},
+            {field: "logDate", headerName: "Log Date", flex: 1, minWidth: 150},
+            {field: "startDate", headerName: "Start Date", flex: 1, minWidth: 150},
+            {field: "endDate", headerName: "End Date", flex: 1, minWidth: 150},
+        ];
+        return cols;
+    }, []);
 
     return (
         <Box
@@ -185,258 +141,92 @@ const PrintHistory = () => {
                 </Typography>
             </Box>
 
-            {/* Filter + Add Button Section */}
-            <Box
-                sx={{
-                    display: "flex",
-                    justifyContent: "center", // centers horizontally
-                    width: "100%", // takes full available width of parent
-                }}
-            >
+            {/* 🔍 Data Table + Search */}
+            <Fade in={true} timeout={1600}>
                 <Paper
-                    elevation={5}
+                    elevation={3}
                     sx={{
-                        p: 2,
-                        mb: 0,
+                        p: 1,
                         borderRadius: 1,
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: 2,
-                        alignItems: "center",
-                        justifyContent: "space-between",
                         backgroundColor: "#fff",
-                        maxWidth: 600, // ✅ controls paper width
-                        width: "100%", // allows responsiveness
                     }}
                 >
-                    <Box
-                        sx={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            gap: 2,
-                            flexGrow: 1,
-                            justifyContent: "space-between",
-                        }}
-                    >
+                    {/* 🔍 Search Field above DataGrid */}
+                    <Box sx={{mb: 1, display: "flex", justifyContent: "flex-start"}}>
                         <TextField
-                            size="small"
-                            label="Search"
+                            placeholder="Search account..."
                             variant="outlined"
+                            size="small"
+                            value={searchVal}
                             onChange={(e) => setSearchVal(e.target.value)}
                             InputProps={{
                                 startAdornment: (
-                                    <InputAdornment position="start" sx={{ color: "grey.500" }}>
-                                        <SearchNormal1 size="18" color="currentColor" />
+                                    <InputAdornment position="start">
+                                        <SearchNormal1 size="18" color="#666"/>
                                     </InputAdornment>
                                 ),
                             }}
                             sx={{
-                                flex: 1,
-                                minWidth: "180px",
-                                "& .MuiInputBase-input": { fontSize: "0.9rem" },
-                                "& .MuiInputLabel-root": {
-                                    fontSize: "1.0rem",
-                                    color: "black",
+                                width: {xs: "100%", sm: "280px"},
+                                "& .MuiOutlinedInput-root": {
+                                    borderRadius: 1,
+                                    backgroundColor: "#f8f9fa",
+                                    transition: "all 0.3s",
+                                    "&:hover": {
+                                        backgroundColor: "#fff",
+                                        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                                    },
+                                    "&.Mui-focused": {
+                                        backgroundColor: "#fff",
+                                        boxShadow: "0 4px 16px rgba(17, 101, 48, 0.15)",
+                                    },
                                 },
-                                "& .MuiInputLabel-root.Mui-focused": {
-                                    color: "black",
+                                "& .MuiInputBase-input": {
+                                    fontSize: "0.9rem",
                                 },
                             }}
                         />
                     </Box>
 
-                    <Button
-                        variant="contained"
-                        startIcon={<Export size="18" color="#fff" />}
-                        sx={{
-                            background: "linear-gradient(90deg, #116530, #1b7a3e)",
-                            textTransform: "none",
-                            fontWeight: 600,
-                            height: 35,
-                            px: 3,
-                            py: 1,
-                            boxShadow: 2,
-                            fontSize: "0.9rem",
-                            transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-                            "&:hover": {
-                                background: "linear-gradient(90deg, #0d4d24, #156e35)", // same gradient tone, slightly darker
-                                boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
-                                transform: "translateY(0px)", // subtle lift
-                            },
-                            minWidth: "150px",
-                        }}
-                    >
-                        Export to Excel
-                    </Button>
+                    <Box sx={{height: 480, width: "100%"}}>
+                        <DataGrid
+                            rows={rows}
+                            columns={columns}
+                            rowCount={rowCount}
+                            getRowId={(row) => row.logId}
+                            loading={loading}
+                            paginationModel={paginationModel}
+                            onPaginationModelChange={setPaginationModel}
+                            paginationMode="server"
+                            sortingMode="server"
+                            onSortModelChange={setSortModel}
+                            pageSizeOptions={[5, 10, 20, 50]}
+                            disableColumnMenu
+                            rowHeight={40}          // 👈 smaller rows
+                            headerHeight={38}       // 👈 smaller header
+                            sx={{
+                                "& .MuiDataGrid-columnHeaderTitle": {
+                                    fontWeight: "700",
+                                },
+                            }}
+                            slots={{
+                                loadingOverlay: () => (
+                                    <Box
+                                        sx={{
+                                            height: "100%",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                        }}
+                                    >
+                                        <CircularProgress/>
+                                    </Box>
+                                ),
+                            }}
+                        />
+                    </Box>
                 </Paper>
-            </Box>
-
-
-            {/* Table */}
-            <TableContainer
-                component={Paper}
-                sx={{
-                    borderRadius: 1,
-                    minHeight: 400,
-                    maxHeight: 600,
-                    mt: 2,
-                    overflow: "auto",
-                    overflowX: "auto", // Allow horizontal scroll on small screens
-                }}
-            >
-                <Table
-                    size="small"
-                    sx={{
-                        "& th": {
-                            padding: "6px 10px",
-                            fontSize: "0.85rem",
-                            whiteSpace: "nowrap", // Prevent text wrapping in headers
-                        },
-                        "& td": {
-                            padding: "4px 10px",
-                            fontSize: "0.8rem",
-                            whiteSpace: "nowrap", // Prevent text wrapping in cells
-                        },
-                        "& thead": {
-                            transform: "translateZ(0)",
-                            willChange: "auto",
-                        },
-                        tableLayout: { xs: "auto", md: "fixed" }, // Auto on mobile, fixed on desktop
-                        width: "100%",
-                        minWidth: { xs: "1200px", md: "100%" }, // Minimum width on mobile for horizontal scroll
-                    }}
-                >
-                    <TableHead>
-                        <TableRow>
-                            <StyledTableHeadCell sx={{ width: "12%" }}>User</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "12%" }}>Log Date</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "8%" }}>Acc No</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "10%" }}>Acc Name</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "9%" }}>Nat ID</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "7%" }}>Pages No</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "7%" }}>Currency</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "7%" }}>Charges</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "9%" }}>Start Date</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "9%" }}>End Date</StyledTableHeadCell>
-                            <StyledTableHeadCell sx={{ width: "10%" }}>Signature</StyledTableHeadCell>
-                        </TableRow>
-                    </TableHead>
-
-                    <TableBody
-                        ref={tableBodyRef}
-                        sx={{
-                            transition: 'opacity 0.2s ease-in-out',
-                        }}
-                    >
-                        {loading ? (
-                            <TableRow>
-                                <TableCell colSpan={11} align="center">
-                                    <CircularProgress size={28} color="success" />
-                                </TableCell>
-                            </TableRow>
-                        ) : data.length > 0 ? (
-                            data.map((row, index) => (
-                                <StyledTableRow key={row.id} index={index}>
-                                    <TableCell>{row.user}</TableCell>
-                                    <TableCell>
-                                        {new Date(row.logDate).toLocaleString()}
-                                    </TableCell>
-                                    <TableCell>{row.account}</TableCell>
-                                    <TableCell>{row.accountname}</TableCell>
-                                    <TableCell>{row.natid}</TableCell>
-                                    <TableCell>{row.pageno}</TableCell>
-                                    <TableCell>{row.currency}</TableCell>
-                                    <TableCell>{row.charges}</TableCell>
-                                    <TableCell>
-                                        {new Date(row.startDate).toLocaleDateString()}
-                                    </TableCell>
-                                    <TableCell>
-                                        {new Date(row.endDate).toLocaleDateString()}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Button size="small" color="success" onClick={() => handleOpenModal(row.email)}>
-                                            {row.signature}
-                                        </Button>
-                                    </TableCell>
-                                </StyledTableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={11} align="center">
-                                    No results found
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-
-            {/* Pagination */}
-            <Box
-                sx={{
-                    mt: 2,
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    gap: 2,
-                    flexWrap: "wrap",
-                }}
-            >
-                <Button
-                    variant="contained"
-                    onClick={handlePrevious}
-                    disabled={page === 0}
-                    sx={{
-                        backgroundColor: page === 0 ? "#ccc" : "#0b4b2b",
-                        "&:hover": { backgroundColor: "#0d5c35" },
-                    }}
-                >
-                    Previous
-                </Button>
-                <Typography>
-                    Page {page + 1} of {totalPages || 1}
-                </Typography>
-                <Button
-                    variant="contained"
-                    onClick={handleNext}
-                    disabled={page >= totalPages - 1}
-                    sx={{
-                        backgroundColor:
-                            page >= totalPages - 1 ? "#ccc" : "#0b4b2b",
-                        "&:hover": { backgroundColor: "#0d5c35" },
-                    }}
-                >
-                    Next
-                </Button>
-            </Box>
-
-            <Dialog open={openModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
-                <DialogTitle>Signature Preview</DialogTitle>
-                <DialogContent sx={{ textAlign: "center" }}>
-                    {selectedSignature ? (
-                        selectedSignature.startsWith("data:image") ? (
-                            <img
-                                src={selectedSignature}
-                                alt="Signature"
-                                style={{ width: "100%", height: "auto", marginTop: 10 }}
-                            />
-                        ) : (
-                            <Typography variant="body1" sx={{ mt: 2 }}>
-                                {selectedSignature}
-                            </Typography>
-                        )
-                    ) : (
-                        <Typography variant="body2" sx={{ mt: 2 }}>
-                            No signature data available
-                        </Typography>
-                    )}
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseModal} variant="contained" color="success">
-                        Close
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            </Fade>
         </Box>
     );
 };

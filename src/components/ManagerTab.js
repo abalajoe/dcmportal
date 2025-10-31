@@ -424,6 +424,7 @@ const ManagerTab = () => {
         ];
 
         // Add action column based on role
+        // if (userRole === "ICT_Administrator") {
         if (userRole === "ICT_Service_Desk_Checker") {
             cols.push({
                 field: "edit",
@@ -442,7 +443,8 @@ const ManagerTab = () => {
                     </IconButton>
                 ),
             });
-        } else if (userRole === "ICT_Service_Desk_Maker") {
+        } else if (userRole === "ICT_Administrator") {
+        // } else if (userRole === "ICT_Service_Desk_Maker") {
             cols.push({
                 field: "approve",
                 headerName: "",
@@ -478,7 +480,7 @@ const ManagerTab = () => {
             const sortDir = managerSortModel[0]?.sort?.toUpperCase() || "DESC";
 
             const response = await fetch(
-                `http://localhost:8082/api/accountstatementengine/v1/user/findAllManagers?start=${managerPaginationModel.page}&length=${managerPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                `http://localhost:8082/api/manager/findAllManagers?start=${managerPaginationModel.page}&length=${managerPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
             );
 
             if (!response.ok) {
@@ -530,7 +532,7 @@ const ManagerTab = () => {
             setLoading(true);
             try {
                 const data = await FetchDepartments();
-                console.log('depts303 - ', data)
+                console.log('depts303rr>>> - ', data)
                 //setDepartments(data);
                 setDepartments2(data);
             } catch (error) {

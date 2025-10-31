@@ -308,7 +308,7 @@ const BranchTab = () => {
         handleApproveSubmit("reject");
     };
     const handleApproveSubmit = async (action) => {
-        console.log("Approved:", selectedBranchRow);
+        console.log("Approved:-", selectedBranchRow);
         setLoading(true);
         const params = {
             id: selectedBranchRow.id,
@@ -391,6 +391,7 @@ const BranchTab = () => {
 
         // Add action column based on role
         if (userRole === "ICT_Service_Desk_Maker") {
+        // if (userRole === "ICT_Administrator") {
             cols.push({
                 field: "edit",
                 headerName: "",
@@ -408,7 +409,8 @@ const BranchTab = () => {
                     </IconButton>
                 ),
             });
-        } else if (userRole === "ICT_Service_Desk_Checker") {
+        // } else if (userRole === "ICT_Service_Desk_Checker") {
+        } else if (userRole === "ICT_Administrator") {
             cols.push({
                 field: "approve",
                 headerName: "",
@@ -444,7 +446,7 @@ const BranchTab = () => {
             const sortDir = branchSortModel[0]?.sort?.toUpperCase() || "DESC";
 
             const response = await fetch(
-                `http://localhost:8082/api/accountstatementengine/v1/user/findAllBranches?start=${branchPaginationModel.page}&length=${branchPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                `http://localhost:8082/api/branch/findAllBranches?start=${branchPaginationModel.page}&length=${branchPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
             );
 
             if (!response.ok) {
