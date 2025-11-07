@@ -76,9 +76,9 @@ const AccountManagement = () => {
     const [managerHelperEdit, setManagerHelperEdit] = useState("");
     const [helperText, setHelperText] = useState("");
     const [role, setRole] = useState(null);
-    const [rle, setRle] = useState(null);
-    const [brnch, setBrnch] = useState(null);
-    const [mngr, setMngr] = useState(null);
+    const [rle, setRle] = useState([]);
+    const [brnch, setBrnch] = useState([]);
+    const [mngr, setMngr] = useState([]);
     const [rleError, setRleError] = useState(false);
     const [brnchError, setBrnchError] = useState(false);
     const [mngrError, setMngrError] = useState(false);
@@ -94,6 +94,8 @@ const AccountManagement = () => {
         name: "",
         email: "",
         role: "",
+        branch: "",
+        manager: "",
     });
 
     const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -137,7 +139,7 @@ const AccountManagement = () => {
             }
 
             const data = await response.json();
-            console.log('data - ', data)
+            console.log('fetch-data - ', data)
 
             setRows(
                 data.content.map((item, index) => ({
@@ -149,6 +151,7 @@ const AccountManagement = () => {
                     createdBy: item.createdBy || "-",
                     dateCreated: new Date(item.dateCreated).toLocaleString() || "-",
                     status: item.status || "-",
+                    active: item.active || "-",
                 }))
             );
             setRowCount(data.totalElements);
@@ -216,11 +219,14 @@ const AccountManagement = () => {
         // reset role error if valid
         setManagerError(false);
         setManagerHelper("");
-
+        const custEmail = localStorage.getItem("curUserEmail");
+        console.log('email -> ', custEmail)
+        console.log('selectedRole -> ', selectedRole)
         const params = {
             email: email,
             roleId: selectedRole.role_id,
             branch: selectedBranch.name,
+            curUser: custEmail,
             lineManager: selectedManager.name,
             deleted: 0,
         };
@@ -229,40 +235,38 @@ const AccountManagement = () => {
         try {
             const data = await CreateUser(params);
             console.log("data - ",data)
-            console.log("data2 - ",data.status)
-            console.log("data2department - ",data.data.department)
-            console.log("data2name - ",data.data.department.name)
 
-            if (data.status === 400) {
-                setSnackbar({open: true, message: data.error, severity: "error"});
-                return;
-            }
-
-            /*if (data.status === 200) {
-                setSnackbar({open: true, message: "Department loaded", severity: "success"});
+            if (data.status === 200) {
+                setSnackbar({open: true, message: "User loaded", severity: "success"});
 
                 // ✅ Add to DataGrid state immediately
-                const newRole = {
+                const newUser = {
                     id: data.data.id,
-                    name: managerName,
-                    description: managerDescription,
-                    department: data.data.department.name,
-                    status: data.data.status?.name ?? "Active",
+                    email: email,
+                    branch: data.data.branch,
+                    roleId: data.data.roleId,
+                    lineManager: data.data.lineManager,
                     createdBy: data.data.createdBy,
                     updatedBy: data.data.updatedBy,
                     dateCreated: data.data.createdBy,
                     dateUpdated: data.data.updatedBy,
+                    status: data.data.active,
                 };
 
-                console.log('newRole - ', newRole)
+                console.log('newUser - ', newUser)
 
-                setManagerRows((prev) => [newRole, ...prev]);
-                setManagerRowCount((prev) => prev + 1);
+                setRows((prev) => [newUser, ...prev]);
+                setRowCount((prev) => prev + 1);
                 // Optional: clear fields
-                setManagerName("");
-                setManagerDescription("");
-                setselectedDepartment(null);
-            }*/
+                setEmail("");
+
+                setBrnch(null);
+                setRle(null);
+                setMngr(null);
+            } else {
+                setSnackbar({open: true, message: data.error, severity: "error"});
+                //return;
+            }
         } catch (error) {
             console.error(error);
             setSnackbar({open: true, message: "Failed to create department", severity: "error"});
@@ -277,20 +281,32 @@ const AccountManagement = () => {
     //     setAnchorEl(event.currentTarget);
     //     setSelectedRow(row);
     // };
-    const handleEditMenuOpen = (e, row) => {
+
+    const handleEditMenuOpen = useCallback((e, row) => {
         e.stopPropagation();
-        setSelectedRow(row);
+        console.log('rowRoles050 - ', mngr);
+        console.log('rowRoles051 - ', brnch);
+        console.log('rowRoles052 - ', rle);
+        console.log('rowRoles0523 - ', row);
+
+        const managerObj = mngr.find(manager => manager.name === row.lineManager) || null;;
+        const branchObj = brnch.find(brch => brch.name === row.branch) || null;;
+        const roleObj = rle.find(role => role.role_name === row.roleId) || null;;
+        console.log('managerObj - ', managerObj)
+        console.log('branchObj - ', branchObj)
+        console.log('roleObj - ', roleObj)
 
         setEditFormData({
             id: row.id || "",
             email: row.email || "",
-            role: row.role || "",
-            branch: row.branch || "",
-            manager: row.manager || "",
+            role: roleObj || null,
+            branch: branchObj || null,
+            manager: managerObj || null,
             status: row.status || "",
         });
         setOpenEditModal(true);
-    };
+    }, [mngr, brnch, rle]); // ✅ ADD departments2 to dependency array
+
 
     const handleApproveMenuOpen = (e, row) => {
         e.stopPropagation();
@@ -315,6 +331,7 @@ const AccountManagement = () => {
         setOpenEditModal(true);
         handleMenuClose();
     };
+
     const handleEditModalClose = () => {
         setOpenEditModal(false);
         setEditFormData({id: "", name: "", email: "", role: ""});
@@ -326,11 +343,13 @@ const AccountManagement = () => {
 
     const handleApprove = () => {
         console.log("Approved:", selectedRow);
+        handleApproveReject(selectedRow.id,'approve')
         setOpenApproveDialog(false);
     };
 
     const handleReject = () => {
         console.log("Rejected:", selectedRow);
+        handleApproveReject(selectedRow.id, 'reject')
         setOpenApproveDialog(false);
     };
 
@@ -359,26 +378,75 @@ const AccountManagement = () => {
         setManagerErrorEdit(false);
         setManagerHelperEdit("");
 
-        return
+        const params = {
+            id: editFormData.id,
+            email: editFormData.email,
+            branch: editFormData.branch.name,
+            lineManager: editFormData.manager.name,
+            roleId: editFormData.role.role_name,
+            curUser: localStorage.getItem("curUserEmail")
+        };
+
+        console.log('theparams - ', params)
+        // return
         setLoading(true);
         try {
             const response = await fetch(
-                "http://localhost:7081/api/accountstatementengine/v1/user/edit",
+                "http://localhost:8082/api/editUser/"+editFormData.id,
                 {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify(editFormData),
+                    body: JSON.stringify(params),
                 }
             );
-            if (!response.ok) {
+            if (response.status !== 200) {
                 const errData = await response.json();
                 setSnackbar({open: true, message: "Something went wrong", severity: "error"});
-                throw new Error(errData.message || "Failed to add user");
+                return
+                //throw new Error(errData.message || "Failed to add user");
             }
-            await fetchUsers(); // refresh list from server
             setSnackbar({open: true, message: "Successfully edited user", severity: "success"});
-            setRoles("");
-            setEmail("");
+            await fetchUsers(); // refresh list from server
+
+            // setMngr(null);
+            // setBrnch(null);
+            // setRle(null);
+            // setEmail("");
+        } catch (err) {
+            console.error("Add user error:", err);
+            alert(err.message);
+        } finally {
+            setLoading(false);
+            handleEditModalClose()
+        }
+    };
+
+    const handleApproveReject = async (id,action) => {
+        console.log('theparams - ', id, action)
+        // return
+        setLoading(true);
+        try {
+            const response = await fetch(
+                "http://localhost:8082/api/approve/"+id+"?action="+action,
+                {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: {},
+                }
+            );
+            if (response.status !== 200) {
+                const errData = await response.json();
+                setSnackbar({open: true, message: "Something went wrong", severity: "error"});
+                return
+                //throw new Error(errData.message || "Failed to add user");
+            }
+            setSnackbar({open: true, message: "Successfully actioned user", severity: "success"});
+            await fetchUsers(); // refresh list from server
+
+            // setMngr(null);
+            // setBrnch(null);
+            // setRle(null);
+            // setEmail("");
         } catch (err) {
             console.error("Add user error:", err);
             alert(err.message);
@@ -429,6 +497,7 @@ const AccountManagement = () => {
                 const data = await FetchManagers();
                 console.log('managers - ', data)
                 setMngr(data)
+
                 //setDepartments(data);
                 //setDepartments2(data);
             } catch (error) {
@@ -479,6 +548,7 @@ const AccountManagement = () => {
     const [editLoadingManagers, setEditLoadingManagers] = useState(false);
 
     const getStatusChip = (status) => {
+        // console.log('status - ', status)
         const statusConfig = {
             1: {
                 color: "#B26A00", // warm amber
@@ -551,7 +621,7 @@ const AccountManagement = () => {
         ];
 
         // Add action column based on role
-        if (userRole === "ICT_Service_Desk_Maker") {
+        if (userRole === "ICT_Service_Desk_Officer") {
             cols.push({
                 field: "edit",
                 headerName: "",
@@ -569,7 +639,7 @@ const AccountManagement = () => {
                     </IconButton>
                 ),
             });
-        } else if (userRole === "ICT_Service_Desk_Checker") {
+        } else if (userRole === "ICT_Service_Desk_Supervisor") {
             cols.push({
                 field: "approve",
                 headerName: "",
@@ -607,6 +677,20 @@ const AccountManagement = () => {
                 fontFamily: "'SUSE', sans-serif",
             }}
         >
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: "100%" }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
             {/* Page Header */}
             <Fade in={true} timeout={600}>
                 <Box sx={{mb: 2}}>
@@ -622,7 +706,7 @@ const AccountManagement = () => {
                 </Box>
             </Fade>
             {/* Filter + Add Button Section */}
-            {["ICT_Administrator"].includes(userRole) && (
+            {["ICT_Service_Desk_Officer"].includes(userRole) && (
             // {["ICT_Service_Desk_Maker"].includes(userRole) && (
                 <Fade in={true} timeout={1200}>
                     <Paper
@@ -1101,73 +1185,177 @@ const AccountManagement = () => {
 
                                     {/* Role */}
                                     <Autocomplete
-                                        options={roleOptions}
-                                        value={editFormData.role || ""}
-                                        size="small"
-                                        onChange={(e, newValue) => handleFormChange("role", newValue || "")}
-                                        renderInput={(params) => (
-                                            <TextField {...params} label="Role" variant="outlined"
-                                                       sx={{
-                                                           "& .MuiInputBase-input": {fontSize: 14}, // input text
-                                                           "& .MuiInputLabel-root": {fontSize: 14}, // label text
-                                                       }}
-                                                       fullWidth/>
-                                        )}
-                                    />
-
-                                    {/* Branch */}
-                                    <Autocomplete
-                                        options={branchOptions}
-                                        value={editFormData.branch || ""}
-                                        size="small"
+                                        options={rle}
+                                        value={editFormData.role} // ✅ CHANGED from .name to .department
                                         onChange={(e, newValue) => {
-                                            handleFormChange("branch", newValue || "");
-                                            handleFormChange("manager", ""); // reset manager
+                                            setEditFormData({
+                                                ...editFormData,
+                                                role: newValue,
+                                            });
                                         }}
-                                        renderInput={(params) => (
-                                            <TextField {...params} label="Branch" variant="outlined"
-                                                       sx={{
-                                                           "& .MuiInputBase-input": {fontSize: 14}, // input text
-                                                           "& .MuiInputLabel-root": {fontSize: 14}, // label text
-                                                       }}
-                                                       fullWidth/>
-                                        )}
-                                    />
-
-                                    {/* Manager */}
-                                    <Autocomplete
-                                        options={editManagerOptions}
-                                        value={editFormData.manager || ""}
-                                        size="small"
-                                        onChange={(e, newValue) => handleFormChange("manager", newValue || "")}
+                                        getOptionLabel={(option) => option?.role_name || ""}
+                                        isOptionEqualToValue={(option, value) => option?.id === value?.id}
                                         loading={editLoadingManagers}
-                                        disabled={!editFormData.branch}
+                                        size="small"
                                         renderInput={(params) => (
                                             <TextField
                                                 {...params}
-                                                label="Manager"
-                                                variant="outlined"
-                                                error={managerErrorEdit && editFormData.manager === ""}
-                                                fullWidth
-                                                sx={{
-                                                    "& .MuiInputBase-input": {fontSize: 14}, // input text
-                                                    "& .MuiInputLabel-root": {fontSize: 14}, // label text
-                                                }}
+                                                label="Role"
+                                                error={branchError && !editFormData.role}
                                                 InputProps={{
                                                     ...params.InputProps,
+                                                    startAdornment: (
+                                                        <InputAdornment position="start">
+                                                            <User
+                                                                size="16"
+                                                                color={
+                                                                    branchError && !editFormData.role
+                                                                        ? "#d32f2f"
+                                                                        : "currentColor"
+                                                                }
+                                                            />
+                                                        </InputAdornment>
+                                                    ),
                                                     endAdornment: (
                                                         <>
-                                                            {editLoadingManagers ? <CircularProgress size={20}/> : null}
+                                                            {editLoadingManagers ? <CircularProgress size={20} /> : null}
                                                             {params.InputProps.endAdornment}
                                                         </>
                                                     ),
                                                 }}
                                             />
                                         )}
+                                        sx={{
+                                            flex: 1,
+                                            minWidth: "220px",
+                                            "& .MuiInputBase-input": { fontSize: "0.9rem" },
+                                            "& .MuiInputLabel-root": { fontSize: "1.0rem", color: "black" },
+                                            "& .MuiInputLabel-root.Mui-focused": { color: "black" },
+                                            "& .MuiInputLabel-root.Mui-error": {
+                                                color: "#d32f2f !important",
+                                            },
+                                            "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline": {
+                                                borderColor: "#d32f2f !important",
+                                            },
+                                        }}
                                     />
 
+                                    {/* Branch */}
+                                    <Autocomplete
+                                        options={brnch}
+                                        value={editFormData.branch} // ✅ CHANGED from .name to .department
+                                        onChange={(e, newValue) => {
+                                            setEditFormData({
+                                                ...editFormData,
+                                                branch: newValue,
+                                            });
+                                        }}
+                                        getOptionLabel={(option) => option?.name || ""}
+                                        isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                        loading={editLoadingManagers}
+                                        size="small"
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                label="Branch"
+                                                error={branchError && !editFormData.branch}
+                                                InputProps={{
+                                                    ...params.InputProps,
+                                                    startAdornment: (
+                                                        <InputAdornment position="start">
+                                                            <Wallet2
+                                                                size="16"
+                                                                color={
+                                                                    branchError && !editFormData.branch
+                                                                        ? "#d32f2f"
+                                                                        : "currentColor"
+                                                                }
+                                                            />
+                                                        </InputAdornment>
+                                                    ),
+                                                    endAdornment: (
+                                                        <>
+                                                            {editLoadingManagers ? <CircularProgress size={20} /> : null}
+                                                            {params.InputProps.endAdornment}
+                                                        </>
+                                                    ),
+                                                }}
+                                            />
+                                        )}
+                                        sx={{
+                                            flex: 1,
+                                            minWidth: "220px",
+                                            "& .MuiInputBase-input": { fontSize: "0.9rem" },
+                                            "& .MuiInputLabel-root": { fontSize: "1.0rem", color: "black" },
+                                            "& .MuiInputLabel-root.Mui-focused": { color: "black" },
+                                            "& .MuiInputLabel-root.Mui-error": {
+                                                color: "#d32f2f !important",
+                                            },
+                                            "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline": {
+                                                borderColor: "#d32f2f !important",
+                                            },
+                                        }}
+                                    />
+
+                                    <Autocomplete
+                                        options={mngr}
+                                        value={editFormData.manager} // ✅ CHANGED from .name to .department
+                                        onChange={(e, newValue) => {
+                                            setEditFormData({
+                                                ...editFormData,
+                                                manager: newValue,
+                                            });
+                                        }}
+                                        getOptionLabel={(option) => option?.name || ""}
+                                        isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                        loading={editLoadingManagers}
+                                        size="small"
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                label="Manager"
+                                                error={managerErrorEdit && !editFormData.manager}
+                                                InputProps={{
+                                                    ...params.InputProps,
+                                                    startAdornment: (
+                                                        <InputAdornment position="start">
+                                                            <Profile2User
+                                                                size="16"
+                                                                color={
+                                                                    managerErrorEdit && !editFormData.manager
+                                                                        ? "#d32f2f"
+                                                                        : "currentColor"
+                                                                }
+                                                            />
+                                                        </InputAdornment>
+                                                    ),
+                                                    endAdornment: (
+                                                        <>
+                                                            {editLoadingManagers ? <CircularProgress size={20} /> : null}
+                                                            {params.InputProps.endAdornment}
+                                                        </>
+                                                    ),
+                                                }}
+                                            />
+                                        )}
+                                        sx={{
+                                            flex: 1,
+                                            minWidth: "220px",
+                                            "& .MuiInputBase-input": { fontSize: "0.9rem" },
+                                            "& .MuiInputLabel-root": { fontSize: "1.0rem", color: "black" },
+                                            "& .MuiInputLabel-root.Mui-focused": { color: "black" },
+                                            "& .MuiInputLabel-root.Mui-error": {
+                                                color: "#d32f2f !important",
+                                            },
+                                            "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline": {
+                                                borderColor: "#d32f2f !important",
+                                            },
+                                        }}
+                                    />
+
+
                                     {/* Status */}
-                                    <FormControlLabel
+                                   {/* <FormControlLabel
                                         control={
                                             <Checkbox
                                                 checked={editFormData.status === 1}
@@ -1180,7 +1368,7 @@ const AccountManagement = () => {
                                                 fontSize: "0.95rem", // 👈 smaller label text
                                             },
                                         }}
-                                    />
+                                    />*/}
                                 </Box>
                             </DialogContent>
                             <DialogActions>
@@ -1258,7 +1446,7 @@ const AccountManagement = () => {
                                                             fontSize: "0.8rem",
                                                         }}
                                                     >
-                                                        {selectedRow.role}
+                                                        {selectedRow.roleId}
                                                     </Typography>
                                                 </Box>
                                                 <Box sx={{display: "flex", justifyContent: "space-between"}}>
@@ -1274,7 +1462,7 @@ const AccountManagement = () => {
                                                         Manager
                                                     </Typography>
                                                     <Typography sx={{fontWeight: 600, fontSize: "0.8rem"}}>
-                                                        {selectedRow.manager}
+                                                        {selectedRow.lineManager}
                                                     </Typography>
                                                 </Box>
                                             </Box>
@@ -1303,7 +1491,7 @@ const AccountManagement = () => {
                                         Cancel
                                     </Button>
                                     <Box sx={{display: "flex", gap: 1.5}}>
-                                        {selectedRow?.status === 1 && (
+                                        {selectedRow?.active === 1 && (
                                             <>
                                                 <Button
                                                     onClick={handleReject}
@@ -1322,7 +1510,7 @@ const AccountManagement = () => {
                                                 </Button>
                                             </>
                                         )}
-                                        {selectedRow?.status === 2 && (
+                                        {selectedRow?.active === 2 && (
                                             <Button
                                                 onClick={handleReject}
                                                 variant="outlined"
@@ -1333,7 +1521,7 @@ const AccountManagement = () => {
                                             </Button>
                                         )}
 
-                                        {selectedRow?.status === 3 && (
+                                        {selectedRow?.active === 3 && (
                                             <Button
                                                 onClick={handleApprove}
                                                 variant="contained"

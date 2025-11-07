@@ -74,7 +74,7 @@ export default function MainRouter() {
                        element={
                            <ProtectedRoute
                                element={<AccountManagement />}
-                               allowedRoles={["ICT_Administrator", "ICT_Service_Desk_Maker", "ICT_Service_Desk_Checker"]}
+                               allowedRoles={["ICT_Administrator", "ICT_Service_Desk_Officer", "ICT_Service_Desk_Supervisor"]}
                                userRole={userRole}
                            />
                        }
@@ -132,7 +132,7 @@ export default function MainRouter() {
                        element={
                            <ProtectedRoute
                                element={<AllSettings />}
-                               allowedRoles={["ICT_Administrator", "ICT_Service_Desk_Maker", "ICT_Service_Desk_Checker"]}
+                               allowedRoles={["ICT_Administrator", "ICT_Service_Desk_Officer", "ICT_Service_Desk_Supervisor"]}
                                userRole={userRole}
                            />
                        }

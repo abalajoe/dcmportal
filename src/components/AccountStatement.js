@@ -22,7 +22,7 @@ import dayjs from "dayjs";
 import {Sms, Calendar, Card, Book1, Export, ArrowRotateRight, Printer} from "iconsax-react";
 import {Document, pdfjs, Page} from "react-pdf";
 import {ImportCurve, CloseCircle} from "iconsax-react";
-import {AccountSmtAPI, FetchSignature, PrintSmtAPI, WaiveChargeAPI} from "../services/Api";
+import {AccountSmtAPI, DownloadSmtAPI, FetchSignature, PrintSmtAPI, WaiveChargeAPI, EmailSmtAPI} from "../services/Api";
 import axios from "axios";
 import SignatureModal from "./SignatureModal";
 import ConfirmModal from "./ConfirmPayment";
@@ -39,6 +39,8 @@ const AccountStatement = () => {
     const [startDate, setStartDate] = useState(dayjs());
     const [endDate, setEndDate] = useState(dayjs());
     const [loading, setLoading] = useState(false);
+    const [isSendingEmail, setIsSendingEmail] = useState(false);
+    const [loadingDownload, setLoadingDownload] = useState(false);
     const [base64, setBase64] = useState(null);
     const [numPages, setNumPages] = useState(null);
     const [openDialog, setOpenDialog] = useState(false);
@@ -124,9 +126,36 @@ const AccountStatement = () => {
         setNumPages(numPages);
     }
 
+    const emailStatement = () => {
+        setIsSendingEmail(true);
+        EmailSmtAPI(accObject).then((emailStatus) => {
+            setIsSendingEmail(false);
+            return window.alert(`${emailStatus.status} `);
+        });
+    };
+
+    function startDownload() {
+        setLoadingDownload(true);
+        const linkSource = `data:application/pdf;base64,${base64}`;
+        const downloadLink = document.createElement("a");
+        document.body.appendChild(downloadLink);
+        downloadLink.href = linkSource;
+        downloadLink.target = "_self";
+        downloadLink.download = "Account statement";
+        downloadLink.click();
+
+        DownloadSmtAPI(accObject).then((r) => {
+            console.log("Logged");
+            setLoadingDownload(false);
+        });
+    }
+
     const handleAccountStatement = async () => {
         setLoading(true);
+        const email = localStorage.getItem('curUserEmail');
+        console.log('email -- ', email)
         const userParams = {
+            curUser: email,
             loanAcc: accountNumber,
             startDt: startDate,
             endDt: endDate,
@@ -613,12 +642,12 @@ const AccountStatement = () => {
                             </Button>
 
                             {/* Print Button */}
-                            {base64 && ["Branch_Maker", "Branch_Checker", "Security_Services_User", "Head_Office", "ICT_Administrator"].includes(userRole) && (
+                            {base64 && ["Branch_Maker", "Branch_Checker", "Head_Office", "Security_Services_User"].includes(userRole) && (
                                 <Button
                                     variant="contained"
                                     onClick={() => setModalOpen(true)}
                                     // onClick={() => setOpenDialog(true)}
-                                    disabled={loading}
+                                    //disabled={loading}
                                     startIcon={<Printer size="18" color="#fff"/>}
                                     sx={{
                                         height: 34,
@@ -640,11 +669,11 @@ const AccountStatement = () => {
                             )}
 
                             {/* Download Button */}
-                            {base64 && ["Contact_Centre_Officer", "Head_Office", "Security_Services_User"].includes(userRole) && (
+                            {base64 && ["Branch_Maker", "Branch_Checker", "Head_Office", "Security_Services_User"].includes(userRole) && (
                                 <Button
                                     variant="contained"
-                                    onClick={handleAccountStatement}
-                                    disabled={loading}
+                                    onClick={startDownload}
+                                    disabled={loadingDownload}
                                     startIcon={<ImportCurve size="18" color="#fff"/>}
                                     sx={{
                                         height: 34,
@@ -662,6 +691,32 @@ const AccountStatement = () => {
                                     }}
                                 >
                                     {loading ? <CircularProgress size={20} color="inherit"/> : "Download"}
+                                </Button>
+                            )}
+
+                            {/* Email Button */}
+                            {base64 && ["Contact_Centre_Officer"].includes(userRole) && (
+                                <Button
+                                    variant="contained"
+                                    onClick={emailStatement}
+                                    disabled={isSendingEmail}
+                                    startIcon={<Sms size="18" color="#fff"/>}
+                                    sx={{
+                                        height: 34,
+                                        minWidth: 120,
+                                        background: "linear-gradient(90deg, #6A1B9A, #8E24AA)",
+                                        textTransform: "none",
+                                        fontWeight: 600,
+                                        fontSize: "0.9rem",
+                                        color: "#fff",
+                                        boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                                        "&:hover": {
+                                            background: "linear-gradient(90deg, #4A148C, #7B1FA2)",
+                                            boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
+                                        },
+                                    }}
+                                >
+                                    {loading ? <CircularProgress size={20} color="inherit"/> : "Email"}
                                 </Button>
                             )}
                         </Box>

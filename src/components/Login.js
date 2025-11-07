@@ -85,17 +85,17 @@ function LoginPage() {
                 localStorage.setItem("expired", 0);
                 navigate("/accountStatement");
             }
-            else if (roleName === "ICT_Service_Desk_Maker") {
+            else if (roleName === "ICT_Service_Desk_Officer") {
                 //setubmitting(false);
-                console.log("User is an ICT Service Desk Maker.");
-                localStorage.setItem("userRole", "ICT_Service_Desk_Maker");
+                console.log("User is an ICT Service Desk Officer.");
+                localStorage.setItem("userRole", "ICT_Service_Desk_Officer");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
                 navigate("/accountManagement");
-            } else if (roleName === "ICT_Service_Desk_Checker") {
+            } else if (roleName === "ICT_Service_Desk_Supervisor") {
                 //setubmitting(false);
-                console.log("User is an ICT Service Desk Checker.");
-                localStorage.setItem("userRole", "ICT_Service_Desk_Checker");
+                console.log("User is an ICT Service Desk Supervisor.");
+                localStorage.setItem("userRole", "ICT_Service_Desk_Supervisor");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
                 navigate("/accountManagement");

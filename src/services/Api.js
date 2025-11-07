@@ -64,6 +64,69 @@ export const AccountSmtAPI = (userParams) => {
     return resp;
 };
 
+export const DownloadSmtAPI = (userParams) => {
+    const httpUrl = `${process.env.REACT_APP_BASE_URL}/downloadStatement`;
+
+    const resp = new Promise((resolve, reject) => {
+        const headers = {
+            method: "POST",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        };
+        const params = {
+            accountNo: userParams.loanAcc,
+            startDt: userParams.startDt,
+            endDt: userParams.endDt,
+            curUser: localStorage.getItem("curUserEmail")
+        };
+        console.log(`Request ${JSON.stringify(params)}`);
+        axios
+            .post(httpUrl, params, { headers })
+            .then((res) => {
+                // console.log(`Loans Statement ${JSON.stringify(res)}`);
+                resolve(res.data);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+
+    return resp;
+};
+
+export const EmailSmtAPI = (userParams) => {
+    const httpUrl = `${process.env.REACT_APP_BASE_URL}/emailStatement`;
+
+    const resp = new Promise((resolve, reject) => {
+        const headers = {
+            method: "POST",
+            "Content-Type": "application/json",
+            Authorization: localStorage.getItem("token"),
+        };
+        const params = {
+            accountNo: userParams.loanAcc,
+            startDt: userParams.startDt,
+            endDt: userParams.endDt,
+            curUser: userParams.curUser,
+            statementType: userParams.request,
+        };
+        // console.log(`Request ${JSON.stringify(params)}`);
+
+        axios
+            .post(httpUrl, params, { headers })
+            .then((res) => {
+                console.log(`Email Response ${JSON.stringify(res.data)}`);
+                // console.log(`Loans Statement ${JSON.stringify(res)}`);
+                resolve(res.data);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+
+    return resp;
+};
+
 export const FetchDepartments = async () => {
     try {
         const httpUrl = "http://localhost:8082/api/department/findAllDepartment";
@@ -161,7 +224,7 @@ export const FetchSignature = async (accountNo) => {
     }
 };
 
-export const CreateUser = (userParams) => {
+export const CreateUser = (params) => {
     // const httpUrl = `${process.env.REACT_APP_BASE_URL}/accountStatement`;
     // const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/manager";
     const httpUrl = `${process.env.REACT_APP_BASE_URL}/createUser`;
@@ -172,13 +235,7 @@ export const CreateUser = (userParams) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`
         };
-        const params = {
-            email: userParams.email,
-            roleId: userParams.roleId,
-            branch: userParams.branch,
-            lineManager: userParams.lineManager,
-            deleted: userParams.deleted
-        };
+
         console.log(`Request ${JSON.stringify(params)}`);
 
         // Set timeout to 30 seconds (30000 milliseconds)

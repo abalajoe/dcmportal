@@ -13,7 +13,7 @@ import {
     InputAdornment, Divider, Menu, MenuItem, DialogActions, Typography, Paper, Chip, IconButton, Slide
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import {Edit2, ArchiveAdd, Keyboard, Receipt1, Settings, ArchiveTick, Profile} from "iconsax-react";
+import {Edit2, ArchiveAdd, Keyboard, Receipt1, Settings, ArchiveTick, Profile, SearchNormal1} from "iconsax-react";
 import AddIcon from "@mui/icons-material/Add";
 import {CreateDept, EditDept, UpdateDept} from "../services/Api";
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -393,8 +393,7 @@ const DepartmentTab = () => {
         ];
 
         // Add action column based on role
-        // if (userRole === "ICT_Administrator") {
-        if (userRole === "ICT_Service_Desk_Maker") {
+        if (userRole === "ICT_Service_Desk_Officer") {
             cols.push({
                 field: "edit",
                 headerName: "",
@@ -412,8 +411,7 @@ const DepartmentTab = () => {
                     </IconButton>
                 ),
             });
-        } else if (userRole === "ICT_Administrator") {
-        // } else if (userRole === "ICT_Service_Desk_Checker") {
+        } else if (userRole === "ICT_Service_Desk_Supervisor") {
             cols.push({
                 field: "approve",
                 headerName: "",
@@ -498,6 +496,7 @@ const DepartmentTab = () => {
 
     return (
         <Paper elevation={5} sx={{p: 2, borderRadius: 2, backgroundColor: "#fff"}}>
+            {["ICT_Service_Desk_Officer"].includes(userRole) && (
             <Box
                 sx={{
                     display: "flex",
@@ -616,8 +615,46 @@ const DepartmentTab = () => {
                     {loading ? <CircularProgress size={20} color="inherit"/> : "Add Department"}
                 </Button>
             </Box>
-
-            <Divider sx={{mb: 2}}/>
+            )}
+            {["ICT_Service_Desk_Officer"].includes(userRole) && (
+                <Divider sx={{mb: 2}}/>
+            )}
+            {/* 🔍 Search Field above DataGrid */}
+            <Box sx={{mb: 1, display: "flex", justifyContent: "flex-start"}}>
+                <TextField
+                    placeholder="Search department"
+                    variant="outlined"
+                    size="small"
+                    value={searchVal}
+                    onChange={(e) => setSearchVal(e.target.value)}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchNormal1 size="18" color="#666"/>
+                            </InputAdornment>
+                        ),
+                    }}
+                    sx={{
+                        width: {xs: "100%", sm: "280px"},
+                        "& .MuiOutlinedInput-root": {
+                            borderRadius: 1,
+                            backgroundColor: "#f8f9fa",
+                            transition: "all 0.3s",
+                            "&:hover": {
+                                backgroundColor: "#fff",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                            },
+                            "&.Mui-focused": {
+                                backgroundColor: "#fff",
+                                boxShadow: "0 4px 16px rgba(17, 101, 48, 0.15)",
+                            },
+                        },
+                        "& .MuiInputBase-input": {
+                            fontSize: "0.9rem",
+                        },
+                    }}
+                />
+            </Box>
             <Box sx={{height: 440}}>
                 <DataGrid
                     rows={departmentRows}

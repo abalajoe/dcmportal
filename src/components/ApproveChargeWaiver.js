@@ -8,10 +8,11 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogActions, Typography, Paper, Slide, InputAdornment, Fade, Chip,
+    DialogActions, Typography, Paper, Slide, InputAdornment, Fade, Chip, Alert, Snackbar,
 } from "@mui/material";
 import {DataGrid} from "@mui/x-data-grid";
 import {CloseCircle, SearchNormal1, Settings, TickCircle} from "iconsax-react";
+import axios from "axios";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
@@ -28,7 +29,9 @@ const ApproveChargeWaiver = () => {
     const [sortModel, setSortModel] = useState([{field: "id", sort: "desc"}]);
     const [searchVal, setSearchVal] = useState("");
     const [selectedRow, setSelectedRow] = useState(null);
-
+    const email = localStorage.getItem("curUserEmail");
+    const username = email.replace(/@co-opbank\.co\.ke$/, '');
+    const [snackbar, setSnackbar] = useState({open: false, message: "", severity: "success"});
     // Fetch pageable users
     const fetchChargeWaivers = useCallback(async () => {
 
@@ -38,7 +41,7 @@ const ApproveChargeWaiver = () => {
             const sortDir = sortModel[0]?.sort?.toUpperCase() || "DESC";
 
             const response = await fetch(
-                `http://localhost:8082/api/accountstatementengine/v1/user/findAllChargeWaiver?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                `http://localhost:8082/api/waivers/${username}?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
             );
 
             if (!response.ok) {
@@ -72,6 +75,28 @@ const ApproveChargeWaiver = () => {
     useEffect(() => {
         fetchChargeWaivers();
     }, [fetchChargeWaivers]);
+
+
+
+    // useEffect(() => {
+    //     const fetchWaivers = async () => {
+    //         try {
+    //             const httpUrl = `${process.env.REACT_APP_BASE_URL}/allwaivers/` + username;
+    //             const headers = {
+    //                 method: 'GET',
+    //                 'Content-Type': 'application/json',
+    //                 Authorization: `Bearer ${localStorage.getItem('token')}`,
+    //             };
+    //             const response = await axios.get(httpUrl, { headers });
+    //             setRows(response.data); // Use setRows to update state
+    //             console.log("---->   ", response.data);
+    //         } catch (err) {
+    //             console.error(err); // Better error handling
+    //         }
+    //     };
+    //
+    //     fetchWaivers();
+    // }, [username]);
 
 
     // Menu actions
@@ -170,13 +195,54 @@ const ApproveChargeWaiver = () => {
 
     const handleApprove = () => {
         console.log("Approved:", selectedRow);
+        handleApproveReject(selectedRow.id, 'approve')
         setOpenDialog(false);
     };
 
     const handleReject = () => {
         console.log("Rejected:", selectedRow);
+        handleApproveReject(selectedRow.id, 'reject')
         setOpenDialog(false);
     };
+
+
+    const handleApproveReject = async (id,action) => {
+        console.log('theparams - ', id, action)
+        // return
+        setLoading(true);
+        try {
+            const response = await fetch(
+                "http://localhost:8082/api/waiver/approve/"+id+"?action="+action,
+                {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: {},
+                }
+            );
+
+            console.log("waiverstatus - ", response)
+            if (response.status !== 200) {
+                const errData = await response.json();
+                setSnackbar({open: true, message: "Something went wrong", severity: "error"});
+                return
+                //throw new Error(errData.message || "Failed to add user");
+            }
+            setSnackbar({open: true, message: "Successfully actioned waiver", severity: "success"});
+            await fetchChargeWaivers(); // refresh list from server
+
+            // setMngr(null);
+            // setBrnch(null);
+            // setRle(null);
+            // setEmail("");
+        } catch (err) {
+            console.error("Add user error:", err);
+            alert(err.message);
+        } finally {
+            setLoading(false);
+            setOpenDialog(false)
+        }
+    };
+
     return (
         <Box
             sx={{
@@ -187,6 +253,20 @@ const ApproveChargeWaiver = () => {
                 fontFamily: "'SUSE', sans-serif",
             }}
         >
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={3000}
+                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            >
+                <Alert
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    severity={snackbar.severity}
+                    sx={{ width: "100%" }}
+                >
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
             {/* Page Header */}
             <Fade in timeout={600}>
                 <Box sx={{mb: 2}}>
@@ -213,7 +293,7 @@ const ApproveChargeWaiver = () => {
                     }}
                 >
                     {/* 🔍 Search Field above DataGrid */}
-                    <Box sx={{mb: 1, display: "flex", justifyContent: "flex-end"}}>
+                    <Box sx={{mb: 1, display: "flex", justifyContent: "flex-start"}}>
                         <TextField
                             placeholder="Search account number..."
                             variant="outlined"

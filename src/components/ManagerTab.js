@@ -13,7 +13,7 @@ import {
     InputAdornment, Divider, Menu, MenuItem, DialogActions, Typography, Paper, Chip, IconButton, Slide, Autocomplete
 } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import {Data, Edit2, InfoCircle, Keyboard, Profile, Settings, Receipt1} from "iconsax-react";
+import {Data, Edit2, InfoCircle, Keyboard, Profile, Settings, Receipt1, SearchNormal1} from "iconsax-react";
 import AddIcon from "@mui/icons-material/Add";
 import {
     CreateDept,
@@ -395,6 +395,7 @@ const ManagerTab = () => {
 
         setOpenEditModal(true);
     }, [departments2]); // ✅ ADD departments2 to dependency array
+
     const managerColumns = useMemo(() => {
         const cols = [
             {field: "name", headerName: "Name", flex: 1, minWidth: 150},
@@ -424,8 +425,7 @@ const ManagerTab = () => {
         ];
 
         // Add action column based on role
-        // if (userRole === "ICT_Administrator") {
-        if (userRole === "ICT_Service_Desk_Checker") {
+        if (userRole === "ICT_Service_Desk_Officer") {
             cols.push({
                 field: "edit",
                 headerName: "",
@@ -443,8 +443,7 @@ const ManagerTab = () => {
                     </IconButton>
                 ),
             });
-        } else if (userRole === "ICT_Administrator") {
-        // } else if (userRole === "ICT_Service_Desk_Maker") {
+        } else if (userRole === "ICT_Service_Desk_Supervisor") {
             cols.push({
                 field: "approve",
                 headerName: "",
@@ -546,20 +545,7 @@ const ManagerTab = () => {
 
     return (
         <Paper elevation={5} sx={{p: 2, borderRadius: 2, backgroundColor: "#fff"}}>
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={3000}
-                onClose={() => setSnackbar({ ...snackbar, open: false })}
-                anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-            >
-                <Alert
-                    onClose={() => setSnackbar({ ...snackbar, open: false })}
-                    severity={snackbar.severity}
-                    sx={{ width: "100%" }}
-                >
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
+            {["ICT_Service_Desk_Officer"].includes(userRole) && (
             <Box
                 sx={{
                     display: "flex",
@@ -569,6 +555,20 @@ const ManagerTab = () => {
                     justifyContent: "space-between",
                 }}
             >
+                <Snackbar
+                    open={snackbar.open}
+                    autoHideDuration={3000}
+                    onClose={() => setSnackbar({ ...snackbar, open: false })}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                >
+                    <Alert
+                        onClose={() => setSnackbar({ ...snackbar, open: false })}
+                        severity={snackbar.severity}
+                        sx={{ width: "100%" }}
+                    >
+                        {snackbar.message}
+                    </Alert>
+                </Snackbar>
                 <TextField
                     size="small"
                     label="Manager Name"
@@ -713,8 +713,46 @@ const ManagerTab = () => {
                     {loading ? <CircularProgress size={20} color="inherit"/> : "Add Manager"}
                 </Button>
             </Box>
-
-            <Divider sx={{mb: 2}}/>
+            )}
+            {["ICT_Service_Desk_Officer"].includes(userRole) && (
+                <Divider sx={{mb: 2}}/>
+            )}
+            {/* 🔍 Search Field above DataGrid */}
+            <Box sx={{mb: 1, display: "flex", justifyContent: "flex-start"}}>
+                <TextField
+                    placeholder="Search manager"
+                    variant="outlined"
+                    size="small"
+                    value={searchVal}
+                    onChange={(e) => setSearchVal(e.target.value)}
+                    InputProps={{
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchNormal1 size="18" color="#666"/>
+                            </InputAdornment>
+                        ),
+                    }}
+                    sx={{
+                        width: {xs: "100%", sm: "280px"},
+                        "& .MuiOutlinedInput-root": {
+                            borderRadius: 1,
+                            backgroundColor: "#f8f9fa",
+                            transition: "all 0.3s",
+                            "&:hover": {
+                                backgroundColor: "#fff",
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                            },
+                            "&.Mui-focused": {
+                                backgroundColor: "#fff",
+                                boxShadow: "0 4px 16px rgba(17, 101, 48, 0.15)",
+                            },
+                        },
+                        "& .MuiInputBase-input": {
+                            fontSize: "0.9rem",
+                        },
+                    }}
+                />
+            </Box>
             <Box sx={{height: 440}}>
                 <DataGrid
                     rows={rolesRows}
@@ -836,49 +874,14 @@ const ManagerTab = () => {
                                 }}
                                 getOptionLabel={(option) => option?.name || ""}
                                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                                loading={loadingDepartments}
                                 size="small"
                                 renderInput={(params) => (
                                     <TextField
                                         {...params}
                                         label="Department"
-                                        error={departmentError && !editManagerFormData.department}
-                                        InputProps={{
-                                            ...params.InputProps,
-                                            startAdornment: (
-                                                <InputAdornment position="start">
-                                                    <Data
-                                                        size="16"
-                                                        color={
-                                                            departmentError && !editManagerFormData.department
-                                                                ? "#d32f2f"
-                                                                : "currentColor"
-                                                        }
-                                                    />
-                                                </InputAdornment>
-                                            ),
-                                            endAdornment: (
-                                                <>
-                                                    {loadingDepartments ? <CircularProgress size={20} /> : null}
-                                                    {params.InputProps.endAdornment}
-                                                </>
-                                            ),
-                                        }}
+
                                     />
                                 )}
-                                sx={{
-                                    flex: 1,
-                                    minWidth: "220px",
-                                    "& .MuiInputBase-input": { fontSize: "0.9rem" },
-                                    "& .MuiInputLabel-root": { fontSize: "1.0rem", color: "black" },
-                                    "& .MuiInputLabel-root.Mui-focused": { color: "black" },
-                                    "& .MuiInputLabel-root.Mui-error": {
-                                        color: "#d32f2f !important",
-                                    },
-                                    "& .MuiOutlinedInput-root.Mui-error .MuiOutlinedInput-notchedOutline": {
-                                        borderColor: "#d32f2f !important",
-                                    },
-                                }}
                             />
 
                             {/* Name */}

@@ -48,7 +48,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             icon: <ArrangeHorizontalSquare size="20" color="currentColor" /> },
         { label: "Account Management",
             path: "/accountManagement",
-            allowedRoles: ["ICT_Administrator", "ICT_Service_Desk", "ICT_Service_Desk_Maker", "ICT_Service_Desk_Checker"],
+            allowedRoles: ["ICT_Administrator", "ICT_Service_Desk_Officer", "ICT_Service_Desk_Supervisor"],
             icon: <ProfileTick size="20" color="currentColor" /> },
         { label: "Approve Charge Waiver",
             path: "/approveChargeWaiver",
@@ -72,7 +72,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             icon: <Layer size="20" color="currentColor" /> },
         { label: "Settings",
             path: "/settings",
-            allowedRoles: ["ICT_Administrator", "ICT_Service_Desk_Maker", "ICT_Service_Desk_Checker"],
+            allowedRoles: ["ICT_Administrator", "ICT_Service_Desk_Officer", "ICT_Service_Desk_Supervisor"],
             icon: <Setting2 size="20" color="currentColor" /> },
     ];
 
