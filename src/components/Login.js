@@ -65,8 +65,8 @@ function LoginPage() {
             completeEmail = lowredEmail;
         }
         try {
-            // const data = await loginUser(email, password);
-            const data = await loginUser(completeEmail, password);
+            const data = await loginUser(email, password);
+            // const data = await loginUser(completeEmail, password);
             console.log("Login successful:", data);
 
             localStorage.setItem("token", data.token);
@@ -77,13 +77,13 @@ function LoginPage() {
             localStorage.setItem("role", roleName);
             console.log(roleName);
             console.log('--> ',localStorage.getItem('role'));
-            if (roleName === "ICT_Administrator") {
+            if (roleName === "Supplier") {
                 //setubmitting(false);
                 console.log("User is an ICT Administrator.");
-                localStorage.setItem("userRole", "ICT_Administrator");
+                localStorage.setItem("userRole", "Supplier");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
-                navigate("/accountStatement");
+                navigate("/supplier");
             }
             else if (roleName === "ICT_Service_Desk_Officer") {
                 //setubmitting(false);
@@ -179,9 +179,9 @@ function LoginPage() {
             <Box sx={{ display: "flex", justifyContent: "center", mt: 0 }}>
                 <Box
                     sx={{
-                        backgroundColor: "green",
+                        backgroundColor: "grey",
                         color: "white",
-                        px: 3,
+                        px: 20,
                         py: 1,
                         display: "flex",
                         alignItems: "center",
@@ -190,10 +190,10 @@ function LoginPage() {
                         boxShadow: 3,
                     }}
                 >
-                    <Typography variant="h6" sx={{fontWeight: "bold", mt: 1}}>
+                    {/*<Typography variant="h6" sx={{fontWeight: "bold", mt: 1}}>
                         <img src="/cooplogo.jpeg" alt="logo" style={{height: 36}}/>
-                    </Typography>
-                    <Typography variant="h6">ACCOUNT STATEMENT ENGINE</Typography>
+                    </Typography>*/}
+                    <Typography variant="h6">DCM</Typography>
                 </Box>
             </Box>
 
@@ -249,7 +249,7 @@ function LoginPage() {
 
                             <Button
                                 variant="contained"
-                                color="success"
+                                color="secondary"
                                 fullWidth
                                 type="submit"
                                 disabled={loading}

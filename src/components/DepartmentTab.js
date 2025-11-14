@@ -393,6 +393,7 @@ const DepartmentTab = () => {
         ];
 
         // Add action column based on role
+        // if (userRole === "ICT_Administrator") {
         if (userRole === "ICT_Service_Desk_Officer") {
             cols.push({
                 field: "edit",
@@ -411,7 +412,8 @@ const DepartmentTab = () => {
                     </IconButton>
                 ),
             });
-        } else if (userRole === "ICT_Service_Desk_Supervisor") {
+        } else if (userRole === "ICT_Administrator") {
+        // } else if (userRole === "ICT_Service_Desk_Supervisor") {
             cols.push({
                 field: "approve",
                 headerName: "",
@@ -447,7 +449,8 @@ const DepartmentTab = () => {
             const sortDir = departmentSortModel[0]?.sort?.toUpperCase() || "DESC";
 
             const response = await fetch(
-                `http://localhost:8082/api/department/findAllDepartments?start=${departmentPaginationModel.page}&length=${departmentPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                `http://localhost:8082/api/accountstatementengine/v1/user/findAllDepartments?start=${departmentPaginationModel.page}&length=${departmentPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                // `http://localhost:8082/api/department/findAllDepartments?start=${departmentPaginationModel.page}&length=${departmentPaginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
             );
 
             if (!response.ok) {
@@ -496,7 +499,8 @@ const DepartmentTab = () => {
 
     return (
         <Paper elevation={5} sx={{p: 2, borderRadius: 2, backgroundColor: "#fff"}}>
-            {["ICT_Service_Desk_Officer"].includes(userRole) && (
+            {["ICT_Administrator"].includes(userRole) && (
+            // {["ICT_Service_Desk_Officer"].includes(userRole) && (
             <Box
                 sx={{
                     display: "flex",

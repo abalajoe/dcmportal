@@ -2,11 +2,9 @@ import React, { useEffect } from "react";
 import {NavLink, useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { IconButton, Tooltip, Button, useMediaQuery, useTheme } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
+import { Tooltip, useMediaQuery, useTheme } from "@mui/material";
 import {
-    ArrangeHorizontalSquare, ProfileTick, Back, ArchiveMinus, Candle, Layer, TextalignJustifyleft,
-    EmptyWallet, UserAdd, UserEdit, Setting, Setting3, Setting4, Setting2
+    EmptyWallet, Setting2, ArchiveAdd, Diagram
 } from "iconsax-react";
 
 export default function Sidebar({ collapsed, setCollapsed }) {
@@ -18,11 +16,11 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     const userRole = localStorage.getItem("role");
 
     // Collapse sidebar on small screens by default
-    useEffect(() => {
+    /*useEffect(() => {
         if (isSmallScreen) {
             setCollapsed(true);
         }
-    }, [isSmallScreen, setCollapsed]);
+    }, [isSmallScreen, setCollapsed]);*/
 
     // ✅ logout handler
     const handleLogout = () => {
@@ -35,44 +33,17 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     };
 
     const navItems = [
-        { label: "Account Statement",
-            path: "/accountStatement",
-            allowedRoles: [
-                "ICT_Administrator",
-                "Contact_Centre_Officer",
-                "Branch_Maker",
-                "Branch_Checker",
-                "Security_Services_User",
-                "Head_Office"
-            ],
-            icon: <ArrangeHorizontalSquare size="20" color="currentColor" /> },
-        { label: "Account Management",
-            path: "/accountManagement",
-            allowedRoles: ["ICT_Administrator", "ICT_Service_Desk_Officer", "ICT_Service_Desk_Supervisor"],
-            icon: <ProfileTick size="20" color="currentColor" /> },
-        { label: "Approve Charge Waiver",
-            path: "/approveChargeWaiver",
-            allowedRoles: ["Branch_Checker"],
-            icon: <EmptyWallet size="20" color="currentColor" /> },
-        { label: "Track Record",
-            path: "/trackRecord",
-            allowedRoles: ["ICT_Administrator", "Branch_Maker", "Branch_Checker"],
-            icon: <TextalignJustifyleft size="20" color="currentColor" /> },
-        { label: "Print History",
-            path: "/printHistory",
-            allowedRoles: ["ICT_Administrator", "Branch_Maker", "Branch_Checker"],
-            icon: <ArchiveMinus size="20" color="currentColor" /> },
-        { label: "General Configs",
-            path: "/generalConfigs",
-            allowedRoles: ["ICT_Administrator", "ICT_Service_Desk_Maker", "ICT_Service_Desk_Checker"],
-            icon: <Candle size="20" color="currentColor" /> },
-        { label: "System Logs",
-            path: "/systemLogs",
-            allowedRoles: ["ICT_Administrator", "Branch_Maker", "Branch_Checker"],
-            icon: <Layer size="20" color="currentColor" /> },
+        { label: "Inventory",
+            path: "/supplier",
+            allowedRoles: ["Supplier"],
+            icon: <ArchiveAdd size="20" color="currentColor" /> },
+        { label: "Reports",
+            path: "/reports",
+            allowedRoles: ["Supplier"],
+            icon: <Diagram size="20" color="currentColor" /> },
         { label: "Settings",
             path: "/settings",
-            allowedRoles: ["ICT_Administrator", "ICT_Service_Desk_Officer", "ICT_Service_Desk_Supervisor"],
+            allowedRoles: ["Supplier"],
             icon: <Setting2 size="20" color="currentColor" /> },
     ];
 
@@ -87,8 +58,8 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         gap: collapsed ? 0 : 12,
         padding: "10px 8px",
         textDecoration: "none",
-        color: isActive ? "#116530" : "#606060",
-        backgroundColor: isActive ? "#e6f2e6" : "transparent",
+        color: isActive ? "purple" : "#606060",
+        backgroundColor: isActive ? "#FFD3D5" : "transparent",
         borderRadius: 2,
         margin: "6px 8px",
         justifyContent: collapsed ? "center" : "flex-start",
@@ -112,7 +83,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             }}
         >
             {/* Toggle button */}
-            <IconButton
+           {/* <IconButton
                 onClick={toggleCollapse}
                 sx={{
                     mb: 1,
@@ -123,7 +94,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                 size="small"
             >
                 <MenuIcon />
-            </IconButton>
+            </IconButton>*/}
 
             {/* ✅ Filtered Navigation items */}
             <Box component="nav" sx={{ flexGrow: 1 }}>
@@ -159,48 +130,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
                         )}
                     </NavLink>
                 ))}
-            </Box>
-
-            {/* Logout + Footer */}
-            <Box sx={{ display: "flex", flexDirection: "column" }}>
-                <Tooltip title="Logout" placement="right">
-                    <Button
-                        onClick={handleLogout} // ✅ added click handler
-                        startIcon={<Back size="24" color="currentColor" />}
-                        sx={{
-                            width: "100%",
-                            justifyContent: collapsed ? "center" : "flex-start",
-                            px: collapsed ? 0 : 2,
-                            color: "brown",
-                            textTransform: "none",
-                            mb: 1,
-                            fontWeight: "bold", // ✅ makes the Logout text bold
-                            fontSize: "15px",
-                            transition: "all 0.2s",
-                        }}
-                    >
-                        {!collapsed && "Logout"}
-                    </Button>
-                </Tooltip>
-
-                <Box
-                    sx={{
-                        textAlign: "center",
-                        pt: 1,
-                        pb: 2,
-                        borderTop: "1px solid #ddd",
-                    }}
-                >
-                    {!collapsed ? (
-                        <Typography variant="caption" color="text.secondary">
-                            Account Statement Engine v1.0.0
-                        </Typography>
-                    ) : (
-                        <Typography variant="caption" color="text.secondary">
-                            v1.0.0
-                        </Typography>
-                    )}
-                </Box>
             </Box>
         </Box>
     );

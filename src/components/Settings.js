@@ -30,7 +30,7 @@ import {CreateSupplier,
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
-const AccountManagement = () => {
+const Settings = () => {
     const userRole = localStorage.getItem("role");
     const [sku, setSku] = useState("");
     const [name, setName] = useState("");
@@ -435,7 +435,7 @@ const AccountManagement = () => {
                         variant="h5"
                         sx={{fontWeight: 700, color: "purple", mb: 0.5}}
                     >
-                        Supplier
+                        Settings
                     </Typography>
                     {/*<Typography variant="body2" color="text.secondary">
                         Manage system users, roles, and permissions.
@@ -853,4 +853,4 @@ const AccountManagement = () => {
     );
 };
 
-export default AccountManagement;
+export default Settings;

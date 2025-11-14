@@ -15,6 +15,7 @@ import AllSettings from "./components/AllSettings";
 import AccountManagement from "./components/AccountManagement";
 import GeneralConfigs2 from "./components/GeneralConfigs";
 import GeneralConfigs from "./components/GeneralConfigs";
+import Reports from "./components/Reports";
 
 export default function MainRouter() {
     // ✅ Don't use default value - force it to read fresh each time
@@ -70,20 +71,20 @@ export default function MainRouter() {
                            />
                        }
                 />
-                <Route path="/accountManagement"
+                <Route path="/supplier"
                        element={
                            <ProtectedRoute
                                element={<AccountManagement />}
-                               allowedRoles={["ICT_Administrator", "ICT_Service_Desk_Officer", "ICT_Service_Desk_Supervisor"]}
+                               allowedRoles={["Supplier"]}
                                userRole={userRole}
                            />
                        }
                 />
-                <Route path="/trackRecord"
+                <Route path="/reports"
                        element={
                            <ProtectedRoute
-                               element={<TrackRecord />}
-                               allowedRoles={["ICT_Administrator", "Branch_Maker", "Branch_Checker"]}
+                               element={<Reports />}
+                               allowedRoles={["Supplier"]}
                                userRole={userRole}
                            />
                        }
@@ -132,7 +133,7 @@ export default function MainRouter() {
                        element={
                            <ProtectedRoute
                                element={<AllSettings />}
-                               allowedRoles={["ICT_Administrator", "ICT_Service_Desk_Officer", "ICT_Service_Desk_Supervisor"]}
+                               allowedRoles={["Supplier"]}
                                userRole={userRole}
                            />
                        }

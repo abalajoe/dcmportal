@@ -3,15 +3,20 @@ import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { User } from "iconsax-react";
+import IconButton from "@mui/material/IconButton";
+import { User, Logout } from "iconsax-react"; // Logout icon
 
 export default function Navbar() {
-    const email = localStorage.getItem('curUserEmail');
-    const role = localStorage.getItem('role');
-    const roleName = role.replace(/_/g, " ");
+    const email = localStorage.getItem("curUserEmail");
+
+    const handleLogout = () => {
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = "/"; // or use react-router navigate
+    };
 
     return (
-        <AppBar position="fixed" elevation={3} sx={{ backgroundColor: "#116530" }}>
+        <AppBar position="fixed" elevation={3} sx={{ backgroundColor: "purple" }}>
             <Toolbar
                 sx={{
                     display: "flex",
@@ -22,7 +27,7 @@ export default function Navbar() {
             >
                 {/* Left: Logo */}
                 <Box sx={{ display: "flex", alignItems: "center" }}>
-                    <img src="/cooplogo.jpeg" alt="logo" style={{ height: 36 }} />
+                    <h3>DCM</h3>
                 </Box>
 
                 {/* Center: Title */}
@@ -35,11 +40,9 @@ export default function Navbar() {
                         fontSize: 18,
                         display: { xs: "none", sm: "block" },
                     }}
-                >
-                    Account Statement
-                </Typography>
+                ></Typography>
 
-                {/* Right: Email + Role */}
+                {/* Right: User + Email + Logout */}
                 <Box
                     sx={{
                         display: "flex",
@@ -49,10 +52,22 @@ export default function Navbar() {
                         whiteSpace: "nowrap",
                     }}
                 >
-                    <User size="16" color="#fff" />
                     <Typography sx={{ fontSize: "14px", fontWeight: 500 }}>
-                        {email} | <strong style={{ fontStyle: "bold", fontWeight: 600 }}>{roleName}</strong>
+                        {email}
                     </Typography>
+
+                    {/* Logout icon */}
+                    <IconButton
+                        onClick={handleLogout}
+                        sx={{
+                            color: "#fff",
+                            ml: 1,
+                            p: 0.5,
+                            "&:hover": { backgroundColor: "rgba(255,255,255,0.2)" },
+                        }}
+                    >
+                        <Logout size="18" color="#fff" />
+                    </IconButton>
                 </Box>
             </Toolbar>
         </AppBar>

@@ -9,7 +9,7 @@ const collapsedWidth = 60;
 const appBarHeight = 64;
 
 export default function MainLayout() {
-    const [collapsed, setCollapsed] = useState(true); // default collapsed
+    const [collapsed, setCollapsed] = useState(false); // default collapsed
 
     return (
         <Box sx={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>

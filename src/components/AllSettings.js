@@ -496,82 +496,12 @@ const AllSettings = () => {
                 <Box sx={{mb: 2}}>
                     <Typography
                         variant="h5"
-                        sx={{fontWeight: 700, color: "#116530", mb: 0.5}}
+                        sx={{fontWeight: 700, color: "purple", mb: 0.5}}
                     >
                         Settings
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        Manage global settings
-                    </Typography>
                 </Box>
             </Fade>
-
-            {/* 🔹 Pills Navigation */}
-            <Fade in={true} timeout={800}>
-                <Paper
-                    elevation={3}
-                    sx={{
-                        borderRadius: 1,
-                        backgroundColor: "#fff",
-                        mb: 0,
-                    }}
-                >
-                    <Tabs
-                        value={tabIndex}
-                        onChange={handleChange}
-                        textColor="primary"
-                        indicatorColor="primary"
-                        variant="scrollable"
-                        scrollButtons="auto"
-                        sx={{
-                            "& .MuiTab-root": {
-                                textTransform: "none",
-                                fontWeight: 600,
-                                color: "#444",
-                                minHeight: 48,
-                                borderRadius: "10px",
-                                textAlign: "center", // ✅ center text within each tab
-                                justifyContent: "center",
-                            },
-                            "& .Mui-selected": {
-                                color: "#116530 !important",
-                                fontsize: "25px",
-                                transition: "all 0.3s ease",
-                            },
-                        }}
-                    >
-                        <Tab icon={<Save2 size="18" color="currentColor"/>} iconPosition="start" label="Branches"/>
-                        <Tab icon={<Data size="18" color="currentColor"/>} iconPosition="start"
-                             label="Departments"/>
-                        {/*<Tab icon={<UserEdit size="18" color="currentColor"/>} iconPosition="start" label="Roles"/>*/}
-                        <Tab icon={<Profile2User size="18" color="currentColor"/>} iconPosition="start"
-                             label="Managers"/>
-                        <Tab icon={<Firstline size="18" color="currentColor"/>} iconPosition="start"
-                             label="Logs Category"/>
-                    </Tabs>
-                </Paper>
-            </Fade>
-            <TabPanel value={tabIndex} index={0}>
-                <BranchTab />
-            </TabPanel>
-            {/* ------------------------ TAB 1: Departments ------------------------ */}
-            <TabPanel value={tabIndex} index={1}>
-                <DepartmentTab/>
-            </TabPanel>
-
-            {/* ------------------------ TAB 1: Roles ------------------------ */}
-            {/*<TabPanel value={tabIndex} index={2}>
-                <RolesTab />
-            </TabPanel>*/}
-
-            <TabPanel value={tabIndex} index={2}>
-                <ManagerTab />
-            </TabPanel>
-
-            <TabPanel value={tabIndex} index={3}>
-                <LogCategoryTab/>
-            </TabPanel>
-
         </Box>
     );
 };

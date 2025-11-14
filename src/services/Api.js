@@ -4,7 +4,7 @@ import axios from "axios";
 export const loginUser = async (email, pswrd) => {
     try {
         const response = await fetch(
-            `${process.env.REACT_APP_BASE_URL}/userSignin`,
+            `${process.env.REACT_APP_BASE_URL2}/userSignin`,
             // "http://localhost:8082/api/userSignin",
             // "http://172.16.20.112:8082/api/userSignin",
             // "http://localhost:7081/api/accountstatementengine/v1/auth/authenticate",
@@ -251,7 +251,33 @@ export const CreateUser = (params) => {
 
     return resp;
 };
+export const CreateSupplier = (params) => {
+    // const httpUrl = `${process.env.REACT_APP_BASE_URL}/accountStatement`;
+    // const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/manager";
+    const httpUrl = `${process.env.REACT_APP_BASE_URL2}/supplier`;
 
+    const resp = new Promise((resolve, reject) => {
+        const headers = {
+            method: "POST",
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+        };
+
+        console.log(`Request ${JSON.stringify(params)}`);
+
+        // Set timeout to 30 seconds (30000 milliseconds)
+        axios
+            .post(httpUrl, params, { headers, timeout: 1200000 })
+            .then((res) => {
+                resolve(res);
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+
+    return resp;
+};
 export const CreateBranch = (deptParams) => {
     const httpUrl = `${process.env.REACT_APP_BASE_URL}/branch/`;
     // const httpUrl = "http://localhost:8082/api/branch/v1/user/branch";
@@ -333,8 +359,8 @@ export const UpdateBranch = (deptParams) => {
 
 export const CreateDept = (deptParams) => {
     // const httpUrl = `${process.env.REACT_APP_BASE_URL}/accountStatement`;
-    // const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/department";
-    const httpUrl = `${process.env.REACT_APP_BASE_URL}/department/`;
+    const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/department";
+    // const httpUrl = `${process.env.REACT_APP_BASE_URL}/department/`;
     const resp = new Promise((resolve, reject) => {
         const headers = {
             method: "POST",
@@ -362,8 +388,8 @@ export const CreateDept = (deptParams) => {
 };
 export const EditDept = (deptParams) => {
     // const httpUrl = `${process.env.REACT_APP_BASE_URL}/accountStatement`;
-    // const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/department/"+deptParams.id;
-    const httpUrl = `${process.env.REACT_APP_BASE_URL}/department/${deptParams.id}`;
+    const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/department/"+deptParams.id;
+    // const httpUrl = `${process.env.REACT_APP_BASE_URL}/department/${deptParams.id}`;
 
     const resp = new Promise((resolve, reject) => {
         const headers = {
@@ -393,8 +419,8 @@ export const EditDept = (deptParams) => {
 export const UpdateDept = (deptParams) => {
     // e.g. deptParams = { id: 5, action: "approve" }
     // const httpUrl = `${process.env.REACT_APP_BASE_URL}/department/${deptParams.id}/status?action=${deptParams.action}`;
-    // const httpUrl = `http://localhost:8082/api/accountstatementengine/v1/user/department/${deptParams.id}/status?action=${deptParams.action}`;
-    const httpUrl = `${process.env.REACT_APP_BASE_URL}/department/${deptParams.id}/status?action=${deptParams.action}`;
+    const httpUrl = `http://localhost:8082/api/accountstatementengine/v1/user/department/${deptParams.id}/status?action=${deptParams.action}`;
+    // const httpUrl = `${process.env.REACT_APP_BASE_URL}/department/${deptParams.id}/status?action=${deptParams.action}`;
 
     const headers = {
         "Content-Type": "application/json",
