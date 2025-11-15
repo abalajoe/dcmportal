@@ -13,7 +13,7 @@ const Reports = () => {
     const [data, setData] = useState([]);
 
     useEffect(() => {
-        fetch("http://localhost:8082/api2/supplierReport")
+        fetch("http://localhost:8082/api/supplierReport")
             .then(response => response.json())
             .then(data => setData(data))
             .catch(err => console.error("Error fetching suppliers:", err));

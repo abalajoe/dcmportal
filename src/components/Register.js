@@ -9,23 +9,23 @@ import {
     Checkbox,
     Snackbar,
     FormControlLabel,
-    CircularProgress, Alert,
+    CircularProgress, Alert, Autocomplete,
 } from "@mui/material";
-import { loginUser } from "../services/Api"; // import the API function
+import {createUser, loginUser} from "../services/Api"; // import the API function
 import { useNavigate} from "react-router-dom";
 function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [rememberMe, setRememberMe] = useState(false);
+    const [cpassword, setCpassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [emailError, setEmailError] = useState({ error: false, helperText: "" });
     const [passwordError, setPasswordError] = useState({ error: false, helperText: "" });
+    const [cpasswordError, setCpasswordError] = useState({ error: false, helperText: "" });
+    const [roleError, setRoleError] = useState({ error: false, helperText: "" });
     const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
     let navigate = useNavigate();
-
-    const validateEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-
-    const handleLogin = async (e) => {
+    const [role, setRole] = useState(null);
+    const handleRegister = async (e) => {
         e.preventDefault();
 
         if (!email) {
@@ -33,14 +33,7 @@ function LoginPage() {
             setEmailError({ error: true, helperText: "Email is required" });
             return;
         }
-
-        // if (!validateEmail(email)) {
-        //     setSnackbar({ open: true, message: "Please enter a valid email address", severity: "error" });
-        //     setEmailError({ error: true, helperText: "Enter a valid email address" });
-        //     return;
-        // } else {
-        //     setEmailError({ error: false, helperText: "" });
-        // }
+        setEmailError("");
 
         if (!password) {
             setSnackbar({ open: true, message: "Please enter password", severity: "error" });
@@ -49,23 +42,38 @@ function LoginPage() {
         } else {
             setPasswordError({ error: false, helperText: "" });
         }
-        setLoading(true);
-        setEmailError("");
+
         setPasswordError("");
 
-        console.log("Login", email, password);
-
-        let completeEmail = "";
-
-        var lowredEmail=email.toLowerCase();
-        console.log(lowredEmail)
-        if (lowredEmail.slice(-16, -1) !== "@co-opbank.co.k") {
-            completeEmail = `${lowredEmail}@co-opbank.co.ke`;
+        if (!cpassword) {
+            setSnackbar({ open: true, message: "Passwords do not matchd", severity: "error" });
+            setCpasswordError({ error: true, helperText: "Passwords do not match" });
+            return;
         } else {
-            completeEmail = lowredEmail;
+            setCpasswordError({ error: false, helperText: "" });
         }
+
+        if(password !== cpassword){
+            setSnackbar({ open: true, message: "Passwords do not match", severity: "error" });
+            setCpasswordError({ error: true, helperText: "Passwords do not match" });
+            return;
+        }
+
+        if(!role){
+            setSnackbar({ open: true, message: "Please select role", severity: "error" });
+            setRoleError({ error: true, helperText: "Please select role" });
+            return;
+        }
+
+        setRoleError("");
+        setLoading(true);
+
+        console.log("Login", email, password, cpassword, role);
+        console.log("role",  role);
         try {
-            const data = await loginUser(email, password);
+            const params = {email: email, password: password, cpassword: cpassword, role: 'role'}
+            console.log('params', params)
+            const data = await createUser(params);
             // const data = await loginUser(completeEmail, password);
             console.log("Login successful:", data);
 
@@ -139,16 +147,6 @@ function LoginPage() {
                 console.log("Role not recognized.");
                 navigate("/");
             }
-            // console.log("Login successful22:", data.access_token);
-            // localStorage.setItem("authToken", data.access_token);
-            // if (rememberMe) {
-            //     localStorage.setItem("authToken", data.token);
-            // }
-
-            //setSnackbar({ open: true, message: "Login successful!", severity: "success" });
-            // navigate("/trackRecord");
-            // navigate("/accountstatement");
-           // window.location.href = "/dashboard"; // redirect after login
         } catch (err) {
             setSnackbar({ open: true, message: "Login failed!", severity: "error" });
             console.error(err);
@@ -216,7 +214,7 @@ function LoginPage() {
                         <Box
                             component="form"
                             sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-                            onSubmit={handleLogin}
+                            onSubmit={handleRegister}
                         >
                             <Typography
                                 variant="h6"
@@ -227,7 +225,7 @@ function LoginPage() {
                                     color: "purple"
                                 }}
                             >
-                                Sign in
+                                Sign Up
                             </Typography>
                             <TextField
                                 label="Email Address"
@@ -253,13 +251,42 @@ function LoginPage() {
                                 sx={{ "& .MuiInputBase-root": { height: 40 } }}
                             />
 
+                            <TextField
+                                label="Confirm Password"
+                                variant="outlined"
+                                type="password"
+                                size="small"
+                                fullWidth
+                                value={cpassword}
+                                onChange={(e) => setCpassword(e.target.value)}
+                                error={cpasswordError.error}
+                                helperText={cpasswordError.helperText}
+                                sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                            />
+
+                            <Autocomplete
+                                size="small"
+                                options={["Supplier", "Distributor", "Retailer"]}
+                                value={role}
+                                onChange={(event, newValue) => setRole(newValue)}
+                                renderInput={(params) => (
+                                    <TextField
+                                        {...params}
+                                        label="Select Role"
+                                        variant="outlined"
+                                        sx={{ "& .MuiInputBase-root": { height: 40 } }}
+                                    />
+                                )}
+                            />
+
+
                             {/* --- SIGN UP LINK HERE --- */}
                             <Typography
                                 variant="body2"
                                 sx={{ textAlign: "left", color: "purple", cursor: "pointer" }}
-                                onClick={() => navigate("/register")}
+                                onClick={() => navigate("/")}
                             >
-                                Sign Up?
+                                Sign In?
                             </Typography>
                             <Button
                                 variant="contained"
@@ -268,7 +295,7 @@ function LoginPage() {
                                 type="submit"
                                 disabled={loading}
                             >
-                                {loading ? <CircularProgress size={20} color="inherit" /> : "LOGIN"}
+                                {loading ? <CircularProgress size={20} color="inherit" /> : "Register"}
                             </Button>
                         </Box>
                     </CardContent>

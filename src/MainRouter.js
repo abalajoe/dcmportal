@@ -3,19 +3,13 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import MainLayout from "./components/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
 
-import AccountStatement from "./components/AccountStatement";
-import TrackRecord from "./components/TrackRecord";
 import LoginPage from "./components/Login";
-import PrintHistory from "./components/PrintHistory";
-import SystemLogs from "./components/SystemLogs";
 import Unauthorized from "./components/Unauthorized";
 import NotFound from "./components/NotFound";
-import ApproveChargeWaiver from "./components/ApproveChargeWaiver";
 import AllSettings from "./components/AllSettings";
-import AccountManagement from "./components/AccountManagement";
-import GeneralConfigs2 from "./components/GeneralConfigs";
-import GeneralConfigs from "./components/GeneralConfigs";
+import Inventory from "./components/Inventory";
 import Reports from "./components/Reports";
+import Register from "./components/Register";
 
 export default function MainRouter() {
     // ✅ Don't use default value - force it to read fresh each time
@@ -60,21 +54,14 @@ export default function MainRouter() {
             {/* Public route */}
             <Route path="/" element={<LoginPage />} />
 
+            <Route path="/register" element={<Register />} />
+
             {/* Protected routes */}
             <Route element={<MainLayout />}>
-                <Route path="/accountStatement"
-                       element={
-                           <ProtectedRoute
-                               element={<AccountStatement />}
-                               allowedRoles={["ICT_Administrator", "Contact_Centre_Officer", "Branch_Maker", "Branch_Checker", "Security_Services_User", "Head_Office"]}
-                               userRole={userRole}
-                           />
-                       }
-                />
                 <Route path="/supplier"
                        element={
                            <ProtectedRoute
-                               element={<AccountManagement />}
+                               element={<Inventory />}
                                allowedRoles={["Supplier"]}
                                userRole={userRole}
                            />
@@ -85,45 +72,6 @@ export default function MainRouter() {
                            <ProtectedRoute
                                element={<Reports />}
                                allowedRoles={["Supplier"]}
-                               userRole={userRole}
-                           />
-                       }
-                />
-                <Route path="/approveChargeWaiver"
-                       element={
-                           <ProtectedRoute
-                               element={<ApproveChargeWaiver />}
-                               allowedRoles={["Branch_Checker"]}
-                               userRole={userRole}
-                           />
-                       }
-                />
-
-                <Route path="/GeneralConfigs"
-                       element={
-                           <ProtectedRoute
-                               element={<GeneralConfigs />}
-                               allowedRoles={["ICT_Administrator", "ICT_Service_Desk_Maker", "ICT_Service_Desk_Checker"]}
-                               userRole={userRole}
-                           />
-                       }
-                />
-
-
-                <Route path="/PrintHistory"
-                       element={
-                           <ProtectedRoute
-                               element={<PrintHistory />}
-                               allowedRoles={["ICT_Administrator", "Branch_Maker", "Branch_Checker"]}
-                               userRole={userRole}
-                           />
-                       }
-                />
-                <Route path="/SystemLogs"
-                       element={
-                           <ProtectedRoute
-                               element={<SystemLogs />}
-                               allowedRoles={["ICT_Administrator", "Branch_Maker", "Branch_Checker"]}
                                userRole={userRole}
                            />
                        }

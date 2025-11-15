@@ -30,7 +30,7 @@ import {CreateSupplier,
 const Transition = React.forwardRef(function Transition(props, ref) {
     return <Slide direction="up" ref={ref} {...props} />;
 });
-const AccountManagement = () => {
+const Inventory = () => {
     const userRole = localStorage.getItem("role");
     const [sku, setSku] = useState("");
     const [name, setName] = useState("");
@@ -57,15 +57,6 @@ const AccountManagement = () => {
     const [skuErrorEdit, setSkuErrorEdit] = useState(false);
     const [nameErrorEdit, setNameErrorEdit] = useState(false);
     const [quantityErrorEdit, setQuantityErrorEdit] = useState(false);
-    const [emailHelperEdit, setEmailHelperEdit] = useState("");
-    const [roleHelper, setRoleHelper] = useState("");
-    const [branchHelper, setBranchHelper] = useState("");
-    const [managerHelperEdit, setManagerHelperEdit] = useState("");
-    const [role, setRole] = useState(null);
-    const [rle, setRle] = useState([]);
-    const [brnch, setBrnch] = useState([]);
-    const [mngr, setMngr] = useState([]);
-    const [selectedRole, setSelectedRole] = useState(null);
     const [openApproveDialog, setOpenApproveDialog] = useState(false);
     const [editFormData, setEditFormData] = useState({
         id: "",
@@ -83,7 +74,7 @@ const AccountManagement = () => {
             const sortDir = sortModel[0]?.sort?.toUpperCase() || "DESC";
 
             const response = await fetch(
-                `http://localhost:8082/api2/findAllSuppliers?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                `http://localhost:8082/api/findAllSuppliers?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
             );
 
             if (!response.ok) {
@@ -137,30 +128,24 @@ const AccountManagement = () => {
             console.log('hello2')
             setSnackbar({open: true, message: "Please select name", severity: "error"});
             setNameError(true);
-            setRoleHelper("Name is required");
             return;
         }
 
         // reset role error if valid
         setNameError(false);
-        setRoleHelper("");
 
         // ✅ Branch validation
         if (!quantity) { // role is your state from Autocomplete
             console.log('hello3')
             setSnackbar({open: true, message: "Please select quantity", severity: "error"});
             setQuantityError(true);
-            setBranchHelper("Quantity is required");
             return;
         }
 
         // reset role error if valid
         setQuantityError(false);
-        setBranchHelper("");
 
         const custEmail = localStorage.getItem("curUserEmail");
-        console.log('sku -> ', custEmail)
-        console.log('selectedRole -> ', selectedRole)
         const params = {
             sku: sku,
             name: name,
@@ -193,10 +178,8 @@ const AccountManagement = () => {
                 setRowCount((prev) => prev + 1);
                 // Optional: clear fields
                 setSku("");
-
-                setBrnch(null);
-                setRle(null);
-                setMngr(null);
+                setName("");
+                setQuantity("");
             } else {
                 setSnackbar({open: true, message: data.error, severity: "error"});
                 //return;
@@ -266,12 +249,10 @@ const AccountManagement = () => {
         if (!editFormData.sku) {
             setSnackbar({open: true, message: "Please enter sku", severity: "error"});
             setSkuErrorEdit(true);
-            setEmailHelperEdit("Enter sku");
             return;
         }
 
         setSkuErrorEdit(false);
-        setEmailHelperEdit("");
 
         // ✅ Branch validation
         if (!editFormData.name) { // role is your state from Autocomplete
@@ -281,10 +262,9 @@ const AccountManagement = () => {
         }
 
         setNameErrorEdit(false);
-        setManagerHelperEdit("");
 
         // ✅ Branch validation
-        if (!editFormData.quantity) { // role is your state from Autocomplete
+        if (!editFormData.quantity) {
             setSnackbar({open: true, message: "Please enter quantity", severity: "error"});
             setQuantityErrorEdit(true);
             return;
@@ -304,7 +284,7 @@ const AccountManagement = () => {
         setLoading(true);
         try {
             const response = await fetch(
-                "http://localhost:8082/api2/supplier/"+editFormData.id,
+                "http://localhost:8082/api/supplier/"+editFormData.id,
                 {
                     method: "PUT",
                     headers: {"Content-Type": "application/json"},
@@ -334,7 +314,7 @@ const AccountManagement = () => {
         setLoading(true);
         try {
             const response = await fetch(
-                "http://localhost:8082/api2/supplier/"+id,
+                "http://localhost:8082/api/supplier/"+id,
                 {
                     method: "DELETE",
                     headers: {"Content-Type": "application/json"},
@@ -444,7 +424,6 @@ const AccountManagement = () => {
             </Fade>
             {/* Filter + Add Button Section */}
             {["Supplier"].includes(userRole) && (
-            // {["ICT_Service_Desk_Maker"].includes(userRole) && (
                 <Fade in={true} timeout={1200}>
                     <Paper
                         elevation={5}
@@ -481,7 +460,7 @@ const AccountManagement = () => {
                                     startAdornment:
                                         <InputAdornment position="start" sx={{color: "grey.500"}}>
                                             {/* icon inherits currentColor from the adornment */}
-                                            <Hashtag size="18" color="currentColor"/>
+                                            {/*<Hashtag size="18" color="currentColor"/>*/}
                                         </InputAdornment>,
                                 }}
                                 sx={{
@@ -509,7 +488,7 @@ const AccountManagement = () => {
                                     startAdornment:
                                         <InputAdornment position="start" sx={{color: "grey.500"}}>
                                             {/* icon inherits currentColor from the adornment */}
-                                            <More size="18" color="currentColor"/>
+                                            {/*<More size="18" color="currentColor"/>*/}
                                         </InputAdornment>,
                                 }}
                                 sx={{
@@ -537,7 +516,7 @@ const AccountManagement = () => {
                                     startAdornment:
                                         <InputAdornment position="start" sx={{color: "grey.500"}}>
                                             {/* icon inherits currentColor from the adornment */}
-                                            <Add size="18" color="currentColor"/>
+                                            {/*<Add size="18" color="currentColor"/>*/}
                                         </InputAdornment>,
                                 }}
                                 sx={{
@@ -853,4 +832,4 @@ const AccountManagement = () => {
     );
 };
 
-export default AccountManagement;
+export default Inventory;

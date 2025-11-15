@@ -1,6 +1,5 @@
 // src/services/api.js
 import axios from "axios";
-
 export const loginUser = async (email, pswrd) => {
     try {
         const response = await fetch(
@@ -14,6 +13,32 @@ export const loginUser = async (email, pswrd) => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ email, pswrd }),
+            }
+        );
+
+        console.log('--> ',response)
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Login failed");
+        }
+
+        const data = await response.json();
+        console.log('--22> ',data)
+        return data; // the token or any response from backend
+    } catch (err) {
+        throw err;
+    }
+};
+export const createUser = async (params) => {
+    try {
+        const response = await fetch(
+            `${process.env.REACT_APP_BASE_URL2}/userCreate`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(params),
             }
         );
 
@@ -254,7 +279,7 @@ export const CreateUser = (params) => {
 export const CreateSupplier = (params) => {
     // const httpUrl = `${process.env.REACT_APP_BASE_URL}/accountStatement`;
     // const httpUrl = "http://localhost:8082/api/accountstatementengine/v1/user/manager";
-    const httpUrl = `${process.env.REACT_APP_BASE_URL2}/supplier`;
+    const httpUrl = `${process.env.REACT_APP_BASE_URL}/supplier`;
 
     const resp = new Promise((resolve, reject) => {
         const headers = {
