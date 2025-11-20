@@ -35,7 +35,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     const navItems = [
         { label: "Inventory",
             path: "/supplier",
-            allowedRoles: ["Supplier"],
+            allowedRoles: ["Supplier","Distributor","Retailer"],
             icon: <ArchiveAdd size="20" color="currentColor" /> },
         { label: "Reports",
             path: "/reports",

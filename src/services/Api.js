@@ -32,7 +32,7 @@ export const loginUser = async (email, pswrd) => {
 export const createUser = async (params) => {
     try {
         const response = await fetch(
-            `${process.env.REACT_APP_BASE_URL2}/userCreate`,
+            `${process.env.REACT_APP_BASE_URL}/create`,
             {
                 method: "POST",
                 headers: {

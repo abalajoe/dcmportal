@@ -58,6 +58,7 @@ const Inventory = () => {
     const [nameErrorEdit, setNameErrorEdit] = useState(false);
     const [quantityErrorEdit, setQuantityErrorEdit] = useState(false);
     const [openApproveDialog, setOpenApproveDialog] = useState(false);
+    const [openOrderDialog, setOpenOrderDialog] = useState(false);
     const [editFormData, setEditFormData] = useState({
         id: "",
         sku: "",
@@ -209,10 +210,20 @@ const Inventory = () => {
         setSelectedRow(row);
         setOpenApproveDialog(true);
     };
+
+    const handleOrderMenuOpen = (e, row) => {
+        e.stopPropagation();
+        setSelectedRow(row);
+        setOpenOrderDialog(true);
+    };
     const handleMenuClose = () => setAnchorEl(null);
 
     const handleApproveCloseDialog = () => {
         setOpenApproveDialog(false);
+    };
+
+    const handleOrderCloseDialog = () => {
+        setOpenOrderDialog(false);
     };
 
     const handleEditClick = () => {
@@ -240,6 +251,12 @@ const Inventory = () => {
         console.log("Delete:", selectedRow);
         deleteAsync(selectedRow.id)
         setOpenApproveDialog(false);
+    };
+
+    const handleOrder = () => {
+        console.log("Delete:", selectedRow);
+        //deleteAsync(selectedRow.id)
+        setOpenOrderDialog(false);
     };
 
     const handleSaveChanges = async () => {
@@ -347,38 +364,71 @@ const Inventory = () => {
             {field: "datecreated", headerName: "Date Created", flex: 1, minWidth: 150},
         ];
 
-        cols.push({
-            field: "edit",
-            headerName: "",
-            width: 70,
-            sortable: false,
-            renderCell: (params) => (
-                <IconButton
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditMenuOpen(e, params.row);
-                    }}
-                    size="small"
-                >
-                    <Edit size="14" color="purple" />
-                </IconButton>
-            ),
-        });
-
-        cols.push({
-            field: "approve",
-            headerName: "",
-            width: 70,
-            sortable: false,
-            renderCell: (params) => (
-                <IconButton
-                    onClick={(e) => handleApproveMenuOpen(e, params.row)}
-                    size="small"
-                >
-                    <Trash size="16" color="purple"/>
-                </IconButton>
-            ),
-        });
+        // Add action column based on role
+        if (userRole === "Supplier") {
+            cols.push({
+                field: "edit",
+                headerName: "",
+                width: 70,
+                sortable: false,
+                renderCell: (params) => (
+                    <IconButton
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditMenuOpen(e, params.row);
+                        }}
+                        size="small"
+                    >
+                        <Edit size="14" color="purple" />
+                    </IconButton>
+                ),
+            });
+        } else if (userRole === "Supplier") {
+            cols.push({
+                field: "approve",
+                headerName: "",
+                width: 70,
+                sortable: false,
+                renderCell: (params) => (
+                    <IconButton
+                        onClick={(e) => handleApproveMenuOpen(e, params.row)}
+                        size="small"
+                    >
+                        <Trash size="16" color="purple"/>
+                    </IconButton>
+                ),
+            });
+        } else if (userRole === "Distributor") {
+            cols.push({
+                field: "approve",
+                headerName: "",
+                width: 70,
+                sortable: false,
+                renderCell: (params) => (
+                    <IconButton
+                        onClick={(e) => handleOrderMenuOpen(e, params.row)}
+                        size="small"
+                    >
+                        <Add size="16" color="purple"/>
+                    </IconButton>
+                ),
+            });
+        } else if (userRole === "Retailer") {
+            cols.push({
+                field: "approve",
+                headerName: "",
+                width: 70,
+                sortable: false,
+                renderCell: (params) => (
+                    <IconButton
+                        onClick={(e) => handleOrderMenuOpen(e, params.row)}
+                        size="small"
+                    >
+                        <Add size="16" color="purple"/>
+                    </IconButton>
+                ),
+            });
+        }
 
         return cols;
     }, [userRole]);
@@ -415,7 +465,7 @@ const Inventory = () => {
                         variant="h5"
                         sx={{fontWeight: 700, color: "purple", mb: 0.5}}
                     >
-                        Supplier
+                        {userRole}
                     </Typography>
                     {/*<Typography variant="body2" color="text.secondary">
                         Manage system users, roles, and permissions.
@@ -821,6 +871,67 @@ const Inventory = () => {
                                     }}
                                 >
                                     Delete
+                                </Button>
+                            </DialogActions>
+                        </Dialog>
+
+                        <Dialog
+                            open={openOrderDialog}
+                            onClose={handleOrderCloseDialog}
+                            maxWidth="sm"
+                            fullWidth
+                            PaperProps={{
+                                sx: {
+                                    borderRadius: 3,
+                                    background: "rgba(255, 255, 255, 0.95)",
+                                    backdropFilter: "blur(20px)",
+                                    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.2)",
+                                },
+                            }}
+                        >
+                            <DialogTitle
+                                sx={{
+                                    background: "purple",
+                                    color: "#fff",
+                                    fontWeight: 700,
+                                    fontSize: "1.25rem",
+                                    py: 2.5,
+                                }}
+                            >
+                                Order
+                            </DialogTitle>
+
+                            <DialogContent sx={{ mt: 3, pb: 2 }}>
+                                <Typography sx={{ color: "#555", fontSize: "1.1rem" }}>
+                                    Are you sure you want to order this item?
+                                </Typography>
+                            </DialogContent>
+
+                            <DialogActions sx={{ p: 3, pt: 2, justifyContent: "flex-end" }}>
+                                <Button
+                                    onClick={handleOrderCloseDialog}
+                                    variant="outlined"
+                                    sx={{
+                                        color: "#555",
+                                        borderColor: "#ccc",
+                                        "&:hover": { borderColor: "#999" },
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleOrder} // your delete handler
+                                    variant="contained"
+                                    color="error"
+                                    sx={{
+                                        backgroundColor: 'purple',   // your custom color
+                                        color: '#fff',                // text color
+                                        '&:hover': {
+                                            backgroundColor: 'brown', // hover color
+                                        },
+                                    }}
+                                >
+                                    Order
                                 </Button>
                             </DialogActions>
                         </Dialog>

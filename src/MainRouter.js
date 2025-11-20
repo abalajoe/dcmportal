@@ -62,7 +62,7 @@ export default function MainRouter() {
                        element={
                            <ProtectedRoute
                                element={<Inventory />}
-                               allowedRoles={["Supplier"]}
+                               allowedRoles={["Supplier","Distributor","Retailer"]}
                                userRole={userRole}
                            />
                        }
@@ -71,7 +71,7 @@ export default function MainRouter() {
                        element={
                            <ProtectedRoute
                                element={<Reports />}
-                               allowedRoles={["Supplier"]}
+                               allowedRoles={["Supplier","Distributor","Retailer"]}
                                userRole={userRole}
                            />
                        }
@@ -81,7 +81,7 @@ export default function MainRouter() {
                        element={
                            <ProtectedRoute
                                element={<AllSettings />}
-                               allowedRoles={["Supplier"]}
+                               allowedRoles={["Supplier","Distributor","Retailer"]}
                                userRole={userRole}
                            />
                        }

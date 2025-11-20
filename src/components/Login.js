@@ -85,20 +85,20 @@ function LoginPage() {
                 localStorage.setItem("expired", 0);
                 navigate("/supplier");
             }
-            else if (roleName === "ICT_Service_Desk_Officer") {
+            else if (roleName === "Distributor") {
                 //setubmitting(false);
                 console.log("User is an ICT Service Desk Officer.");
-                localStorage.setItem("userRole", "ICT_Service_Desk_Officer");
+                localStorage.setItem("userRole", "Distributor");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
-                navigate("/accountManagement");
-            } else if (roleName === "ICT_Service_Desk_Supervisor") {
+                navigate("/supplier");
+            } else if (roleName === "Retailer") {
                 //setubmitting(false);
                 console.log("User is an ICT Service Desk Supervisor.");
-                localStorage.setItem("userRole", "ICT_Service_Desk_Supervisor");
+                localStorage.setItem("userRole", "Retailer");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
-                navigate("/accountManagement");
+                navigate("/supplier");
             }
             else if (roleName === "Contact_Centre_Officer") {
                 //setubmitting(false);
