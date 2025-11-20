@@ -35,6 +35,7 @@ const Inventory = () => {
     const [sku, setSku] = useState("");
     const [name, setName] = useState("");
     const [quantity, setQuantity] = useState("");
+    const [price, setPrice] = useState("");
     const [roles, setRoles] = useState("");
     const [loading, setLoading] = useState(false);
     const [rows, setRows] = useState([]);
@@ -53,10 +54,12 @@ const Inventory = () => {
     const [skuError, setSkuError] = useState(false);
     const [nameError, setNameError] = useState(false);
     const [quantityError, setQuantityError] = useState(false);
+    const [priceError, setPriceError] = useState(false);
     const [emailHelper, setEmailHelper] = useState("");
     const [skuErrorEdit, setSkuErrorEdit] = useState(false);
     const [nameErrorEdit, setNameErrorEdit] = useState(false);
     const [quantityErrorEdit, setQuantityErrorEdit] = useState(false);
+    const [priceErrorEdit, setPriceErrorEdit] = useState(false);
     const [openApproveDialog, setOpenApproveDialog] = useState(false);
     const [openOrderDialog, setOpenOrderDialog] = useState(false);
     const [editFormData, setEditFormData] = useState({
@@ -91,6 +94,7 @@ const Inventory = () => {
                     sku: item.sku || "-",
                     name: item.name || "-",
                     quantity: item.quantity || "-",
+                    price: item.price || "-",
                     createdby: item.createdby || "-",
                     // datecreated: item.datecreated || "-",
                     datecreated: new Date(item.datecreated).toLocaleString() || "-",
@@ -146,11 +150,19 @@ const Inventory = () => {
         // reset role error if valid
         setQuantityError(false);
 
+        if (!price) { // role is your state from Autocomplete
+            console.log('hello3')
+            setSnackbar({open: true, message: "Please select price", severity: "error"});
+            setPriceError(true);
+            return;
+        }
+
         const custEmail = localStorage.getItem("curUserEmail");
         const params = {
             sku: sku,
             name: name,
             quantity: quantity,
+            price: price,
             createdby: custEmail
         };
 
@@ -160,7 +172,7 @@ const Inventory = () => {
             console.log("data - ",data)
 
             if (data.status === 200) {
-                setSnackbar({open: true, message: "User loaded", severity: "success"});
+                setSnackbar({open: true, message: "Inventory loaded", severity: "success"});
 
                 // ✅ Add to DataGrid state immediately
                 const newUser = {
@@ -168,6 +180,7 @@ const Inventory = () => {
                     sku: sku,
                     name: name,
                     quantity: quantity,
+                    price: price,
                     createdby: custEmail,
                     datecreated: new Date(data.data.datecreated).toLocaleString(),
                     status: data.data.status,
@@ -181,6 +194,7 @@ const Inventory = () => {
                 setSku("");
                 setName("");
                 setQuantity("");
+                setPrice("");
             } else {
                 setSnackbar({open: true, message: data.error, severity: "error"});
                 //return;
@@ -201,6 +215,7 @@ const Inventory = () => {
             sku: row.sku || "",
             name: row.name || '',
             quantity: row.quantity || '',
+            price: row.price || '',
         });
         setOpenEditModal(true);
     }, []); // ✅ ADD departments2 to dependency array
@@ -233,6 +248,7 @@ const Inventory = () => {
             sku: selectedRow.sku,
             name: selectedRow.name,
             quantity: selectedRow.quantity,
+            price: selectedRow.price,
         });
         setOpenEditModal(true);
         handleMenuClose();
@@ -287,6 +303,12 @@ const Inventory = () => {
             return;
         }
 
+        if (!editFormData.price) {
+            setSnackbar({open: true, message: "Please enter price", severity: "error"});
+            setPriceErrorEdit(true);
+            return;
+        }
+
         setNameErrorEdit(false);
 
         const params = {
@@ -294,6 +316,7 @@ const Inventory = () => {
             sku: editFormData.sku,
             name: editFormData.name,
             quantity: editFormData.quantity,
+            price: editFormData.price,
         };
 
         console.log('theparams - ', params)
@@ -359,7 +382,8 @@ const Inventory = () => {
         const cols = [
             {field: "sku", headerName: "SKU", flex: 1, minWidth: 150},
             {field: "name", headerName: "Name", flex: 1, minWidth: 150},
-            {field: "quantity", headerName: "Quantity", flex: 1, minWidth: 150},
+            {field: "quantity", headerName: "Quantitys", flex: 1, minWidth: 150},
+            {field: "price", headerName: "Price", flex: 1, minWidth: 150},
             {field: "createdby", headerName: "Created By", flex: 1, minWidth: 150},
             {field: "datecreated", headerName: "Date Created", flex: 1, minWidth: 150},
         ];
@@ -383,7 +407,7 @@ const Inventory = () => {
                     </IconButton>
                 ),
             });
-        } else if (userRole === "Supplier") {
+
             cols.push({
                 field: "approve",
                 headerName: "",
@@ -562,6 +586,35 @@ const Inventory = () => {
                                 value={quantity}
                                 onChange={(e) => setQuantity(e.target.value)}
                                 error={quantityError}
+                                InputProps={{
+                                    startAdornment:
+                                        <InputAdornment position="start" sx={{color: "grey.500"}}>
+                                            {/* icon inherits currentColor from the adornment */}
+                                            {/*<Add size="18" color="currentColor"/>*/}
+                                        </InputAdornment>,
+                                }}
+                                sx={{
+                                    flex: 1,
+                                    minWidth: "180px",
+                                    "& .MuiInputBase-input": {fontSize: "0.9rem"},
+                                    "& .MuiInputLabel-root": {
+                                        fontSize: "1.0rem",
+                                        color: "black",
+                                    },
+                                    "& .MuiInputLabel-root.Mui-focused": {
+                                        color: "black", // keep label black when focused
+                                    },
+                                }}
+                            />
+
+                            <TextField
+                                size="small"
+                                label="Price"
+                                type="number"
+                                variant="outlined"
+                                value={price}
+                                onChange={(e) => setPrice(e.target.value)}
+                                error={priceError}
                                 InputProps={{
                                     startAdornment:
                                         <InputAdornment position="start" sx={{color: "grey.500"}}>
@@ -782,6 +835,24 @@ const Inventory = () => {
                                             sx: {fontSize: 14}, // 👈 reduce label font size
                                         }}
                                         onChange={(e) => handleFormChange("quantity", e.target.value)}
+                                    />
+                                    <TextField
+                                        label="Price"
+                                        fullWidth
+                                        type="number"
+                                        size="small"
+                                        value={editFormData.price}
+                                        error={priceErrorEdit}
+                                        InputProps={{
+                                            sx: {
+                                                fontSize: 14, // 👈 reduce input text font size
+                                                height: 36,   // optional: reduce height too
+                                            },
+                                        }}
+                                        InputLabelProps={{
+                                            sx: {fontSize: 14}, // 👈 reduce label font size
+                                        }}
+                                        onChange={(e) => handleFormChange("price", e.target.value)}
                                     />
                                 </Box>
                             </DialogContent>
