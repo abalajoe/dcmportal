@@ -51,6 +51,7 @@ const Inventory = () => {
     const [anchorEl, setAnchorEl] = useState(null);
     const [selectedRow, setSelectedRow] = useState(null);
     const [openEditModal, setOpenEditModal] = useState(false);
+    const [openEditPriceModal, setOpenEditPriceModal] = useState(false);
     const [snackbar, setSnackbar] = useState({open: false, message: "", severity: "success"});
     const [error, setError] = useState(false);
     const [skuError, setSkuError] = useState(false);
@@ -64,6 +65,7 @@ const Inventory = () => {
     const [priceErrorEdit, setPriceErrorEdit] = useState(false);
     const [openApproveDialog, setOpenApproveDialog] = useState(false);
     const [openOrderDialog, setOpenOrderDialog] = useState(false);
+    const [openOrderPriceDialog, setOpenOrderPriceDialog] = useState(false);
     const [editFormData, setEditFormData] = useState({
         id: "",
         sku: "",
@@ -72,6 +74,13 @@ const Inventory = () => {
     });
     const [orderFormData, setOrderFormData] = useState({
         quantity: "",
+    });
+
+    /*const [orderPriceFormData, setOrderPriceFormData] = useState({
+        quantity: "",
+    });*/
+    const [editPriceFormData, setEditPriceFormData] = useState({
+        price: "",
     });
 
     // Fetch pageable users
@@ -100,7 +109,7 @@ const Inventory = () => {
                         sku: item.supplier !== null ? item.supplier.sku : item.orders.supplier.sku,
                         name: item.supplier !== null ? item.supplier.name : item.orders.supplier.name,
                         quantity: item.supplier !== null ? item.supplier.quantity : item.orders.supplier.quantity,
-                        price: item.supplier !== null ? item.supplier.quantity : item.orders.supplier.price,
+                        price: item.price,
                         userid: item.buyerid || "-",
                         // item: item.supplier || "-",
                         // name: item.supplier.name || "-",
@@ -289,6 +298,18 @@ const Inventory = () => {
         setOpenEditModal(true);
     }, []); // ✅ ADD departments2 to dependency array
 
+    const handleEditPriceMenuOpen = useCallback((e, row) => {
+        e.stopPropagation();
+
+        setEditPriceFormData({
+            id: row.id || "",
+            sku: row.sku || "",
+            name: row.name || '',
+            quantity: row.quantity || '',
+            price: row.price || '',
+        });
+        setOpenEditPriceModal(true);
+    }, []); // ✅ ADD departments2 to dependency array
     const handleApproveMenuOpen = (e, row) => {
         e.stopPropagation();
         setSelectedRow(row);
@@ -311,6 +332,9 @@ const Inventory = () => {
         setOpenOrderDialog(false);
     };
 
+    const handleOrderPriceCloseDialog = () => {
+        setOpenEditPriceModal(false);
+    };
     const handleEditClick = () => {
         console.log('selectedrow', selectedRow)
         setEditFormData({
@@ -337,6 +361,10 @@ const Inventory = () => {
         setOrderFormData((prev) => ({...prev, [field]: value}));
     };
 
+    const handleFormOrderPriceChange = (field, value) => {
+        setEditPriceFormData((prev) => ({...prev, [field]: value}));
+    };
+
     const handleDelete = () => {
         console.log("Delete:", selectedRow);
         deleteAsync(selectedRow.id)
@@ -344,9 +372,16 @@ const Inventory = () => {
     };
 
     const handleOrder = () => {
-        console.log("Delete:", selectedRow);
+        console.log("handleOrder:", selectedRow);
         orderAsync(selectedRow, orderFormData)
         setOpenOrderDialog(false);
+    };
+
+    const handleOrderEditPrice = () => {
+        console.log("handleOrderEditPrice:", editPriceFormData);
+        console.log("selectedRow:", selectedRow);
+        //updatePriceAsync(selectedRow, orderFormData)
+        setOpenOrderPriceDialog(false);
     };
 
     const handleSaveChanges = async () => {
@@ -435,6 +470,40 @@ const Inventory = () => {
                     body: {},
                 }
             );
+
+            console.log('00 = ', response)
+            if (response.status !== 200) {
+                const errData = await response.json();
+                setSnackbar({open: true, message: "Something went wrong", severity: "error"});
+                return
+                //throw new Error(errData.message || "Failed to add user");
+            }
+            setSnackbar({open: true, message: "Successfully deleted inventory", severity: "success"});
+            await fetchSuppliers(); // refresh list from server
+        } catch (err) {
+            console.error("Add user error:", err);
+            alert(err.message);
+        } finally {
+            setLoading(false);
+            handleEditModalClose()
+        }
+    };
+
+    const updatePriceAsync = async (id, price) => {
+        console.log('theparams - ', id)
+        // return
+        setLoading(true);
+        try {
+            const response = await fetch(
+                `http://localhost:8082/api/order/${id}/${price}`,
+                {
+                    method: "PUT",
+                    headers: {"Content-Type": "application/json"},
+                    body: {},
+                }
+            );
+
+            console.log('00 = ', response)
             if (response.status !== 200) {
                 const errData = await response.json();
                 setSnackbar({open: true, message: "Something went wrong", severity: "error"});
@@ -453,13 +522,14 @@ const Inventory = () => {
     };
 
     const orderAsync = async (row, order) => {
-        console.log('theparams - ', row)
-        console.log('theparams101 - ', order)
+        console.log('theparamsx - ', row)
+        console.log('theparams101x - ', order)
         const custId = localStorage.getItem("curUserId");
         const userRole = localStorage.getItem("userRole");
         const params = {sellerid: row.userid.id, buyerid: parseInt(custId),
-            itemid: row.id, quantity: parseInt(order.quantity), role: userRole}
+            itemid: row.id, price: row.price, quantity: parseInt(order.quantity), role: userRole}
         console.log('theparams2 - ', params)
+        //return;
         try {
             const data = await createOrder(params);
             console.log('data - ', data)
@@ -531,6 +601,24 @@ const Inventory = () => {
                     </IconButton>
                 ),
             });
+
+            /*cols.push({
+                field: "edit",
+                headerName: "",
+                width: 70,
+                sortable: false,
+                renderCell: (params) => (
+                    <IconButton
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditPriceMenuOpen(e, params.row);
+                        }}
+                        size="small"
+                    >
+                        <Edit size="14" color="purple" />
+                    </IconButton>
+                ),
+            });*/
         }
         else if (userRole === "Retailer") {
             cols.push({
@@ -552,6 +640,18 @@ const Inventory = () => {
         return cols;
     }, [userRole]);
 
+    const getInventoryLabel = (role) => {
+        switch (role) {
+            case "Supplier":
+                return "Inventory";
+            case "Distributor":
+                return "Suppliers Inventory";
+            case "Retailer":
+                return "Distributors Inventory";
+            default:
+                return "Inventory";
+        }
+    };
     return (
 
         <Box
@@ -584,7 +684,7 @@ const Inventory = () => {
                         variant="h5"
                         sx={{fontWeight: 700, fontSize: 18, color: "purple", mb: 0.5}}
                     >
-                        {userRole} > Inventory
+                        {getInventoryLabel(userRole)}
                     </Typography>
                     {/*<Typography variant="body2" color="text.secondary">
                         Manage system users, roles, and permissions.
@@ -872,7 +972,7 @@ const Inventory = () => {
                                     py: 2.5,
                                 }}
                             >
-                                Edit Supply
+                                Edit Inventory
                             </DialogTitle>
                             <DialogContent>
                                 <Box sx={{display: "flex", flexDirection: "column", gap: 2, pt: 2}}>
@@ -1068,27 +1168,26 @@ const Inventory = () => {
                             </DialogTitle>
 
                             <DialogContent sx={{ mt: 3, pb: 2 }}>
-                                <TextField
-                                    label="Quantity"
-                                    fullWidth
-                                    type="number"
-                                    size="small"
-                                    value={orderFormData.quantity}
-                                    error={quantityErrorEdit}
-                                    InputProps={{
-                                        sx: {
-                                            fontSize: 14, // 👈 reduce input text font size
-                                            height: 36,   // optional: reduce height too
-                                        },
-                                    }}
-                                    InputLabelProps={{
-                                        sx: {fontSize: 14}, // 👈 reduce label font size
-                                    }}
-                                    onChange={(e) => handleFormOrderChange("quantity", e.target.value)}
-                                />
-                                {/*<Typography sx={{ color: "#555", fontSize: "1.1rem" }}>
-                                    Are you sure you want to order this item?
-                                </Typography>*/}
+                                <Box sx={{display: "flex", flexDirection: "column", gap: 2, pt: 2}}>
+                                    <TextField
+                                        label="Quantity"
+                                        fullWidth
+                                        type="number"
+                                        size="small"
+                                        value={orderFormData.quantity}
+                                        error={quantityErrorEdit}
+                                        InputProps={{
+                                            sx: {
+                                                fontSize: 14, // 👈 reduce input text font size
+                                                height: 36,   // optional: reduce height too
+                                            },
+                                        }}
+                                        InputLabelProps={{
+                                            sx: {fontSize: 14}, // 👈 reduce label font size
+                                        }}
+                                        onChange={(e) => handleFormOrderChange("quantity", e.target.value)}
+                                    />
+                                </Box>
                             </DialogContent>
 
                             <DialogActions sx={{ p: 3, pt: 2, justifyContent: "flex-end" }}>
@@ -1120,6 +1219,83 @@ const Inventory = () => {
                             </DialogActions>
                         </Dialog>
 
+                        <Dialog
+                            open={openEditPriceModal}
+                            onClose={handleOrderPriceCloseDialog}
+                            maxWidth="sm"
+                            disableRestoreFocus
+                            fullWidth
+                            TransitionComponent={Transition}
+                            PaperProps={{
+                                sx: {
+                                    borderRadius: 3,
+                                    background: "rgba(255, 255, 255, 0.95)",
+                                    backdropFilter: "blur(20px)",
+                                    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.2)",
+                                },
+                            }}
+                        >
+                            <DialogTitle
+                                sx={{
+                                    background: "purple",
+                                    color: "#fff",
+                                    fontWeight: 700,
+                                    fontSize: "1.25rem",
+                                    py: 2.5,
+                                }}
+                            >
+                                Edit Price
+                            </DialogTitle>
+                            <DialogContent>
+                                <Box sx={{display: "flex", flexDirection: "column", gap: 2, pt: 2}}>
+                                    <TextField
+                                        label="Price"
+                                        fullWidth
+                                        type="number"
+                                        size="small"
+                                        value={editPriceFormData.price}
+                                        error={priceErrorEdit}
+                                        InputProps={{
+                                            sx: {
+                                                fontSize: 14, // 👈 reduce input text font size
+                                                height: 36,   // optional: reduce height too
+                                            },
+                                        }}
+                                        InputLabelProps={{
+                                            sx: {fontSize: 14}, // 👈 reduce label font size
+                                        }}
+                                        onChange={(e) => handleFormOrderPriceChange("price", e.target.value)}
+                                    />
+                                </Box>
+                            </DialogContent>
+                            <DialogActions sx={{ p: 3, pt: 2, justifyContent: "flex-end" }}>
+                                <Button
+                                    onClick={handleOrderPriceCloseDialog}
+                                    variant="outlined"
+                                    sx={{
+                                        color: "#555",
+                                        borderColor: "#ccc",
+                                        "&:hover": { borderColor: "#999" },
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    onClick={handleOrderEditPrice} // your delete handler
+                                    variant="contained"
+                                    color="error"
+                                    sx={{
+                                        backgroundColor: 'purple',   // your custom color
+                                        color: '#fff',                // text color
+                                        '&:hover': {
+                                            backgroundColor: 'brown', // hover color
+                                        },
+                                    }}
+                                >
+                                    Edit Price
+                                </Button>
+                            </DialogActions>
+                        </Dialog>
                     </Box>
                 </Paper>
             </Fade>

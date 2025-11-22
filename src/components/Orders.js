@@ -5,12 +5,27 @@ import {
     CircularProgress,
     TextField,
     Snackbar,
-    Alert, Typography, Paper, InputAdornment, Fade, Chip, Slide
+    Alert,
+    Typography,
+    Paper,
+    InputAdornment,
+    Fade,
+    Chip,
+    Slide,
+    IconButton,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions
 } from "@mui/material";
 import {DataGrid} from "@mui/x-data-grid";
 import {
-    SearchNormal1
+    Edit,
+    SearchNormal1, Trash
 } from "iconsax-react";
+const Transition = React.forwardRef(function Transition(props, ref) {
+    return <Slide direction="up" ref={ref} {...props} />;
+});
 
 const Orders = () => {
     const userRole = localStorage.getItem("role");
@@ -21,10 +36,16 @@ const Orders = () => {
         page: 0,
         pageSize: 9,
     });
+    const [selectedRow, setSelectedRow] = useState(null);
     const [sortModel, setSortModel] = useState([{field: "id", sort: "desc"}]);
     const [searchVal, setSearchVal] = useState("");
     const [snackbar, setSnackbar] = useState({open: false, message: "", severity: "success"});
-
+    const [editPriceFormData, setEditPriceFormData] = useState({
+        price: "",
+    });
+    const [priceErrorEdit, setPriceErrorEdit] = useState(false);
+    const [openOrderPriceDialog, setOpenOrderPriceDialog] = useState(false);
+    const [openEditPriceModal, setOpenEditPriceModal] = useState(false);
     // Fetch pageable users
     const fetchOrders = useCallback(async () => {
 
@@ -52,7 +73,7 @@ const Orders = () => {
                     sku: item.supplier !== null ? item.supplier.sku : item.orders.supplier.sku,
                     name: item.supplier !== null ? item.supplier.name : item.orders.supplier.name,
                     quantity: item.supplier !== null ? item.supplier.quantity : item.orders.supplier.quantity,
-                    price: item.supplier !== null ? item.supplier.quantity : item.orders.supplier.price,
+                    price: item.price,
                     // sku: item.supplier.sku || "-",
                     // name: item.supplier.name || "-",
                     // quantity: item.supplier.quantity || "-",
@@ -76,6 +97,23 @@ const Orders = () => {
         fetchOrders();
     }, [fetchOrders]);
 
+    const handleEditPriceMenuOpen = useCallback((e, row) => {
+        e.stopPropagation();
+
+        setEditPriceFormData({
+            id: row.id || "",
+            sku: row.sku || "",
+            name: row.name || '',
+            quantity: row.quantity || '',
+            price: row.price || '',
+        });
+        setOpenEditPriceModal(true);
+    }, []); // ✅ ADD departments2 to dependency array
+
+    const handleOrderPriceCloseDialog = () => {
+        setOpenEditPriceModal(false);
+    };
+
     const columns = useMemo(() => {
         const cols = [
             {field: "sku", headerName: "SKU", flex: 1, minWidth: 150},
@@ -85,9 +123,78 @@ const Orders = () => {
             {field: "datecreated", headerName: "Date Created", flex: 1, minWidth: 150},
         ];
 
+        if (userRole === "Distributor") {
+            cols.push({
+                field: "edit",
+                headerName: "",
+                width: 70,
+                sortable: false,
+                renderCell: (params) => (
+                    <IconButton
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditPriceMenuOpen(e, params.row);
+                        }}
+                        size="small"
+                    >
+                        <Edit size="14" color="purple" />
+                    </IconButton>
+                ),
+            });
+        }
         return cols;
     }, [userRole]);
 
+    const handleOrderEditPrice = () => {
+        console.log("handleOrderEditPrice:", editPriceFormData);
+        console.log("selectedRow:", selectedRow);
+
+        if(editPriceFormData.price === ''){
+            setPriceErrorEdit(true)
+            setSnackbar({open: true, message: "Enter new price", severity: "error"});
+            return;
+        }
+        //updatePriceAsync(selectedRow, orderFormData)
+        updatePriceAsync(editPriceFormData.id, parseInt(editPriceFormData.price))
+        setOpenEditPriceModal(false);
+    };
+
+    const handleFormOrderPriceChange = (field, value) => {
+        setEditPriceFormData((prev) => ({...prev, [field]: value}));
+    };
+
+    const updatePriceAsync = async (id, price) => {
+        console.log('theparams - ', id)
+        // return
+        setLoading(true);
+        try {
+            const response = await fetch(
+                `http://localhost:8082/api/order/${id}/${price}`,
+                {
+                    method: "PUT",
+                    headers: {"Content-Type": "application/json"},
+                    body: {},
+                }
+            );
+
+            console.log('00 = ', response)
+            if (response.status !== 200) {
+                const errData = await response.json();
+                setSnackbar({open: true, message: "Something went wrong", severity: "error"});
+                return
+                //throw new Error(errData.message || "Failed to add user");
+            }
+            setSnackbar({open: true, message: "Successfully edited order price", severity: "success"});
+            setPriceErrorEdit(false)
+            await fetchOrders(); // refresh list from server
+        } catch (err) {
+            console.error("Add user error:", err);
+            alert(err.message);
+        } finally {
+            setLoading(false);
+            //handleEditModalClose()
+        }
+    };
     return (
 
         <Box
@@ -230,6 +337,84 @@ const Orders = () => {
                             }}
                         />
                     </Box>
+
+                    <Dialog
+                        open={openEditPriceModal}
+                        onClose={handleOrderPriceCloseDialog}
+                        maxWidth="sm"
+                        disableRestoreFocus
+                        fullWidth
+                        TransitionComponent={Transition}
+                        PaperProps={{
+                            sx: {
+                                borderRadius: 3,
+                                background: "rgba(255, 255, 255, 0.95)",
+                                backdropFilter: "blur(20px)",
+                                boxShadow: "0 20px 60px rgba(0, 0, 0, 0.2)",
+                            },
+                        }}
+                    >
+                        <DialogTitle
+                            sx={{
+                                background: "purple",
+                                color: "#fff",
+                                fontWeight: 700,
+                                fontSize: "1.25rem",
+                                py: 2.5,
+                            }}
+                        >
+                            Edit Price
+                        </DialogTitle>
+                        <DialogContent>
+                            <Box sx={{display: "flex", flexDirection: "column", gap: 2, pt: 2}}>
+                                <TextField
+                                    label="Price"
+                                    fullWidth
+                                    type="number"
+                                    size="small"
+                                    value={editPriceFormData.price}
+                                    error={priceErrorEdit}
+                                    InputProps={{
+                                        sx: {
+                                            fontSize: 14, // 👈 reduce input text font size
+                                            height: 36,   // optional: reduce height too
+                                        },
+                                    }}
+                                    InputLabelProps={{
+                                        sx: {fontSize: 14}, // 👈 reduce label font size
+                                    }}
+                                    onChange={(e) => handleFormOrderPriceChange("price", e.target.value)}
+                                />
+                            </Box>
+                        </DialogContent>
+                        <DialogActions sx={{ p: 3, pt: 2, justifyContent: "flex-end" }}>
+                            <Button
+                                onClick={handleOrderPriceCloseDialog}
+                                variant="outlined"
+                                sx={{
+                                    color: "#555",
+                                    borderColor: "#ccc",
+                                    "&:hover": { borderColor: "#999" },
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={handleOrderEditPrice} // your delete handler
+                                variant="contained"
+                                color="error"
+                                sx={{
+                                    backgroundColor: 'purple',   // your custom color
+                                    color: '#fff',                // text color
+                                    '&:hover': {
+                                        backgroundColor: 'brown', // hover color
+                                    },
+                                }}
+                            >
+                                Edit Price
+                            </Button>
+                        </DialogActions>
+                    </Dialog>
                 </Paper>
             </Fade>
         </Box>

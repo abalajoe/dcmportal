@@ -85,58 +85,21 @@ function LoginPage() {
                 localStorage.setItem("userRole", "Supplier");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
-                navigate("/supplier");
-            }
-            else if (roleName === "Distributor") {
+                navigate("/inventory");
+            } else if (roleName === "Distributor") {
                 //setubmitting(false);
                 console.log("User is an ICT Service Desk Officer.");
                 localStorage.setItem("userRole", "Distributor");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
-                navigate("/supplier");
+                navigate("/inventory");
             } else if (roleName === "Retailer") {
                 //setubmitting(false);
                 console.log("User is an ICT Service Desk Supervisor.");
                 localStorage.setItem("userRole", "Retailer");
                 //localStorage.setItem("rights", permissionsArray);
                 localStorage.setItem("expired", 0);
-                navigate("/supplier");
-            }
-            else if (roleName === "Contact_Centre_Officer") {
-                //setubmitting(false);
-                console.log("User is a Contact Centre Officer.");
-                localStorage.setItem("userRole", "Contact_Centre_Officer");
-                //localStorage.setItem("rights", permissionsArray);
-                localStorage.setItem("expired", 0);
-                navigate("/accountStatement");
-            } else if (roleName === "Branch_Maker") {
-                //setubmitting(false);
-                console.log("User is a Branch Maker.");
-                localStorage.setItem("userRole", "Branch_Maker");
-                //localStorage.setItem("rights", permissionsArray);
-                localStorage.setItem("expired", 0);
-                navigate("/accountStatement");
-            } else if (roleName === "Branch_Checker") {
-                //setubmitting(false);
-                console.log("User is a Branch Checker.");
-                localStorage.setItem("userRole", "Branch_Checker");
-                //localStorage.setItem("rights", permissionsArray);
-                localStorage.setItem("expired", 0);
-                navigate("/accountStatement");
-            } else if (roleName === "Security_Services_User") {
-                //setubmitting(false);
-                console.log("User is a Security Services User.");
-                localStorage.setItem("userRole", "Security_Services_User");
-                //localStorage.setItem("rights", permissionsArray);
-                localStorage.setItem("expired", 0);
-                navigate("/accountStatement");
-            } else if (roleName === "Head_Office") {
-                //setubmitting(false);
-                console.log("User is a Head Office User.");
-                localStorage.setItem("userRole", "Head_Office");
-                //localStorage.setItem("rights", permissionsArray);
-                localStorage.setItem("expired", 0);
-                navigate("/accountStatement");
+                navigate("/inventory");
             } else {
                 console.log("Role not recognized.");
                 navigate("/");

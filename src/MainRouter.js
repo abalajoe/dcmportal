@@ -59,7 +59,7 @@ export default function MainRouter() {
 
             {/* Protected routes */}
             <Route element={<MainLayout />}>
-                <Route path="/supplier"
+                <Route path="/inventory"
                        element={
                            <ProtectedRoute
                                element={<Inventory />}
