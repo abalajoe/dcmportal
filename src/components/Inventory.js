@@ -24,7 +24,9 @@ import {
     Add,
     SearchNormal1, Settings, Data, Hashtag, More
 } from "iconsax-react";
-import {CreateSupplier,
+import {
+    createOrder,
+    CreateSupplier, createUser,
 } from "../services/Api";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -68,6 +70,9 @@ const Inventory = () => {
         name: "",
         quantity: "",
     });
+    const [orderFormData, setOrderFormData] = useState({
+        quantity: "",
+    });
 
     // Fetch pageable users
     const fetchSuppliers = useCallback(async () => {
@@ -76,32 +81,94 @@ const Inventory = () => {
         try {
             const sortField = sortModel[0]?.field || "id";
             const sortDir = sortModel[0]?.sort?.toUpperCase() || "DESC";
+            const custId = localStorage.getItem("curUserId");
+            if (userRole === 'Retailer'){
+                const response = await fetch(
+                    `http://localhost:8082/api/findAllOrders?id=0&start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                );
 
-            const response = await fetch(
-                `http://localhost:8082/api/findAllSuppliers?start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
-            );
+                if (!response.ok) {
+                    throw new Error("Failed to fetch data");
+                }
 
-            if (!response.ok) {
-                throw new Error("Failed to fetch data");
+                const data = await response.json();
+                console.log('fetch-data44 - ', data)
+
+                setRows(
+                    data.content.map((item, index) => ({
+                        id: item.id,
+                        sku: item.supplier !== null ? item.supplier.sku : item.orders.supplier.sku,
+                        name: item.supplier !== null ? item.supplier.name : item.orders.supplier.name,
+                        quantity: item.supplier !== null ? item.supplier.quantity : item.orders.supplier.quantity,
+                        price: item.supplier !== null ? item.supplier.quantity : item.orders.supplier.price,
+                        userid: item.buyerid || "-",
+                        // item: item.supplier || "-",
+                        // name: item.supplier.name || "-",
+                        // quantity: item.quantity || "-",
+                        // price: item.supplier.price || "-",
+                        // userid: item.supplier.userid || "-",
+                        // createdby: item.createdby || "-",
+                        // datecreated: item.datecreated || "-",
+                        datecreated: new Date(item.datecreated).toLocaleString() || "-",
+                        status: item.status || "-",
+                    }))
+                );
+                setRowCount(data.totalElements);
+            } else if (userRole === 'Supplier'){
+                const response = await fetch(
+                    `http://localhost:8082/api/findAllSuppliers?id=${custId}&start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                );
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch data");
+                }
+
+                const data = await response.json();
+                console.log('fetch-data - ', data)
+
+                setRows(
+                    data.content.map((item, index) => ({
+                        id: item.id,
+                        sku: item.sku || "-",
+                        name: item.name || "-",
+                        quantity: item.quantity || "-",
+                        price: item.price || "-",
+                        userid: item.userid || "-",
+                        createdby: item.createdby || "-",
+                        // datecreated: item.datecreated || "-",
+                        datecreated: new Date(item.datecreated).toLocaleString() || "-",
+                        status: item.status || "-",
+                    }))
+                );
+                setRowCount(data.totalElements);
+            }else {
+                const response = await fetch(
+                    `http://localhost:8082/api/findAllSuppliers?id=0&start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                );
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch data");
+                }
+
+                const data = await response.json();
+                console.log('fetch-data - ', data)
+
+                setRows(
+                    data.content.map((item, index) => ({
+                        id: item.id,
+                        sku: item.sku || "-",
+                        name: item.name || "-",
+                        quantity: item.quantity || "-",
+                        price: item.price || "-",
+                        userid: item.userid || "-",
+                        createdby: item.createdby || "-",
+                        // datecreated: item.datecreated || "-",
+                        datecreated: new Date(item.datecreated).toLocaleString() || "-",
+                        status: item.status || "-",
+                    }))
+                );
+                setRowCount(data.totalElements);
             }
-
-            const data = await response.json();
-            console.log('fetch-data - ', data)
-
-            setRows(
-                data.content.map((item, index) => ({
-                    id: item.id,
-                    sku: item.sku || "-",
-                    name: item.name || "-",
-                    quantity: item.quantity || "-",
-                    price: item.price || "-",
-                    createdby: item.createdby || "-",
-                    // datecreated: item.datecreated || "-",
-                    datecreated: new Date(item.datecreated).toLocaleString() || "-",
-                    status: item.status || "-",
-                }))
-            );
-            setRowCount(data.totalElements);
         } catch (error) {
             console.error("Error fetching account data:", error);
         } finally {
@@ -158,12 +225,14 @@ const Inventory = () => {
         }
 
         const custEmail = localStorage.getItem("curUserEmail");
+        const custId = localStorage.getItem("curUserId");
         const params = {
             sku: sku,
             name: name,
             quantity: quantity,
             price: price,
-            createdby: custEmail
+            createdby: custEmail,
+            userid: custId
         };
 
         console.log('params --> ', params)
@@ -228,6 +297,7 @@ const Inventory = () => {
 
     const handleOrderMenuOpen = (e, row) => {
         e.stopPropagation();
+        console.log(row);
         setSelectedRow(row);
         setOpenOrderDialog(true);
     };
@@ -263,6 +333,10 @@ const Inventory = () => {
         setEditFormData((prev) => ({...prev, [field]: value}));
     };
 
+    const handleFormOrderChange = (field, value) => {
+        setOrderFormData((prev) => ({...prev, [field]: value}));
+    };
+
     const handleDelete = () => {
         console.log("Delete:", selectedRow);
         deleteAsync(selectedRow.id)
@@ -271,7 +345,7 @@ const Inventory = () => {
 
     const handleOrder = () => {
         console.log("Delete:", selectedRow);
-        //deleteAsync(selectedRow.id)
+        orderAsync(selectedRow, orderFormData)
         setOpenOrderDialog(false);
     };
 
@@ -337,7 +411,7 @@ const Inventory = () => {
                 return
                 //throw new Error(errData.message || "Failed to add user");
             }
-            setSnackbar({open: true, message: "Successfully edited supplier", severity: "success"});
+            setSnackbar({open: true, message: "Successfully edited inventory", severity: "success"});
             await fetchSuppliers(); // refresh list from server
         } catch (err) {
             console.error("Add user error:", err);
@@ -367,8 +441,29 @@ const Inventory = () => {
                 return
                 //throw new Error(errData.message || "Failed to add user");
             }
-            setSnackbar({open: true, message: "Successfully actioned user", severity: "success"});
+            setSnackbar({open: true, message: "Successfully deleted inventory", severity: "success"});
             await fetchSuppliers(); // refresh list from server
+        } catch (err) {
+            console.error("Add user error:", err);
+            alert(err.message);
+        } finally {
+            setLoading(false);
+            handleEditModalClose()
+        }
+    };
+
+    const orderAsync = async (row, order) => {
+        console.log('theparams - ', row)
+        console.log('theparams101 - ', order)
+        const custId = localStorage.getItem("curUserId");
+        const userRole = localStorage.getItem("userRole");
+        const params = {sellerid: row.userid.id, buyerid: parseInt(custId),
+            itemid: row.id, quantity: parseInt(order.quantity), role: userRole}
+        console.log('theparams2 - ', params)
+        try {
+            const data = await createOrder(params);
+            console.log('data - ', data)
+            setSnackbar({open: true, message: "Successful Added Order", severity: "success"});
         } catch (err) {
             console.error("Add user error:", err);
             alert(err.message);
@@ -382,9 +477,8 @@ const Inventory = () => {
         const cols = [
             {field: "sku", headerName: "SKU", flex: 1, minWidth: 150},
             {field: "name", headerName: "Name", flex: 1, minWidth: 150},
-            {field: "quantity", headerName: "Quantitys", flex: 1, minWidth: 150},
+            {field: "quantity", headerName: "Quantity", flex: 1, minWidth: 150},
             {field: "price", headerName: "Price", flex: 1, minWidth: 150},
-            {field: "createdby", headerName: "Created By", flex: 1, minWidth: 150},
             {field: "datecreated", headerName: "Date Created", flex: 1, minWidth: 150},
         ];
 
@@ -437,7 +531,8 @@ const Inventory = () => {
                     </IconButton>
                 ),
             });
-        } else if (userRole === "Retailer") {
+        }
+        else if (userRole === "Retailer") {
             cols.push({
                 field: "approve",
                 headerName: "",
@@ -489,7 +584,7 @@ const Inventory = () => {
                         variant="h5"
                         sx={{fontWeight: 700, color: "purple", mb: 0.5}}
                     >
-                        {userRole}
+                        {userRole} > Inventory
                     </Typography>
                     {/*<Typography variant="body2" color="text.secondary">
                         Manage system users, roles, and permissions.
@@ -973,9 +1068,27 @@ const Inventory = () => {
                             </DialogTitle>
 
                             <DialogContent sx={{ mt: 3, pb: 2 }}>
-                                <Typography sx={{ color: "#555", fontSize: "1.1rem" }}>
+                                <TextField
+                                    label="Quantity"
+                                    fullWidth
+                                    type="number"
+                                    size="small"
+                                    value={orderFormData.quantity}
+                                    error={quantityErrorEdit}
+                                    InputProps={{
+                                        sx: {
+                                            fontSize: 14, // 👈 reduce input text font size
+                                            height: 36,   // optional: reduce height too
+                                        },
+                                    }}
+                                    InputLabelProps={{
+                                        sx: {fontSize: 14}, // 👈 reduce label font size
+                                    }}
+                                    onChange={(e) => handleFormOrderChange("quantity", e.target.value)}
+                                />
+                                {/*<Typography sx={{ color: "#555", fontSize: "1.1rem" }}>
                                     Are you sure you want to order this item?
-                                </Typography>
+                                </Typography>*/}
                             </DialogContent>
 
                             <DialogActions sx={{ p: 3, pt: 2, justifyContent: "flex-end" }}>

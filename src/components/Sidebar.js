@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { Tooltip, useMediaQuery, useTheme } from "@mui/material";
 import {
-    EmptyWallet, Setting2, ArchiveAdd, Diagram
+    EmptyWallet, Setting2, ArchiveAdd, Diagram, Bag2
 } from "iconsax-react";
 
 export default function Sidebar({ collapsed, setCollapsed }) {
@@ -35,8 +35,12 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     const navItems = [
         { label: "Inventory",
             path: "/supplier",
-            allowedRoles: ["Supplier","Distributor","Retailer"],
+            allowedRoles: ["Supplier","Distributor", "Retailer"],
             icon: <ArchiveAdd size="20" color="currentColor" /> },
+        { label: "Orders",
+            path: "/orders",
+            allowedRoles: ["Distributor","Retailer"],
+            icon: <Bag2 size="20" color="currentColor" /> },
         { label: "Reports",
             path: "/reports",
             allowedRoles: ["Supplier"],

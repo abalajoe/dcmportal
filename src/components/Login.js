@@ -67,10 +67,12 @@ function LoginPage() {
         try {
             const data = await loginUser(email, password);
             // const data = await loginUser(completeEmail, password);
-            console.log("Login successful:", data);
+            console.log("Login successful>>:", data);
+            console.log("Login successful>>:", data.user.id);
 
             localStorage.setItem("token", data.token);
             localStorage.setItem("curUserEmail", data.email);
+            localStorage.setItem("curUserId", data.user.id);
 
             const role = JSON.parse(data.role);
             const roleName = role.roleName;
@@ -148,7 +150,7 @@ function LoginPage() {
             //setSnackbar({ open: true, message: "Login successful!", severity: "success" });
             // navigate("/trackRecord");
             // navigate("/accountstatement");
-           // window.location.href = "/dashboard"; // redirect after login
+            // window.location.href = "/dashboard"; // redirect after login
         } catch (err) {
             setSnackbar({ open: true, message: "Login failed!", severity: "error" });
             console.error(err);

@@ -10,6 +10,7 @@ import AllSettings from "./components/AllSettings";
 import Inventory from "./components/Inventory";
 import Reports from "./components/Reports";
 import Register from "./components/Register";
+import Orders from "./components/Orders";
 
 export default function MainRouter() {
     // ✅ Don't use default value - force it to read fresh each time
@@ -72,6 +73,16 @@ export default function MainRouter() {
                            <ProtectedRoute
                                element={<Reports />}
                                allowedRoles={["Supplier","Distributor","Retailer"]}
+                               userRole={userRole}
+                           />
+                       }
+                />
+
+                <Route path="/orders"
+                       element={
+                           <ProtectedRoute
+                               element={<Orders />}
+                               allowedRoles={["Distributor","Retailer"]}
                                userRole={userRole}
                            />
                        }

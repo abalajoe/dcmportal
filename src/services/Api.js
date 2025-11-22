@@ -29,10 +29,37 @@ export const loginUser = async (email, pswrd) => {
         throw err;
     }
 };
+
 export const createUser = async (params) => {
     try {
         const response = await fetch(
             `${process.env.REACT_APP_BASE_URL}/create`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(params),
+            }
+        );
+
+        console.log('--> ',response)
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Login failed");
+        }
+
+        const data = await response.json();
+        console.log('--22> ',data)
+        return data; // the token or any response from backend
+    } catch (err) {
+        throw err;
+    }
+};
+export const createOrder = async (params) => {
+    try {
+        const response = await fetch(
+            `${process.env.REACT_APP_BASE_URL}/order`,
             {
                 method: "POST",
                 headers: {
