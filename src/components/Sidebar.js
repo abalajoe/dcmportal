@@ -45,10 +45,10 @@ export default function Sidebar({ collapsed, setCollapsed }) {
             path: "/reports",
             allowedRoles: ["Supplier"],
             icon: <Diagram size="20" color="currentColor" /> },
-        { label: "Settings",
-            path: "/settings",
-            allowedRoles: ["Supplier"],
-            icon: <Setting2 size="20" color="currentColor" /> },
+        // { label: "Settings",
+        //     path: "/settings",
+        //     allowedRoles: ["Supplier"],
+        //     icon: <Setting2 size="20" color="currentColor" /> },
     ];
 
     // ✅ Only show menus allowed for this user

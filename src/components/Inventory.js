@@ -582,7 +582,7 @@ const Inventory = () => {
                 <Box sx={{mb: 2}}>
                     <Typography
                         variant="h5"
-                        sx={{fontWeight: 700, color: "purple", mb: 0.5}}
+                        sx={{fontWeight: 700, fontSize: 18, color: "purple", mb: 0.5}}
                     >
                         {userRole} > Inventory
                     </Typography>

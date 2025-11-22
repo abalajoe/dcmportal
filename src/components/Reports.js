@@ -11,7 +11,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 });
 const Reports = () => {
     const [data, setData] = useState([]);
-
+    const userRole = localStorage.getItem("role");
     useEffect(() => {
         fetch("http://localhost:8082/api/supplierReport")
             .then(response => response.json())
@@ -35,9 +35,9 @@ const Reports = () => {
                 <Box sx={{mb: 2}}>
                     <Typography
                         variant="h5"
-                        sx={{fontWeight: 700, color: "purple", mb: 0.5}}
+                        sx={{fontWeight: 700, fontSize: 18, color: "purple", mb: 0.5}}
                     >
-                        Reports
+                        {userRole} > Reports
                     </Typography>
                     {/*<Typography variant="body2" color="text.secondary">
                         Manage system users, roles, and permissions.
