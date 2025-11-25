@@ -526,6 +526,10 @@ const Inventory = () => {
         console.log('theparams101x - ', order)
         const custId = localStorage.getItem("curUserId");
         const userRole = localStorage.getItem("userRole");
+        if (row.quantity < order.quantity){
+            setSnackbar({open: true, message: "The quantity you have entered is more than the available", severity: "error"});
+            return;
+        }
         const params = {sellerid: row.userid.id, buyerid: parseInt(custId),
             itemid: row.id, price: row.price, quantity: parseInt(order.quantity), role: userRole}
         console.log('theparams2 - ', params)
