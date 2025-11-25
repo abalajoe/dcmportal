@@ -93,7 +93,7 @@ const Inventory = () => {
             const custId = localStorage.getItem("curUserId");
             if (userRole === 'Retailer'){
                 const response = await fetch(
-                    `http://localhost:8082/api/findAllOrders?id=0&start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
+                    `http://localhost:8082/api/findAllOrdersRetailers?id=${custId}&start=${paginationModel.page}&length=${paginationModel.pageSize}&searchVal=${searchVal}&sort=${sortField},${sortDir}`
                 );
 
                 if (!response.ok) {
@@ -108,7 +108,7 @@ const Inventory = () => {
                         id: item.id,
                         sku: item.supplier !== null ? item.supplier.sku : item.orders.supplier.sku,
                         name: item.supplier !== null ? item.supplier.name : item.orders.supplier.name,
-                        quantity: item.supplier !== null ? item.supplier.quantity : item.orders.supplier.quantity,
+                        quantity: item.quantity,
                         price: item.price,
                         userid: item.buyerid || "-",
                         // item: item.supplier || "-",
