@@ -72,7 +72,7 @@ const Orders = () => {
                     id: item.id,
                     sku: item.supplier !== null ? item.supplier.sku : item.orders.supplier.sku,
                     name: item.supplier !== null ? item.supplier.name : item.orders.supplier.name,
-                    quantity: item.supplier !== null ? item.supplier.quantity : item.orders.supplier.quantity,
+                    quantity: item.quantity,
                     price: item.price,
                     // sku: item.supplier.sku || "-",
                     // name: item.supplier.name || "-",
